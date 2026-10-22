@@ -1,0 +1,344 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvAutoRefreshWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:auto="clr-namespace:KCViewer.Window.Tools.AutoRefresh"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding AutoRefresh.Title}"
+	Width="620"
+	Height="520"
+	MinWidth="480"
+	MinHeight="320"
+	d:DataContext="{d:DesignInstance auto:AutoRefreshViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="auto:AutoRefreshViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: 자동 재로딩 in KanColleViewer's style (KcvMenuWindows, mockup viewer-design/mockups/20261018-menu-windows-v2.html,
+		approved 2026-10-18 "구현") with the viewer's view model: its warning in orange, 「싱글 맵 모드」 (the viewer's help
+		as the tooltip), 「진행 허용 칸」 with the rules as open cards (사용, the map and its name, 규칙 삭제; the allowed
+		cells as 「A (1) ✕」; a cell from the list or by number), and the status in the bar below. The rules are not
+		dragged into an order (the user's answer "뺌": all enabled rules are checked). Saved when closed, as the viewer.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvMapNameConverter x:Key="MapName" />
+			<kcv:KcvCellDisplayConverter x:Key="CellDisplay" />
+
+			<DataTemplate x:Key="MapItem">
+				<TextBlock Text="{Binding Converter={StaticResource MapName}}" />
+			</DataTemplate>
+
+			<Style
+				x:Key="Small"
+				BasedOn="{StaticResource KcvRec.Button}"
+				TargetType="Button"
+				>
+				<Setter Property="MinWidth" Value="0" />
+				<Setter Property="Padding" Value="8 1" />
+				<Setter Property="Margin" Value="4 0 0 0" />
+			</Style>
+			<Style
+				x:Key="RowName"
+				BasedOn="{StaticResource Cfg.Lbl}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="Width" Value="68" />
+			</Style>
+
+			<!--  an allowed cell: its name and ✕  -->
+			<Style x:Key="ChipRemove" TargetType="Button">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+				<Setter Property="Width" Value="16" />
+				<Setter Property="Margin" Value="4 0 0 0" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="Focusable" Value="False" />
+				<Setter Property="Content" Value="✕" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Border Background="Transparent">
+								<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<DataTemplate x:Key="Rule" DataType="{x:Type auto:AutoRefreshRuleViewModel}">
+				<!--  focusable, as the viewer's rule (its menu opens with the menu key too)  -->
+				<Border
+					x:Name="Card"
+					Margin="0 6 0 0"
+					Padding="8 3 8 5"
+					Background="Transparent"
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="1"
+					Focusable="True"
+					FocusVisualStyle="{x:Null}"
+					>
+					<Border.ContextMenu>
+						<ContextMenu>
+							<MenuItem
+								Command="{Binding PlacementTarget.Tag.RemoveRuleCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+								CommandParameter="{Binding}"
+								Header="{x:Static fork:ForkStrings.AutoRefreshRemoveRule}"
+								/>
+						</ContextMenu>
+					</Border.ContextMenu>
+					<!--  the window's view model, for 규칙 삭제 (the menu reaches it through its placement target)  -->
+					<Border.Tag>
+						<Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=Window}" />
+					</Border.Tag>
+					<StackPanel>
+						<DockPanel Margin="0 1">
+							<Button
+								Command="{Binding Tag.RemoveRuleCommand, ElementName=Card}"
+								CommandParameter="{Binding}"
+								Content="{x:Static fork:ForkStrings.AutoRefreshRemoveRule}"
+								DockPanel.Dock="Right"
+								Style="{StaticResource Small}"
+								/>
+							<StackPanel Orientation="Horizontal">
+								<CheckBox Content="{x:Static fork:ForkStrings.AutoRefreshEnabled}" IsChecked="{Binding IsEnabled}" />
+								<TextBlock
+									x:Name="MapId"
+									VerticalAlignment="Center"
+									FontSize="13.5"
+									Text="{Binding Map.Display}"
+									/>
+								<TextBlock
+									x:Name="MapName"
+									Margin="6 0 0 0"
+									VerticalAlignment="Center"
+									FontSize="12.5"
+									Foreground="{DynamicResource Kcv.SubForeground}"
+									Text="{Binding Map, Converter={StaticResource MapName}, ConverterParameter=Name}"
+									/>
+							</StackPanel>
+						</DockPanel>
+						<DockPanel Margin="0 2">
+							<TextBlock
+								VerticalAlignment="Top"
+								DockPanel.Dock="Left"
+								Style="{StaticResource RowName}"
+								Text="{x:Static fork:ForkStrings.AutoRefreshAllowedCells}"
+								/>
+							<Grid>
+								<TextBlock
+									x:Name="NoCells"
+									VerticalAlignment="Center"
+									FontSize="12"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{x:Static fork:ForkStrings.AutoRefreshNoCells}"
+									Visibility="Collapsed"
+									/>
+								<ItemsControl Focusable="False" ItemsSource="{Binding AllowedCells}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<WrapPanel />
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate DataType="{x:Type auto:CellViewModel}">
+											<!--  Tag: the rule, for the viewer's 셀 삭제 menu  -->
+											<Border
+												Height="22"
+												Margin="0 1 6 1"
+												Padding="8 0 4 0"
+												Background="{DynamicResource Kcv.ChipBackground}"
+												CornerRadius="2"
+												Focusable="True"
+												FocusVisualStyle="{x:Null}"
+												Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+												>
+												<Border.ContextMenu>
+													<ContextMenu>
+														<MenuItem
+															Command="{Binding PlacementTarget.Tag.RemoveAllowedCellCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+															CommandParameter="{Binding}"
+															Header="{x:Static translations:AutoRefreshResources.RemoveCell}"
+															/>
+													</ContextMenu>
+												</Border.ContextMenu>
+												<StackPanel Orientation="Horizontal">
+													<TextBlock VerticalAlignment="Center" FontSize="12.5">
+														<TextBlock.Text>
+															<MultiBinding Converter="{StaticResource CellDisplay}">
+																<Binding Path="Id" />
+																<Binding Path="DataContext.Map" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+															</MultiBinding>
+														</TextBlock.Text>
+													</TextBlock>
+													<Button
+														Command="{Binding DataContext.RemoveAllowedCellCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+														CommandParameter="{Binding}"
+														Style="{StaticResource ChipRemove}"
+														/>
+												</StackPanel>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</Grid>
+						</DockPanel>
+						<WrapPanel Margin="0 2">
+							<TextBlock Style="{StaticResource RowName}" Text="{x:Static fork:ForkStrings.AutoRefreshAddCell}" />
+							<ComboBox
+								MinWidth="90"
+								Margin="0"
+								ItemsSource="{Binding AllCells}"
+								SelectedItem="{Binding SelectedCell}"
+								Style="{StaticResource Cfg.Combo}"
+								/>
+							<Button
+								Command="{Binding AddAllowedCellCommand}"
+								Content="＋"
+								Style="{StaticResource Small}"
+								/>
+							<TextBlock
+								Margin="14 0 8 0"
+								Style="{StaticResource Cfg.Lbl}"
+								Text="{x:Static fork:ForkStrings.AutoRefreshCellNumber}"
+								/>
+							<kcv:KcvNumberBox
+								Minimum="1"
+								Style="{StaticResource Cfg.Num}"
+								Value="{Binding ManualCellId}"
+								/>
+							<Button
+								Margin="0"
+								Command="{Binding AddAllowedCellManualCommand}"
+								Content="＋"
+								Style="{StaticResource Small}"
+								/>
+						</WrapPanel>
+					</StackPanel>
+				</Border>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding AllowedCells.Count}" Value="0">
+						<Setter TargetName="NoCells" Property="Visibility" Value="Visible" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding IsEnabled}" Value="False">
+						<Setter TargetName="MapId" Property="Opacity" Value="0.5" />
+						<Setter TargetName="MapName" Property="Opacity" Value="0.5" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Height="24"
+			Padding="10 0"
+			Background="{DynamicResource Kcv.StatusBackground}"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<TextBlock
+				x:Name="Status"
+				VerticalAlignment="Center"
+				FontSize="12"
+				Foreground="{DynamicResource Kcv.SubForeground}"
+				/>
+		</Border>
+
+		<Grid Margin="12 6 12 4">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
+
+			<TextBlock
+				Grid.Row="0"
+				Margin="0 2 0 8"
+				FontSize="12"
+				Foreground="{DynamicResource Kcv.Critical}"
+				Text="{Binding AutoRefresh.NoInteractionWarning}"
+				TextWrapping="Wrap"
+				/>
+
+			<ContentControl
+				Grid.Row="1"
+				Style="{StaticResource Cfg.Box}"
+				Tag="{Binding AutoRefresh.SingleMapMode}"
+				>
+				<WrapPanel Style="{StaticResource Cfg.Row}">
+					<CheckBox
+						Margin="0 1 10 1"
+						VerticalAlignment="Center"
+						Content="{Binding AutoRefresh.SingleMapMode}"
+						IsChecked="{Binding IsSingleMapMode}"
+						ToolTip="{Binding AutoRefresh.SingleMapModeToolTip}"
+						/>
+					<ComboBox
+						MinWidth="200"
+						ItemTemplate="{StaticResource MapItem}"
+						ItemsSource="{Binding Maps}"
+						SelectedItem="{Binding SelectedSingleMapModeMap}"
+						Style="{StaticResource Cfg.Combo}"
+						/>
+				</WrapPanel>
+			</ContentControl>
+
+			<ContentControl
+				Grid.Row="2"
+				Margin="0"
+				Style="{StaticResource Cfg.Box}"
+				Tag="{x:Static fork:ForkStrings.AutoRefreshRules}"
+				>
+				<DockPanel>
+					<WrapPanel DockPanel.Dock="Top" Style="{StaticResource Cfg.Row}">
+						<ComboBox
+							MinWidth="200"
+							ItemTemplate="{StaticResource MapItem}"
+							ItemsSource="{Binding Maps}"
+							SelectedItem="{Binding SelectedMap}"
+							Style="{StaticResource Cfg.Combo}"
+							/>
+						<Button
+							Command="{Binding AddRuleCommand}"
+							Content="{x:Static fork:ForkStrings.AutoRefreshAddRule}"
+							Style="{StaticResource Small}"
+							/>
+					</WrapPanel>
+					<ScrollViewer
+						Margin="0 2 0 0"
+						Focusable="False"
+						HorizontalScrollBarVisibility="Disabled"
+						VerticalScrollBarVisibility="Auto"
+						>
+						<ItemsControl
+							Margin="0 0 0 2"
+							Focusable="False"
+							ItemTemplate="{StaticResource Rule}"
+							ItemsSource="{Binding Rules}"
+							/>
+					</ScrollViewer>
+				</DockPanel>
+			</ContentControl>
+		</Grid>
+	</DockPanel>
+</common:WindowBase>

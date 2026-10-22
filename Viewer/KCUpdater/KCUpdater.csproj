@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		Fork: the program updater (UPDATER-DESIGN.md, section 7; user's decisions 2026-10-19 "A. 작은 별도 실행 파일" and
+		2026-10-20 "창없이 nativeAOT로"). Once the viewer has closed it replaces the portable folder's program files from the
+		checked new version, puts every file back when one fails, and starts the viewer again. The viewer downloads and
+		checks the release (Fork/Update); this only replaces (steps 4 and 5).
+		No window: what the user must see is a message box. Published with NativeAOT, one native exe with no runtime to
+		install (needs the C++ build tools):
+			dotnet publish KCUpdater\KCUpdater.csproj -c Release -r win-x64 -o <folder>
+		Not in the solution, like the plugins.
+	-->
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>KCUpdater</RootNamespace>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>true</PublishAot>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<Product>KCViewer</Product>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- the update's files and rules, shared with the viewer -->
+		<Compile Include="..\KCViewer\Fork\Update\UpdateFormat.cs" Link="UpdateFormat.cs" />
+	</ItemGroup>
+
+</Project>

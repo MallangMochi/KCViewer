@@ -1,0 +1,29 @@
+﻿using Avalonia.Data.Converters;
+using Avalonia.Media;
+
+namespace KCViewer.Avalonia.ShipGroup;
+
+public static class Converters
+{
+	public static FuncValueConverter<int, string> RemainingToTextConverter { get; } =
+		new(r => r switch
+		{
+			0 => "MAX",
+			_ => r.ToString(),
+		});
+
+	public static FuncValueConverter<TimeSpan, string> RepairTimeDisplayConverter { get; } =
+		new(t => $"{(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}");
+
+	private static SolidColorBrush HeartLockBrush { get; } = new(Colors.IndianRed);
+	private static SolidColorBrush EquipmentLockBrush { get; } = new(Colors.Gray);
+	private static SolidColorBrush NoLockBrush { get; } = new(Colors.Transparent);
+
+	public static FuncValueConverter<ShipGroupItemViewModel, SolidColorBrush> ShipToLockForegroundConverter { get; } =
+		new(r => r switch
+		{
+			{ IsLocked: true } => HeartLockBrush,
+			{ IsLockedByEquipment: true } => EquipmentLockBrush,
+			_ => NoLockBrush,
+		});
+}

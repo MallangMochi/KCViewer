@@ -1,0 +1,27 @@
+﻿<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:plugins="clr-namespace:KCViewer.Fork.Plugins"
+	>
+	<!-- Fork: template for plugin panels (merged by FormMainViewModel.AddForkViews). -->
+	<DataTemplate DataType="{x:Type plugins:PluginPanelViewModel}">
+		<ContentPresenter Content="{Binding Content}" />
+	</DataTemplate>
+
+	<!-- Fork: the expedition panel (Fork/KcvViews/KcvExpeditionView.xaml) -->
+	<DataTemplate DataType="{x:Type kcv:KcvExpeditionViewModel}">
+		<kcv:KcvExpeditionView />
+	</DataTemplate>
+
+	<!-- Fork: the combined fleet panel (Fork/KcvViews/KcvCombinedFleetView.xaml) -->
+	<DataTemplate DataType="{x:Type kcv:KcvCombinedFleetViewModel}">
+		<kcv:KcvCombinedFleetView />
+	</DataTemplate>
+
+	<!-- Fork: the screenshot panel (Fork/ForkScreenshotPanelView.xaml) -->
+	<DataTemplate DataType="{x:Type fork:ForkScreenshotPanelViewModel}">
+		<fork:ForkScreenshotPanelView />
+	</DataTemplate>
+</ResourceDictionary>

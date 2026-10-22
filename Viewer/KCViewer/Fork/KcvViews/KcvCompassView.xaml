@@ -1,0 +1,371 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvCompassView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:compass="clr-namespace:KCViewer.Window.Wpf.Compass"
+	xmlns:compassViewModels="clr-namespace:KCViewer.Window.Wpf.Compass.ViewModels"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	d:DataContext="{d:DesignInstance Type=compass:CompassViewModel}"
+	d:DesignHeight="360"
+	d:DesignWidth="360"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the compass panel in KanColleViewer's design (mockup v4, user decisions 2026-10-01). The map (number and
+		name) with the next cell on the right: its letter on the colour of its kind, the cell number in the tooltip.
+		Under it the cells passed in this sortie (mockup 20261005-compass-route-v4). The kind of cell as a badge on the
+		same colour with its detail. Then the enemy fleets recorded for the cell, one under another with
+		the fleet name, formation and air power, or once the battle starts the enemy fleet with each ship's HP. An
+		exercise shows the opponent instead of the map. The viewer's own view model (CompassViewModel) fills it; its
+		tooltips and the ship encyclopedia on right click stay.
+	-->
+	<UserControl.Resources>
+		<kcv:KcvCompassEquipmentConverter x:Key="Equipment" />
+		<kcv:KcvEnemyFleetNameConverter x:Key="FleetName" />
+		<kcv:KcvCompassMembersConverter x:Key="Members" />
+
+		<Style x:Key="Row" TargetType="Border">
+			<Setter Property="Padding" Value="0 5 0 5" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.Separator}" />
+			<Setter Property="BorderThickness" Value="0 0 0 1" />
+			<Setter Property="Background" Value="Transparent" />
+		</Style>
+
+		<Style x:Key="SmallIcon" BasedOn="{StaticResource Kcv.EquipmentIcon}" TargetType="Image">
+			<Setter Property="Height" Value="18" />
+			<Setter Property="Margin" Value="0 0 4 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!--
+			One enemy ship: name (abyssal class colour) and type, the equipment icons, and the HP when the list's Tag is
+			True (the battle; a recorded fleet keeps no HP).
+		-->
+		<DataTemplate x:Key="ShipRow" DataType="{x:Type compassViewModels:MasterShipViewModel}">
+			<Border Padding="0 3 0 4" Style="{StaticResource Row}">
+				<DockPanel>
+					<TextBlock
+						x:Name="Hp"
+						Margin="8 0 0 0"
+						VerticalAlignment="Center"
+						DockPanel.Dock="Right"
+						Visibility="Collapsed"
+						>
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Text="HP "
+							/>
+						<Run FontSize="13" Text="{Binding Hp, Mode=OneWay}" />
+					</TextBlock>
+					<StackPanel
+						MinWidth="104"
+						VerticalAlignment="Center"
+						Background="Transparent"
+						DockPanel.Dock="Left"
+						ToolTip="{Binding NameToolTip}"
+						>
+						<StackPanel.InputBindings>
+							<MouseBinding
+								Command="{Binding OpenShipEncyclopediaCommand}"
+								CommandParameter="{Binding ShipId}"
+								MouseAction="RightClick"
+								/>
+						</StackPanel.InputBindings>
+						<TextBlock
+							FontSize="14"
+							Foreground="{Binding ShipNameBrush}"
+							Text="{Binding Name}"
+							TextTrimming="CharacterEllipsis"
+							/>
+						<TextBlock
+							FontSize="10"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Text="{Binding Ship.ShipTypeName}"
+							TextTrimming="CharacterEllipsis"
+							/>
+					</StackPanel>
+					<ItemsControl
+						Margin="8 0 0 0"
+						VerticalAlignment="Center"
+						Background="Transparent"
+						ItemsSource="{Binding Converter={StaticResource Equipment}}"
+						ToolTip="{Binding EquipmentToolTip}"
+						>
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Horizontal" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<Image Source="{Binding}" Style="{StaticResource SmallIcon}" />
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</DockPanel>
+			</Border>
+			<DataTemplate.Triggers>
+				<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True">
+					<Setter TargetName="Hp" Property="Visibility" Value="Visible" />
+				</DataTrigger>
+			</DataTemplate.Triggers>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+		<StackPanel Margin="10 4 10 8">
+			<!--  海域  1-1 鎮守府正面海域 ............ [B]  -->
+			<Border Padding="0 6 0 6" Style="{StaticResource Row}" Visibility="{Binding ForkIsSortie, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<DockPanel>
+					<StackPanel
+						VerticalAlignment="Center"
+						DockPanel.Dock="Right"
+						Orientation="Horizontal"
+						>
+						<!--  The reconnaissance plane, when one was launched  -->
+						<Image
+							Source="{Binding TextDestinationIcon, Converter={StaticResource Kcv.GameIcon}}"
+							Style="{StaticResource SmallIcon}"
+							ToolTip="{Binding TextDestinationToolTip}"
+							/>
+						<!--  The cell's letter on the colour of its kind (as the route and the sortie record)  -->
+						<Border
+							MinWidth="36"
+							Padding="10 1"
+							CornerRadius="3"
+							Style="{StaticResource Kcv.Node}"
+							Tag="{Binding ForkCellKind}"
+							ToolTip="{Binding ForkCellToolTip}"
+							>
+							<TextBlock
+								HorizontalAlignment="Center"
+								FontSize="22"
+								Text="{Binding ForkCellText}"
+								/>
+						</Border>
+					</StackPanel>
+					<StackPanel
+						VerticalAlignment="Center"
+						Background="Transparent"
+						ToolTip="{Binding TextMapAreaToolTip}"
+						>
+						<TextBlock Style="{StaticResource Kcv.SubText}" Text="{x:Static fork:ForkStrings.KcvMapArea}" />
+						<TextBlock TextTrimming="CharacterEllipsis">
+							<Run FontSize="18" Text="{Binding ForkMapNumber, Mode=OneWay}" />
+							<Run Text=" " />
+							<Run
+								FontSize="11"
+								Foreground="{DynamicResource Kcv.SubForeground}"
+								Text="{Binding ForkMapName, Mode=OneWay}"
+								/>
+						</TextBlock>
+					</StackPanel>
+				</DockPanel>
+			</Border>
+
+			<!--  演習  opponent and rank  -->
+			<Border Padding="0 6 0 6" Style="{StaticResource Row}" Visibility="{Binding ForkIsExercise, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<StackPanel>
+					<TextBlock Style="{StaticResource Kcv.SubText}" Text="{x:Static fork:ForkStrings.KcvExercise}" />
+					<TextBlock TextTrimming="CharacterEllipsis">
+						<Run FontSize="18" Text="{Binding ForkOpponentName, Mode=OneWay}" />
+						<Run Text=" " />
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Text="{Binding ForkOpponentRank, Mode=OneWay}"
+							/>
+					</TextBlock>
+				</StackPanel>
+			</Border>
+
+			<!--
+				The cells passed in this sortie (mockup 20261005-compass-route-v4): a line between separators, each cell
+				on the colour of its kind with its kind, items and rank in the tooltip, the cell the fleet is at outlined
+			-->
+			<Border
+				Padding="0 4 0 5"
+				Style="{StaticResource Row}"
+				Visibility="{Binding ForkShowRoute, Converter={StaticResource BooleanToVisibilityConverter}}"
+				>
+				<ItemsControl Focusable="False" ItemsSource="{Binding ForkRoute}">
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel Orientation="Horizontal" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvRouteNode}">
+							<StackPanel Margin="0 1" Orientation="Horizontal">
+								<TextBlock
+									x:Name="Arrow"
+									Margin="2 0"
+									VerticalAlignment="Center"
+									FontSize="9"
+									Foreground="{DynamicResource Kcv.FaintForeground}"
+									Text="▸"
+									/>
+								<Border
+									x:Name="Node"
+									BorderBrush="Transparent"
+									BorderThickness="1"
+									Style="{StaticResource Kcv.Node}"
+									Tag="{Binding Kind}"
+									ToolTip="{Binding ToolTip}"
+									>
+									<TextBlock HorizontalAlignment="Center" Text="{Binding Letter}" />
+								</Border>
+							</StackPanel>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsFirst}" Value="True">
+									<Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding IsLast}" Value="True">
+									<Setter TargetName="Node" Property="BorderBrush" Value="{DynamicResource Kcv.Foreground}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Border>
+
+			<!--  The kind of cell as a badge on the colour of its kind, an air raid, the detail  -->
+			<Border Style="{StaticResource Row}" Visibility="{Binding ForkIsSortie, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<StackPanel Orientation="Horizontal">
+					<Border
+						Padding="8 1"
+						CornerRadius="2"
+						Style="{StaticResource Kcv.Node}"
+						Tag="{Binding ForkCellKind}"
+						ToolTip="{Binding TextEventKindToolTip}"
+						>
+						<TextBlock FontSize="11" Text="{Binding TextEventKindText}" />
+					</Border>
+					<Image
+						Margin="6 0 0 0"
+						Source="{Binding TextEventKindIcon, Converter={StaticResource Kcv.GameIcon}}"
+						Style="{StaticResource SmallIcon}"
+						ToolTip="{Binding TextEventKindToolTip}"
+						/>
+					<StackPanel
+						Margin="8 0 0 0"
+						VerticalAlignment="Center"
+						Background="Transparent"
+						Orientation="Horizontal"
+						ToolTip="{Binding TextEventDetailToolTip}"
+						Visibility="{Binding ForkShowDetail, Converter={StaticResource BooleanToVisibilityConverter}}"
+						>
+						<Image Source="{Binding TextEventDetailIcon, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource SmallIcon}" />
+						<TextBlock FontSize="13" Text="{Binding TextEventDetailText}" />
+					</StackPanel>
+				</StackPanel>
+			</Border>
+
+			<!--  The opponent's comment, level and fleet name  -->
+			<Border Style="{StaticResource Row}" Visibility="{Binding ForkIsExercise, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<StackPanel>
+					<TextBlock
+						FontSize="12"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						Text="{Binding TextEventKindText}"
+						TextWrapping="Wrap"
+						/>
+					<TextBlock FontSize="13">
+						<Run Text="{Binding TextEventDetailText, Mode=OneWay}" />
+						<Run Text="  " />
+						<Run Text="{Binding TextEnemyFleetNameText, Mode=OneWay}" />
+					</TextBlock>
+				</StackPanel>
+			</Border>
+
+			<!--  The battle: the enemy fleet with each ship's HP  -->
+			<StackPanel Visibility="{Binding ForkShowEnemy, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<Border Padding="0 4 0 4" Style="{StaticResource Row}">
+					<DockPanel>
+						<TextBlock
+							VerticalAlignment="Center"
+							Background="Transparent"
+							DockPanel.Dock="Right"
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							ToolTip="{Binding TextAirSuperiorityToolTip}"
+							>
+							<Run Text="{Binding TextFormationText, Mode=OneWay}" />
+							<Run Text=" · " />
+							<Run Text="{x:Static fork:ForkStrings.KcvAirPower}" />
+							<Run Text="{Binding TextAirSuperiorityText, Mode=OneWay}" />
+						</TextBlock>
+						<TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+							<Run
+								FontSize="11"
+								Foreground="{DynamicResource Kcv.SubForeground}"
+								Text="{x:Static fork:ForkStrings.KcvEnemyFleet}"
+								/>
+							<Run Text=" " />
+							<Run FontSize="13" Text="{Binding TextEnemyFleetNameText, Mode=OneWay}" />
+						</TextBlock>
+					</DockPanel>
+				</Border>
+				<ItemsControl
+					ItemTemplate="{StaticResource ShipRow}"
+					ItemsSource="{Binding ForkEnemyShips}"
+					Tag="True"
+					/>
+			</StackPanel>
+
+			<!--  The enemy fleets recorded for the cell, one under another  -->
+			<StackPanel Visibility="{Binding ForkShowCandidates, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<Border Padding="0 4 0 4" Style="{StaticResource Row}">
+					<TextBlock Style="{StaticResource Kcv.SubText}" Text="{x:Static fork:ForkStrings.KcvEnemyFleets}" />
+				</Border>
+				<ItemsControl ItemsSource="{Binding ForkCandidates}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type compassViewModels:EnemyFleetElementViewModel}">
+							<StackPanel>
+								<Border Padding="6 3" Background="{DynamicResource Kcv.AlternateRow}">
+									<DockPanel>
+										<TextBlock
+											VerticalAlignment="Center"
+											Background="Transparent"
+											DockPanel.Dock="Right"
+											FontSize="11"
+											Foreground="{DynamicResource Kcv.SubForeground}"
+											ToolTip="{Binding AirToolTip}"
+											>
+											<Run Text="{Binding FormationString, Mode=OneWay}" />
+											<Run Text=" · " />
+											<Run Text="{x:Static fork:ForkStrings.KcvAirPower}" />
+											<Run Text="{Binding Air, Mode=OneWay}" />
+										</TextBlock>
+										<TextBlock
+											VerticalAlignment="Center"
+											FontSize="12"
+											Text="{Binding Converter={StaticResource FleetName}}"
+											TextTrimming="CharacterEllipsis"
+											/>
+									</DockPanel>
+								</Border>
+								<ItemsControl ItemTemplate="{StaticResource ShipRow}" ItemsSource="{Binding MainFleetMember, Converter={StaticResource Members}}" />
+								<StackPanel Visibility="{Binding HasEscortFleet, Converter={StaticResource BooleanToVisibilityConverter}}">
+									<TextBlock
+										Margin="0 4 0 2"
+										Style="{StaticResource Kcv.SubText}"
+										Text="{x:Static fork:ForkStrings.KcvEscortFleet}"
+										/>
+									<ItemsControl ItemTemplate="{StaticResource ShipRow}" ItemsSource="{Binding EscortFleetMember, Converter={StaticResource Members}}" />
+								</StackPanel>
+							</StackPanel>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

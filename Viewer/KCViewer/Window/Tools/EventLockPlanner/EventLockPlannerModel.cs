@@ -1,0 +1,11 @@
+﻿using System.Collections.Generic;
+
+namespace KCViewer.Window.Tools.EventLockPlanner;
+
+public class EventLockPlannerModel
+{
+	public int Id { get; set; }
+	public List<EventLockModel> Locks { get; set; } = new();
+	public List<ShipLockModel> ShipLocks { get; set; } = new();
+	public List<EventPhaseModel> Phases { get; set; } = new();
+}

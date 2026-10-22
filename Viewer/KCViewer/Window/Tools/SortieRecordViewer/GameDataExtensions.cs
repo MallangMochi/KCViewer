@@ -1,0 +1,240 @@
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Data;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.Core.Types.Mocks;
+using KCViewer.Core.Types.Serialization.FitBonus;
+using KCViewer.Data;
+using KCViewer.Database.Sortie;
+
+namespace KCViewer.Window.Tools.SortieRecordViewer;
+
+public static class GameDataExtensions
+{
+	private static IKCDatabase KcDatabase => Ioc.Default.GetRequiredService<IKCDatabase>();
+	private static List<FitBonusPerEquipment> FitBonusList => KCDatabase.Instance.Translation.FitBonus.FitBonusList;
+
+	[return: NotNullIfNotNull(nameof(fleetData))]
+	public static List<IFleetData?>? MakeFleets(this SortieFleetData? fleetData) => fleetData switch
+	{
+		{ } => fleetData.Fleets.Select((f, i) => MakeFleet(f, i switch
+		{
+			0 or 1 => fleetData.CombinedFlag,
+			_ => FleetType.Single,
+		})).ToList(),
+		_ => null,
+	};
+
+	[return: NotNullIfNotNull(nameof(fleet))]
+	public static IFleetData? MakeFleet(this SortieFleet? fleet, FleetType combinedFlag) => fleet switch
+	{
+		{ } => new FleetDataMock
+		{
+			Name = fleet.Name,
+			FleetType = combinedFlag,
+			MembersInstance = new ReadOnlyCollection<IShipData?>(fleet.Ships.Select(MakeShip).ToList()),
+		},
+		_ => null,
+	};
+
+	[return: NotNullIfNotNull(nameof(shipData))]
+	private static IShipData? MakeShip(SortieShip? shipData)
+	{
+		if (shipData is null) return null;
+
+		ShipDataMock ship = new(KcDatabase.MasterShips[(int)shipData.Id], shipData.Kyouka)
+		{
+			MasterID = shipData.DropId ?? 0,
+			Level = shipData.Level,
+			Condition = shipData.Condition,
+			IsExpansionSlotAvailable = shipData.ExpansionSlot is not null,
+			SlotInstance = shipData.EquipmentSlots.Select(s => MakeEquipment(s.Equipment)).ToList(),
+			ExpansionSlotInstance = MakeEquipment(shipData.ExpansionSlot?.Equipment),
+			Fuel = shipData.Fuel,
+			Ammo = shipData.Ammo,
+			Range = shipData.Range,
+			Speed = shipData.Speed,
+			SpecialEffectItems = shipData.SpecialEffectItems ?? [],
+		};
+
+		if (shipData.Aircraft is not null)
+		{
+			ship.Aircraft = shipData.Aircraft;
+		}
+
+		if (shipData.Hp is int hp)
+		{
+			ship.HPCurrent = hp;
+		}
+
+		if (shipData.Luck is int luck)
+		{
+			ship.LuckBase = luck;
+		}
+
+		return ApplyFitBonus(ship, shipData);
+	}
+
+	[return: NotNullIfNotNull(nameof(ship))]
+	private static ShipDataMock? ApplyFitBonus(ShipDataMock? ship, SortieShip shipData)
+	{
+		if (ship is null) return ship;
+
+		if (shipData.Firepower is null)
+		{
+			// old data, need to calculate fits
+			FitBonusValue fit = ship.GetTheoreticalFitBonus(FitBonusList);
+
+			ship.FirepowerFit = fit.Firepower;
+			ship.TorpedoFit = fit.Torpedo;
+			ship.AaFit = fit.AntiAir;
+			ship.ArmorFit = fit.Armor;
+			ship.EvasionFit = fit.Evasion;
+			ship.AswFit = fit.ASW;
+			ship.LosFit = fit.LOS;
+		}
+		else
+		{
+			// none of them should be null for new data
+			ship.FirepowerFit = shipData.Firepower.Value - ship.FirepowerTotal;
+			ship.TorpedoFit = shipData.Torpedo!.Value - ship.TorpedoTotal;
+			ship.AaFit = shipData.Aa!.Value - ship.AATotal;
+			ship.ArmorFit = shipData.Armor!.Value - ship.ArmorTotal;
+			ship.EvasionFit = shipData.Evasion!.Value - ship.EvasionTotal;
+			ship.AswFit = shipData.Asw!.Value - ship.ASWTotal;
+			ship.LosFit = shipData.Search!.Value - ship.LOSTotal;
+		}
+
+		return ship;
+	}
+
+	[return: NotNullIfNotNull(nameof(equipment))]
+	private static IEquipmentData? MakeEquipment(SortieEquipment? equipment) => equipment switch
+	{
+		{ } => new EquipmentDataMock(KcDatabase.MasterEquipments[(int)equipment.Id])
+		{
+			Level = equipment.Level,
+			AircraftLevel = equipment.AircraftLevel,
+		},
+		_ => null,
+	};
+
+	[return: NotNullIfNotNull(nameof(airBase))]
+	public static IBaseAirCorpsData? MakeAirBase(this SortieAirBase? airBase) => airBase switch
+	{
+		{ } => new BaseAirCorpsDataMock
+		{
+			Name = airBase.Name,
+			MapAreaID = airBase.MapAreaId,
+			ActionKind = airBase.ActionKind,
+			Distance = airBase.BaseDistance + airBase.BonusDistance,
+			Squadrons = new Dictionary<int, IBaseAirCorpsSquadron>
+			{
+				{0, MakeAirBaseSquadron(airBase.Squadrons.Skip(0).FirstOrDefault())},
+				{1, MakeAirBaseSquadron(airBase.Squadrons.Skip(1).FirstOrDefault())},
+				{2, MakeAirBaseSquadron(airBase.Squadrons.Skip(2).FirstOrDefault())},
+				{3, MakeAirBaseSquadron(airBase.Squadrons.Skip(3).FirstOrDefault())},
+			},
+		},
+		_ => null,
+	};
+
+	private static BaseAirCorpsSquadronMock MakeAirBaseSquadron(SortieAirBaseSquadron? squadron)
+	{
+		if (squadron is null) return new();
+
+		BaseAirCorpsSquadronMock abSlot = MakeEquipment(squadron.EquipmentSlot.Equipment) switch
+		{
+			IEquipmentData equipment => new(equipment),
+			_ => new(),
+		};
+
+		abSlot.Condition = squadron.Condition;
+
+		if (squadron.AircraftCurrent is int aircraft)
+		{
+			abSlot.AircraftCurrent = aircraft;
+		}
+
+		return abSlot;
+	}
+
+	public static IFleetData DeepClone(this IFleetData fleet) => new FleetDataMock
+	{
+		FleetID = fleet.FleetID,
+		Name = fleet.Name,
+		FleetType = fleet.FleetType,
+		ExpeditionState = fleet.ExpeditionState,
+		ExpeditionDestination = fleet.ExpeditionDestination,
+		ExpeditionTime = fleet.ExpeditionTime,
+		MembersInstance = new(fleet.MembersInstance.Select(DeepClone).ToList()),
+		EscapedShipList = new(fleet.EscapedShipList),
+		IsInSortie = fleet.IsInSortie,
+		IsInPractice = fleet.IsInPractice,
+		IsFlagshipRepairShip = fleet.IsFlagshipRepairShip,
+		CanAnchorageRepair = fleet.CanAnchorageRepair,
+		ConditionTime = fleet.ConditionTime,
+		RequestData = fleet.RequestData,
+		RawData = fleet.RawData,
+		IsAvailable = fleet.IsAvailable,
+	};
+
+	[return: NotNullIfNotNull(nameof(ship))]
+	private static IShipData? DeepClone(this IShipData? ship) => ship switch
+	{
+		null => null,
+		_ => new ShipDataMock(ship.MasterShip)
+		{
+			// todo: rest of the stats and equipment deep clone
+			MasterID = ship.MasterID,
+			Level = ship.Level,
+			Condition = ship.Condition,
+			IsExpansionSlotAvailable = ship.IsExpansionSlotAvailable,
+			SlotInstance = ship.SlotInstance,
+			ExpansionSlotInstance = ship.ExpansionSlotInstance,
+			Aircraft = ship.Aircraft,
+			HPCurrent = ship.HPCurrent,
+			Fuel = ship.Fuel,
+			Ammo = ship.Ammo,
+			Range = ship.Range,
+			Speed = ship.Speed,
+			FirepowerBase = ship.FirepowerBase,
+			TorpedoBase = ship.TorpedoBase,
+			AABase = ship.AABase,
+			ArmorBase = ship.ArmorBase,
+			LuckModernized = ship.LuckModernized,
+			HPMaxModernized = ship.HPMaxModernized,
+			ASWModernized = ship.ASWModernized,
+			FirepowerFit = ship.FirepowerTotal - ship.FirepowerBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.Firepower ?? 0),
+			TorpedoFit = ship.TorpedoTotal - ship.TorpedoBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.Torpedo ?? 0),
+			AaFit = ship.AATotal - ship.AABase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.AA ?? 0),
+			ArmorFit = ship.ArmorTotal - ship.ArmorBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.Armor ?? 0),
+			EvasionFit = ship.EvasionTotal - ship.EvasionBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.Evasion ?? 0),
+			AswFit = ship.ASWTotal - ship.ASWBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.ASW ?? 0),
+			LosFit = ship.LOSTotal - ship.LOSBase - ship.AllSlotInstance.Sum(e => e?.MasterEquipment.LOS ?? 0),
+		},
+	};
+
+	public static IBaseAirCorpsData DeepClone(this IBaseAirCorpsData ab) => new BaseAirCorpsDataMock
+	{
+		MapAreaID = ab.MapAreaID,
+		AirCorpsID = ab.AirCorpsID,
+		Name = ab.Name,
+		Distance = ab.Distance,
+		BonusDistance = ab.BonusDistance,
+		BaseDistance = ab.BaseDistance,
+		ActionKind = ab.ActionKind,
+		StrikePoints = ab.StrikePoints,
+		Squadrons = ab.Squadrons.ToDictionary(kvp => kvp.Key, kvp => (IBaseAirCorpsSquadron)DeepClone(kvp.Value)),
+		ID = ab.ID,
+		IsAvailable = ab.IsAvailable,
+		HPCurrent = ab.HPCurrent,
+		HPMax = ab.HPMax,
+	};
+
+	private static BaseAirCorpsSquadronMock DeepClone(this IBaseAirCorpsSquadron sq) => new(sq);
+}

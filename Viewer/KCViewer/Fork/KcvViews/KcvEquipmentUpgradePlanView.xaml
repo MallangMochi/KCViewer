@@ -1,0 +1,531 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvEquipmentUpgradePlanView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:planner="clr-namespace:KCViewer.Window.Tools.EquipmentUpgradePlanner"
+	xmlns:viewer="clr-namespace:KCViewer.Window.Wpf.EquipmentUpgradePlanViewer"
+	d:DataContext="{d:DesignInstance Type=viewer:EquipmentUpgradePlanViewerViewModel}"
+	d:DesignHeight="300"
+	d:DesignWidth="800"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the planned upgrades panel in KanColleViewer's style (mockups v1-v2, user's approval 2026-10-02). The
+		viewer's filters, columns, sorting and context menus stay; the columns are the viewer's in the same order with
+		the same sort paths, so the saved column settings (PersistentColumnsBehavior) are shared with its view. Changed:
+		the table looks like the ship list; the equipment has its icon; levels are written ★+n / ★max as the equipment
+		list; a plan that cannot be done (the viewer's red rows) gets a light red background and a red bar on the left,
+		a finished plan the same in green;
+		the equipment's tooltip (next step cost and helpers, only today's while 今日 is on) is drawn in the same style.
+	-->
+	<UserControl.Resources>
+		<viewer:EquipmentUpgradePlanViewerViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+
+		<Style BasedOn="{StaticResource DefaultCheckBoxStyle}" TargetType="CheckBox">
+			<Setter Property="Margin" Value="0 0 12 2" />
+			<Setter Property="MinWidth" Value="0" />
+		</Style>
+
+		<Style x:Key="Text" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Margin" Value="6 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style x:Key="Number" BasedOn="{StaticResource Text}" TargetType="TextBlock">
+			<Setter Property="HorizontalAlignment" Value="Center" />
+		</Style>
+
+		<!--  Grips to resize a column, as the viewer's header has them  -->
+		<Style x:Key="Grip" TargetType="Thumb">
+			<Setter Property="Width" Value="6" />
+			<Setter Property="Cursor" Value="SizeWE" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Thumb">
+						<Border Background="Transparent" />
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!--  The ship list's header, with the viewer's header menu  -->
+		<Style x:Key="Header" TargetType="DataGridColumnHeader">
+			<Setter Property="Background" Value="{DynamicResource Kcv.TableHeaderBackground}" />
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Padding" Value="6 7" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="ContextMenu">
+				<Setter.Value>
+					<ContextMenu>
+						<MenuItem
+							Header="{Binding DataContext.Translation.DisplayFinished, Source={StaticResource Proxy}}"
+							IsCheckable="True"
+							IsChecked="{Binding DataContext.Filters.DisplayFinished, Source={StaticResource Proxy}}"
+							/>
+						<Separator />
+						<MenuItem
+							Command="{Binding DataContext.DataGridViewModel.HideColumnCommand, Source={StaticResource Proxy}}"
+							CommandParameter="{Binding}"
+							Header="{Binding DataContext.DataGridViewModel.DataGrid.HideColumn, Source={StaticResource Proxy}}"
+							/>
+						<Separator />
+						<MenuItem Command="{Binding DataContext.DataGridViewModel.OpenColumnSelectorCommand, Source={StaticResource Proxy}}" Header="{Binding DataContext.DataGridViewModel.DataGrid.OpenColumnSelector, Source={StaticResource Proxy}}" />
+						<MenuItem Command="{Binding DataContext.DataGridViewModel.ClearSortingCommand, Source={StaticResource Proxy}}" Header="{Binding DataContext.DataGridViewModel.DataGrid.ClearSorting, Source={StaticResource Proxy}}" />
+					</ContextMenu>
+				</Setter.Value>
+			</Setter>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridColumnHeader">
+						<Grid>
+							<Border
+								Padding="{TemplateBinding Padding}"
+								Background="{TemplateBinding Background}"
+								BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+								BorderThickness="0 0 1 0"
+								>
+								<DockPanel>
+									<Path
+										x:Name="Arrow"
+										Width="8"
+										Height="5"
+										Margin="4 0 0 0"
+										VerticalAlignment="Center"
+										Data="M 0,0 L 4,5 L 8,0 Z"
+										DockPanel.Dock="Right"
+										Fill="{DynamicResource Kcv.SubForeground}"
+										Visibility="Collapsed"
+										/>
+									<ContentPresenter VerticalAlignment="Center" />
+								</DockPanel>
+							</Border>
+							<Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource Grip}" />
+							<Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource Grip}" />
+						</Grid>
+						<ControlTemplate.Triggers>
+							<Trigger Property="SortDirection" Value="Descending">
+								<Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+							</Trigger>
+							<Trigger Property="SortDirection" Value="Ascending">
+								<Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+								<Setter TargetName="Arrow" Property="Data" Value="M 0,5 L 4,0 L 8,5 Z" />
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style x:Key="Cell" TargetType="DataGridCell">
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridCell">
+						<ContentPresenter VerticalAlignment="Stretch" />
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!--
+			A plan that cannot be done, with the conditions of the viewer's red rows (Kcv.UpgradePlanBlocked): the next
+			step is short of something, or no helper is owned (today, while 今日 is on). The colours are set on the row
+			template's border, not on the row's Background: DataGridRow coerces that to the grid's row background, so
+			triggers on it do not always show (the first row, or with the grid's own style).
+		-->
+		<Style x:Key="Row" TargetType="DataGridRow">
+			<Setter Property="MinHeight" Value="27" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridRow">
+						<!--  every row keeps the bar's width, so the columns line up  -->
+						<Border
+							x:Name="Back"
+							Background="Transparent"
+							BorderBrush="Transparent"
+							BorderThickness="3 0 0 0"
+							SnapsToDevicePixels="True"
+							>
+							<DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</Trigger>
+							<DataTrigger Value="True">
+								<DataTrigger.Binding>
+									<MultiBinding Converter="{StaticResource Kcv.UpgradePlanBlocked}">
+										<Binding Path="NextUpgradeCost.HasEnoughResources" />
+										<Binding Path="HasHelperForAtleastOneDayOfWeek" />
+										<Binding Path="DataContext.Filters.SelectToday" Source="{StaticResource Proxy}" />
+										<Binding Path="HasHelperForToday" />
+									</MultiBinding>
+								</DataTrigger.Binding>
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.BlockedRow}" />
+								<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.BlockedBar}" />
+							</DataTrigger>
+							<MultiDataTrigger>
+								<MultiDataTrigger.Conditions>
+									<!--  Self in a template's triggers is the row itself  -->
+									<Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+									<Condition Value="True">
+										<Condition.Binding>
+											<MultiBinding Converter="{StaticResource Kcv.UpgradePlanBlocked}">
+												<Binding Path="NextUpgradeCost.HasEnoughResources" />
+												<Binding Path="HasHelperForAtleastOneDayOfWeek" />
+												<Binding Path="DataContext.Filters.SelectToday" Source="{StaticResource Proxy}" />
+												<Binding Path="HasHelperForToday" />
+											</MultiBinding>
+										</Condition.Binding>
+									</Condition>
+								</MultiDataTrigger.Conditions>
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.BlockedRowHover}" />
+							</MultiDataTrigger>
+							<!--  a finished plan is green, whatever its next step would need (user's choice 2026-10-02)  -->
+							<DataTrigger Binding="{Binding Finished}" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.FinishedRow}" />
+								<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.FinishedBar}" />
+							</DataTrigger>
+							<MultiDataTrigger>
+								<MultiDataTrigger.Conditions>
+									<Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+									<Condition Binding="{Binding Finished}" Value="True" />
+								</MultiDataTrigger.Conditions>
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.FinishedRowHover}" />
+							</MultiDataTrigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!--  The equipment's tooltip: the next step's cost and the helpers (only today's while 今日 is on)  -->
+		<DataTemplate x:Key="PlanToolTip" DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+			<StackPanel MaxWidth="460" TextElement.FontFamily="{DynamicResource Kcv.FontFamily}">
+				<TextBlock
+					Margin="0 0 0 3"
+					FontSize="12"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					Text="{x:Static fork:ForkStrings.KcvUpgradeNextCost}"
+					/>
+				<kcv:KcvUpgradeCostView DataContext="{Binding NextUpgradeCost}" />
+				<Border
+					Margin="0 7 0 6"
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="0 1 0 0"
+					/>
+				<TextBlock Margin="0 0 0 3" FontSize="12">
+					<TextBlock.Style>
+						<Style TargetType="TextBlock">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+							<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvUpgradeHelpers}" />
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding DataContext.Filters.SelectToday, Source={StaticResource Proxy}}" Value="True">
+									<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvUpgradeHelpersToday}" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</TextBlock.Style>
+				</TextBlock>
+				<kcv:KcvUpgradeHelpersView DataContext="{Binding HelperViewModels}" TodayOnly="{Binding DataContext.Filters.SelectToday, Source={StaticResource Proxy}}" />
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<Grid Margin="8 6 8 8">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<!--  The viewer's day filters  -->
+		<WrapPanel Grid.Row="0" Margin="0 0 0 6">
+			<CheckBox Content="{Binding Filters.TodayDisplay}" IsChecked="{Binding Filters.SelectToday}" />
+			<CheckBox Content="{Binding Translation.All}" IsChecked="{Binding Filters.SelectAllDay}" />
+			<ItemsControl ItemsSource="{Binding Filters.Days}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<CheckBox Content="{Binding DisplayValue}" IsChecked="{Binding IsChecked}" />
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</WrapPanel>
+
+		<DataGrid
+			Grid.Row="1"
+			AutoGenerateColumns="False"
+			Background="Transparent"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="1"
+			CanUserAddRows="False"
+			CanUserDeleteRows="False"
+			CellStyle="{StaticResource Cell}"
+			ColumnHeaderStyle="{StaticResource Header}"
+			GridLinesVisibility="Horizontal"
+			HeadersVisibility="Column"
+			HorizontalGridLinesBrush="{DynamicResource Kcv.Separator}"
+			IsReadOnly="True"
+			ItemsSource="{Binding DataGridViewModel.Items, IsAsync=True}"
+			RowStyle="{StaticResource Row}"
+			SelectionMode="Single"
+			>
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem
+						Header="{Binding DataContext.Translation.DisplayFinished, Source={StaticResource Proxy}}"
+						IsCheckable="True"
+						IsChecked="{Binding DataContext.Filters.DisplayFinished, Source={StaticResource Proxy}}"
+						/>
+					<Separator />
+					<MenuItem Command="{Binding DataGridViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridViewModel.ClearSortingCommand}" Header="{Binding DataGridViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.Columns>
+				<!--  Equipment, with the game's icon and the tooltip  -->
+				<DataGridTemplateColumn
+					Width="Auto"
+					Header="{Binding DataContext.Translation.Equipment, Source={StaticResource Proxy}}"
+					SortMemberPath="EquipmentName"
+					>
+					<DataGridTemplateColumn.CellStyle>
+						<Style BasedOn="{StaticResource Cell}" TargetType="DataGridCell">
+							<Setter Property="ToolTip">
+								<Setter.Value>
+									<ContentControl Content="{Binding}" ContentTemplate="{StaticResource PlanToolTip}" />
+								</Setter.Value>
+							</Setter>
+						</Style>
+					</DataGridTemplateColumn.CellStyle>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<StackPanel
+								Margin="6 0 10 0"
+								VerticalAlignment="Center"
+								Background="Transparent"
+								Orientation="Horizontal"
+								>
+								<Image
+									Width="20"
+									Height="20"
+									Margin="0 0 6 0"
+									Style="{StaticResource Kcv.EquipmentIcon}"
+									>
+									<Image.Source>
+										<MultiBinding Converter="{StaticResource Kcv.UpgradePlanIcon}">
+											<Binding Path="EquipmentName" />
+											<Binding />
+										</MultiBinding>
+									</Image.Source>
+								</Image>
+								<TextBlock
+									VerticalAlignment="Center"
+									FontSize="13"
+									Style="{StaticResource Kcv.Text}"
+									Text="{Binding EquipmentName}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<!--  Current level: ★+n, or 未割当 dimmed with the viewer's tooltip  -->
+				<DataGridTemplateColumn
+					Width="Auto"
+					Header="{Binding DataContext.Translation.CurrentLevel, Source={StaticResource Proxy}}"
+					SortMemberPath="CurrentLevelDisplay"
+					>
+					<DataGridTemplateColumn.CellStyle>
+						<Style BasedOn="{StaticResource Cell}" TargetType="DataGridCell">
+							<Setter Property="ToolTip" Value="{x:Null}" />
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding Equipment.MasterID}" Value="0">
+									<Setter Property="ToolTip" Value="{Binding DataContext.Translation.UnassignedToolTip, Source={StaticResource Proxy}}" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</DataGridTemplateColumn.CellStyle>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Background="Transparent">
+								<TextBlock.Text>
+									<MultiBinding Converter="{StaticResource Kcv.UpgradeCurrentLevel}">
+										<Binding Path="CurrentLevelDisplay" />
+										<Binding />
+									</MultiBinding>
+								</TextBlock.Text>
+								<TextBlock.Style>
+									<Style BasedOn="{StaticResource Text}" TargetType="TextBlock">
+										<Setter Property="Foreground">
+											<Setter.Value>
+												<MultiBinding Converter="{StaticResource Kcv.UpgradeCurrentLevel}" ConverterParameter="Brush">
+													<Binding Path="CurrentLevelDisplay" />
+													<Binding />
+												</MultiBinding>
+											</Setter.Value>
+										</Setter>
+										<Style.Triggers>
+											<DataTrigger Binding="{Binding Equipment.MasterID}" Value="0">
+												<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</TextBlock.Style>
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<!--  Goal: ★+n / ★max, conversion in the viewer's words  -->
+				<DataGridTemplateColumn
+					Width="Auto"
+					Header="{Binding DataContext.Translation.Goal, Source={StaticResource Proxy}}"
+					SortMemberPath="DesiredUpgradeLevel"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Text="{Binding DesiredUpgradeLevel, Converter={StaticResource Kcv.UpgradeLevel}}">
+								<TextBlock.Style>
+									<Style BasedOn="{StaticResource Text}" TargetType="TextBlock">
+										<Setter Property="Foreground" Value="{Binding DesiredUpgradeLevel, Converter={StaticResource Kcv.UpgradeLevel}, ConverterParameter=Brush}" />
+										<Style.Triggers>
+											<!--  개수 갱신 in the text colour (the converter has no colour for it, which left it black)  -->
+											<DataTrigger Binding="{Binding DesiredUpgradeLevel}" Value="Conversion">
+												<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</TextBlock.Style>
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="Auto"
+					Header="{Binding DataContext.Translation.Priority, Source={StaticResource Proxy}}"
+					SortMemberPath="Priority"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Text}" Text="{Binding Priority}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<!--  The next step's cost, as the viewer: improvement and development materials, fuel, ammo, steel, bauxite  -->
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.ImprovementMaterial.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="ImproveMaterial" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.ImprovementMaterial.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.DevelopmentMaterial.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="DevelopmentMaterial" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.DevelopmentMaterial.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.Fuel.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="Fuel" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.Fuel.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.Ammo.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="Ammo" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.Ammo.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.Steel.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="Steel" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.Steel.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="Auto" SortMemberPath="NextUpgradeCost.Bauxite.Required">
+					<DataGridTemplateColumn.Header>
+						<common:UseItemIcon Type="Bauxite" />
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding NextUpgradeCost.Bauxite.Required}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="Auto"
+					Header="{Binding DataContext.Translation.IsFinished, Source={StaticResource Proxy}}"
+					SortMemberPath="Finished"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type planner:EquipmentUpgradePlanItemViewModel}">
+							<CheckBox
+								Margin="6 0"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Focusable="False"
+								IsChecked="{Binding Finished, Mode=OneWay}"
+								IsHitTestVisible="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</UserControl>

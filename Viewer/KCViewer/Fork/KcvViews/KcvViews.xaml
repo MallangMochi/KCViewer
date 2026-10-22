@@ -1,0 +1,285 @@
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	>
+	<!--  Fork: shared parts of the KanColleViewer panel designs (merged by KcvPanels.Install).  -->
+
+	<!--  KanColleViewer's text: Latin letters and digits in Segoe UI, Japanese in Meiryo UI (Korean falls back to Malgun Gothic).  -->
+	<FontFamily x:Key="Kcv.FontFamily">Segoe UI, Meiryo UI, Malgun Gothic</FontFamily>
+
+	<kcv:KcvGaugeBrushConverter x:Key="Kcv.GaugeBrush" />
+	<kcv:KcvViewerBrushConverter x:Key="Kcv.ViewerBrush" />
+	<kcv:KcvBattleStateConverter x:Key="Kcv.BattleState" />
+	<kcv:KcvConditionBrushConverter x:Key="Kcv.ConditionBrush" />
+	<kcv:KcvFleetStateBrushConverter x:Key="Kcv.FleetStateBrush" />
+	<kcv:KcvShipTypeConverter x:Key="Kcv.ShipType" />
+	<kcv:KcvAdmiralPartConverter x:Key="Kcv.AdmiralPart" />
+	<kcv:KcvCapitalizeConverter x:Key="Kcv.Capitalize" />
+	<kcv:KcvQuestCategoryBrushConverter x:Key="Kcv.QuestCategoryBrush" />
+	<kcv:KcvQuestDescriptionConverter x:Key="Kcv.QuestDescription" />
+	<kcv:KcvRowIndexConverter x:Key="Kcv.RowIndex" />
+	<kcv:KcvStarBrushConverter x:Key="Kcv.StarBrush" />
+	<kcv:KcvRadioConverter x:Key="Kcv.Radio" />
+	<kcv:KcvGameIconConverter x:Key="Kcv.GameIcon" />
+	<kcv:KcvUpgradeLevelConverter x:Key="Kcv.UpgradeLevel" />
+	<kcv:KcvUpgradeCurrentLevelConverter x:Key="Kcv.UpgradeCurrentLevel" />
+	<kcv:KcvUpgradePlanIconConverter x:Key="Kcv.UpgradePlanIcon" />
+	<kcv:KcvUpgradePlanBlockedConverter x:Key="Kcv.UpgradePlanBlocked" />
+	<kcv:KcvUpgradeHelpersTodayConverter x:Key="Kcv.UpgradeHelpersToday" />
+	<kcv:KcvUpgradeDayStateConverter x:Key="Kcv.UpgradeDayState" />
+	<kcv:KcvUpgradeDayTextConverter x:Key="Kcv.UpgradeDayText" />
+	<kcv:KcvIsLastItemConverter x:Key="Kcv.IsLastItem" />
+
+	<!--  The game's equipment icon; size it with Width and Height (54 px sources, scaled down smoothly)  -->
+	<Style x:Key="Kcv.EquipmentIcon" TargetType="Image">
+		<Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+		<Setter Property="Stretch" Value="Uniform" />
+		<Setter Property="SnapsToDevicePixels" Value="True" />
+	</Style>
+
+	<!--  Flat gauge: the filled part in Foreground, the rest in Kcv.GaugeBackground, no border or animation.  -->
+	<Style x:Key="Kcv.Gauge" TargetType="ProgressBar">
+		<Setter Property="Height" Value="6" />
+		<Setter Property="Minimum" Value="0" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.GaugeBackground}" />
+		<Setter Property="Focusable" Value="False" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="ProgressBar">
+					<Grid SnapsToDevicePixels="True">
+						<Border x:Name="PART_Track" Background="{TemplateBinding Background}" />
+						<Border
+							x:Name="PART_Indicator"
+							HorizontalAlignment="Left"
+							Background="{TemplateBinding Foreground}"
+							/>
+					</Grid>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style x:Key="Kcv.Text" TargetType="TextBlock">
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+		<Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+	</Style>
+
+	<Style
+		x:Key="Kcv.SubText"
+		BasedOn="{StaticResource Kcv.Text}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+		<Setter Property="FontSize" Value="10" />
+	</Style>
+
+	<!--  フィルター設定 with its round chevron, folding the filters of the ship list and the equipment list  -->
+	<Style x:Key="Kcv.FilterFold" TargetType="ToggleButton">
+		<Setter Property="Cursor" Value="Hand" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="ToggleButton">
+					<StackPanel Background="Transparent" Orientation="Horizontal">
+						<Grid Width="18" Height="18">
+							<Ellipse Stroke="{DynamicResource Kcv.SubForeground}" StrokeThickness="1" />
+							<Path
+								x:Name="Chevron"
+								Width="8"
+								Height="5"
+								Data="M 0,5 L 4,1 L 8,5"
+								Stroke="{DynamicResource Kcv.SubForeground}"
+								StrokeThickness="1.5"
+								/>
+						</Grid>
+						<TextBlock
+							Margin="6 0 0 0"
+							VerticalAlignment="Center"
+							FontSize="14"
+							Style="{StaticResource Kcv.Text}"
+							Text="{x:Static fork:ForkStrings.KcvFilterSettings}"
+							/>
+					</StackPanel>
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsChecked" Value="False">
+							<Setter TargetName="Chevron" Property="Data" Value="M 0,1 L 4,5 L 8,1" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<!--  Table header and rows of the 工廠 tab (入渠, 建造)  -->
+	<Style x:Key="Kcv.TableHeader" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="Padding" Value="8 4" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style x:Key="Kcv.TableCell" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+		<Setter Property="FontSize" Value="14" />
+		<Setter Property="Padding" Value="8 0" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<!--  Vertical label on the left of a table (入渠 / 建造)  -->
+	<Style x:Key="Kcv.SideLabel" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="LayoutTransform">
+			<Setter.Value>
+				<RotateTransform Angle="-90" />
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<DataTemplate x:Key="Kcv.FleetTemplate">
+		<kcv:KcvFleetView ViewModel="{Binding}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.HeadquartersTemplate">
+		<kcv:KcvHeadquartersView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.DockTemplate">
+		<kcv:KcvDockView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.BattleTemplate">
+		<kcv:KcvBattleView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.ArsenalTemplate">
+		<kcv:KcvArsenalView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.QuestTemplate">
+		<kcv:KcvQuestView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.FleetOverviewTemplate">
+		<kcv:KcvFleetOverviewView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.CompassTemplate">
+		<kcv:KcvCompassView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.EquipmentUpgradePlanTemplate">
+		<kcv:KcvEquipmentUpgradePlanView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.BaseAirCorpsTemplate">
+		<kcv:KcvBaseAirCorpsView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.FleetPresetTemplate">
+		<kcv:KcvFleetPresetView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.ShipTrainingTemplate">
+		<kcv:KcvShipTrainingView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.JsonTemplate">
+		<kcv:KcvJsonView />
+	</DataTemplate>
+
+	<DataTemplate x:Key="Kcv.ShipGroupTemplate">
+		<kcv:KcvShipGroupView />
+	</DataTemplate>
+
+	<!--
+		A day box of the upgrade helpers (a helper group's day, or a day of all helpers in compact mode): the day's
+		shortest name, in the accent colour when a helper can do the upgrade that day, brighter on today.
+	-->
+	<DataTemplate x:Key="Kcv.UpgradeDayTemplate">
+		<Border
+			x:Name="Box"
+			MinWidth="20"
+			Height="18"
+			Margin="2 0 0 0"
+			Padding="2 0"
+			Background="Transparent"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="1"
+			>
+			<TextBlock
+				x:Name="Day"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				FontSize="11"
+				Foreground="{DynamicResource Kcv.InactiveForeground}"
+				Text="{Binding DayValue, Converter={StaticResource Kcv.UpgradeDayText}}"
+				TextOptions.TextFormattingMode="Ideal"
+				/>
+		</Border>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding Converter={StaticResource Kcv.UpgradeDayState}}" Value="On">
+				<Setter TargetName="Box" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+				<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+				<Setter TargetName="Day" Property="Foreground" Value="White" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Converter={StaticResource Kcv.UpgradeDayState}}" Value="Today">
+				<Setter TargetName="Box" Property="Background" Value="{DynamicResource Kcv.AccentHighlight}" />
+				<Setter TargetName="Box" Property="BorderBrush" Value="White" />
+				<Setter TargetName="Day" Property="Foreground" Value="White" />
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+	<!--
+		A map node coloured by its kind (Tag: a KcvNodeKind): the sortie record's route, the drop table, and the
+		compass's route, cell and kind of cell (mockup 20261005-compass-route-v4). The text inside takes the colour.
+	-->
+	<Style x:Key="Kcv.Node" TargetType="Border">
+		<Setter Property="MinWidth" Value="15" />
+		<Setter Property="Padding" Value="3 0" />
+		<Setter Property="CornerRadius" Value="2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.NodeNone}" />
+		<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeNoneText}" />
+		<Setter Property="TextElement.FontSize" Value="11" />
+		<Style.Triggers>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Battle}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeBattle}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Night}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeNight}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeNightText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Boss}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeBoss}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeBossText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Air}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeAir}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeAirText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Resource}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeResource}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeResourceText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Escort}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeEscort}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeEscortText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Imagination}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeImagination}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeImaginationText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Maelstrom}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeMaelstrom}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeMaelstromText}" />
+			</Trigger>
+			<Trigger Property="Tag" Value="{x:Static kcv:KcvNodeKind.Landing}">
+				<Setter Property="Background" Value="{DynamicResource Kcv.NodeLanding}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.NodeLandingText}" />
+			</Trigger>
+		</Style.Triggers>
+	</Style>
+</ResourceDictionary>

@@ -1,0 +1,760 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows.Forms;
+using KCViewer.Database;
+using KCViewer.Database.KancolleApi;
+using KCViewer.Database.Sortie;
+using KCViewer.KancolleApi.Types;
+using KCViewer.KancolleApi.Types.ApiGetMember.RequireInfo;
+using KCViewer.KancolleApi.Types.ApiGetMember.ShipDeck;
+using KCViewer.KancolleApi.Types.ApiPort.Port;
+using KCViewer.KancolleApi.Types.Models;
+using KCViewer.Observer;
+using KCViewer.Utility;
+using KCViewer.ViewModels;
+using Microsoft.EntityFrameworkCore;
+
+namespace KCViewer.Window.Dialog;
+
+public partial class DialogLocalAPILoader2 : Form
+{
+	private JsonSerializerOptions JsonSerializerOptions { get; } = new()
+	{
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+	};
+
+	private SortieRecord? SortieRecord { get; }
+	private List<ApiFile> ApiFilesBeforeSortie { get; set; } = [];
+	private List<ApiFile> ApiFilesAfterSortie { get; set; } = [];
+
+	private List<ApiFile> ApiFilesToLoad { get; set; } = [];
+
+	private string CurrentPath { get; set; }
+
+
+	public DialogLocalAPILoader2()
+	{
+		InitializeComponent();
+
+		Translate();
+	}
+
+	public DialogLocalAPILoader2(SortieRecord sortieRecord) : this()
+	{
+		SortieRecord = sortieRecord;
+	}
+
+	public DialogLocalAPILoader2(List<ApiFile> files) : this()
+	{
+		ApiFilesToLoad = files;
+	}
+
+	public void Translate()
+	{
+		APIView_FileName.HeaderText = LocalAPILoader2Resources.APIView_FileName;
+		ViewMenu_Execute.Text = LocalAPILoader2Resources.ViewMenu_Execute;
+		ViewMenu_Delete.Text = LocalAPILoader2Resources.ViewMenu_Delete;
+
+		Menu_File.Text = LocalAPILoader2Resources.Menu_File;
+		Menu_File_OpenFolder.Text = LocalAPILoader2Resources.Menu_File_OpenFolder;
+		Menu_File_Reload.Text = LocalAPILoader2Resources.Menu_File_Reload;
+
+		ButtonSearchPrev.Text = LocalAPILoader2Resources.ButtonSearchPrev;
+		ButtonSearch.Text = LocalAPILoader2Resources.ButtonSearch;
+		ButtonExecuteNext.Text = LocalAPILoader2Resources.ButtonExecuteNext;
+		ButtonExecute.Text = LocalAPILoader2Resources.ButtonExecute;
+
+		Text = LocalAPILoader2Resources.Title;
+	}
+
+	private void DialogLocalAPILoader2_Load(object sender, EventArgs e)
+	{
+		if (SortieRecord is null)
+		{
+			LoadFiles(Utility.Configuration.Config.Connection.SaveDataPath);
+		}
+		else if (SortieRecord is ImportedSortieRecord)
+		{
+			LoadSortieRecordFilesByFetchingRequiredMissingApiInDb(SortieRecord);
+		}
+		else
+		{
+			LoadSortieRecordFiles(SortieRecord);
+		}
+
+		LoadSpecificApiFiles(ApiFilesToLoad);
+	}
+
+
+	private void Menu_File_OpenFolder_Click(object sender, EventArgs e)
+	{
+
+		FolderBrowser.SelectedPath = Utility.Configuration.Config.Connection.SaveDataPath;
+
+		if (FolderBrowser.ShowDialog(App.Current.MainWindow) == System.Windows.Forms.DialogResult.OK)
+		{
+			LoadFiles(FolderBrowser.SelectedPath);
+		}
+
+	}
+
+	private void Menu_File_Reload_Click(object sender, EventArgs e)
+	{
+		if (Directory.Exists(CurrentPath))
+			LoadFiles(CurrentPath);
+		else
+			MessageBox.Show(LocalAPILoader2Resources.FolderNotSpecifiedOrDoesNotExist, LocalAPILoader2Resources.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+	}
+
+	private void ViewMenu_Execute_Click(object sender, EventArgs e)
+	{
+
+		/*/
+		var rows = APIView.SelectedRows.Cast<DataGridViewRow>().OrderBy( r => r.Cells[APIView_FileName.Index].Value );
+
+		foreach ( DataGridViewRow row in rows ) {
+			ExecuteAPI( (string)row.Cells[APIView_FileName.Index].Value );
+		}
+		/*/
+		if (!APICaller.IsBusy)
+			APICaller.RunWorkerAsync(APIView.SelectedRows.Cast<DataGridViewRow>().Select(row => row.Cells[APIView_FileName.Index].Value as string).OrderBy(s => s));
+		else
+			if (MessageBox.Show(LocalAPILoader2Resources.OperationAlreadyInProgress, LocalAPILoader2Resources.Confirmation, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation)
+				== System.Windows.Forms.DialogResult.Yes)
+			{
+				APICaller.CancelAsync();
+			}
+		//*/
+	}
+
+	private void ViewMenu_Delete_Click(object sender, EventArgs e)
+	{
+
+		foreach (DataGridViewRow row in APIView.SelectedRows)
+		{
+			APIView.Rows.Remove(row);
+		}
+	}
+
+
+	private void ButtonExecuteNext_Click(object sender, EventArgs e)
+	{
+		if (APIView.SelectedRows.Count == 1)
+		{
+			DataGridViewRow row = APIView.SelectedRows[0];
+			int index = APIView.SelectedRows[0].Index;
+
+			if (ApiFilesToLoad.Count > 0)
+			{
+				ExecuteDatabaseSavedRecordApi((string)row.Cells[APIView_FileName.Index].Value);
+			}
+			else
+			{
+				ExecuteAPI((string)row.Cells[APIView_FileName.Index].Value);
+			}
+
+			APIView.ClearSelection();
+			if (index < APIView.Rows.Count - 1)
+			{
+				APIView.Rows[index + 1].Selected = true;
+				APIView.FirstDisplayedScrollingRowIndex = index + 1;
+			}
+		}
+		else
+		{
+			MessageBox.Show(LocalAPILoader2Resources.SelectSingleRow, LocalAPILoader2Resources.Information, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+		}
+
+	}
+
+
+
+	private void LoadFiles(string path)
+	{
+
+		if (!Directory.Exists(path)) return;
+
+		CurrentPath = path;
+
+		APIView.Rows.Clear();
+
+		var rows = new LinkedList<DataGridViewRow>();
+
+		foreach (string file in Directory.GetFiles(path, "*.json", SearchOption.TopDirectoryOnly))
+		{
+
+			var row = new DataGridViewRow();
+			row.CreateCells(APIView);
+
+			row.SetValues(Path.GetFileName(file));
+			rows.AddLast(row);
+
+		}
+
+		APIView.Rows.AddRange(rows.ToArray());
+		APIView.Sort(APIView_FileName, ListSortDirection.Ascending);
+
+	}
+
+	private void LoadSortieRecordFilesByFetchingRequiredMissingApiInDb(SortieRecord sortieRecord)
+	{
+		if (sortieRecord.ApiFiles.Count is 0) return;
+
+		KCViewerContext db = new();
+		db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+		IEnumerable<ApiFile?> GetRequiredApiFile(string url)
+		{
+			ApiFile? request = db.ApiFiles
+				.OrderByDescending(f => f.Id)
+				.FirstOrDefault(f => f.Name == url && f.ApiFileType == ApiFileType.Request);
+
+			ApiFile? response = db.ApiFiles
+				.OrderByDescending(f => f.Id)
+				.FirstOrDefault(f => f.Name == url && f.ApiFileType == ApiFileType.Response);
+
+			return [request, response];
+		}
+
+		string[] requiredApi = ["api_port/port", "api_get_member/mapinfo", "api_get_member/useitem"];
+
+		ApiFilesBeforeSortie = requiredApi.Select(GetRequiredApiFile)
+			.SelectMany(files => files)
+			.OfType<ApiFile>()
+			.ToList();
+
+		// Force API files ID to sort them in the view
+		foreach ((ApiFile api, int index) in ApiFilesBeforeSortie.Select((api, index) => (api, index)))
+		{
+			api.Id = index;
+		}
+
+		ApiFilesAfterSortie = [];
+
+		ApiFilesToLoad = [.. ApiFilesBeforeSortie, .. sortieRecord.ApiFiles, .. ApiFilesAfterSortie];
+	}
+
+	private void LoadSortieRecordFiles(SortieRecord sortieRecord)
+	{
+		if (sortieRecord.ApiFiles.Count is 0) return;
+
+		int firstSortieApiFileId = sortieRecord.ApiFiles.MinBy(f => f.Id)!.Id;
+		int lastSortieApiFileId = sortieRecord.ApiFiles.MaxBy(f => f.Id)!.Id;
+
+		KCViewerContext db = new();
+		db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+		int lastPortFileIdBeforeSortieId = db.ApiFiles
+			.Where(f => f.Id < firstSortieApiFileId)
+			.Where(f => f.Name == "api_port/port")
+			.OrderByDescending(f => f.Id)
+			.First()
+			.Id;
+
+		ApiFilesBeforeSortie = db.ApiFiles
+			.Where(f => f.Id < firstSortieApiFileId)
+			.Where(f => f.Id >= lastPortFileIdBeforeSortieId)
+			.ToList();
+
+		int mapinfoFileIdAfterSortieId = db.ApiFiles
+			.Where(f => f.Id > firstSortieApiFileId)
+			.Where(f => f.Name == "api_get_member/mapinfo")
+			.Where(f => f.ApiFileType == ApiFileType.Response)
+			.OrderBy(f => f.Id)
+			.First()
+			.Id;
+
+		ApiFilesAfterSortie = db.ApiFiles
+			.Where(f => f.Name != "api_req_hokyu/charge")
+			.Where(f => f.Id > lastSortieApiFileId)
+			.Where(f => f.Id <= mapinfoFileIdAfterSortieId)
+			.ToList();
+
+		ApiFilesToLoad = ApiFilesBeforeSortie
+			.Concat(sortieRecord.ApiFiles)
+			.Concat(ApiFilesAfterSortie)
+			.ToList();
+	}
+
+	private void LoadSpecificApiFiles(List<ApiFile> files)
+	{
+		if (files.Count is 0) return;
+
+		APIView.Rows.Clear();
+
+		List<DataGridViewRow> rows = [];
+
+		KCViewerContext db = new();
+		db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+		foreach (string file in files.Select(f => $"{f.Id} {f.ApiFileType} {f.Name}"))
+		{
+			DataGridViewRow row = new();
+			row.CreateCells(APIView);
+
+			row.SetValues(file);
+			rows.Add(row);
+		}
+
+		APIView.Rows.AddRange([.. rows]);
+		APIView.Sort(APIView_FileName, ListSortDirection.Ascending);
+
+	}
+
+	//filename format: yyyyMMdd_hhmmssff[Q|S]@apipath@apiname.json
+	private string GetAPIName(string fileName)
+	{
+		int indexa = fileName.IndexOf('@') + 1, indexb = fileName.LastIndexOf('.');
+		return fileName.Substring(indexa).Substring(0, indexb - indexa).Replace('@', '/');
+	}
+
+	private string GetAPITime(string filename)
+	{
+		return filename.Substring(0, filename.IndexOf('@') - 1);
+	}
+
+
+	private bool IsRequest(string filename)
+	{
+		return char.ToLower(filename[filename.IndexOf('@') - 1]) == 'q';
+	}
+
+	private bool IsResponse(string filename)
+	{
+		return char.ToLower(filename[filename.IndexOf('@') - 1]) == 's';
+	}
+
+
+	private void ExecuteAPI(string filename)
+	{
+
+		if (APIObserver.Instance.APIList.ContainsKey(GetAPIName(filename)))
+		{
+
+			string data;
+
+			try
+			{
+				using (var sr = new System.IO.StreamReader(CurrentPath + "\\" + filename))
+				{
+					data = sr.ReadToEnd();
+				}
+
+			}
+			catch (Exception ex)
+			{
+				Utility.Logger.Add(3, string.Format(LoggerRes.FailedToLoadAPIFile, filename, ex.Message));
+				return;
+			}
+
+
+			if (IsRequest(filename))
+				APIObserver.Instance.LoadRequest("/kcsapi/" + GetAPIName(filename), data);
+
+			if (IsResponse(filename))
+				APIObserver.Instance.LoadResponse("/kcsapi/" + GetAPIName(filename), data);
+		}
+
+	}
+
+	private void ExecuteDatabaseSavedRecordApi(string filename)
+	{
+		string[] values = filename.Split(" ");
+
+		int recordId = int.Parse(values[0]);
+		ApiFileType apiFileType = Enum.Parse<ApiFileType>(values[1]);
+		string apiName = values[2];
+
+		if (!APIObserver.Instance.APIList.ContainsKey(apiName)) return;
+
+		ApiFile apiFile = ApiFilesToLoad.First(f => f.Id == recordId);
+
+		if (apiFile is { Name: "api_port/port", ApiFileType: ApiFileType.Response })
+		{
+			List<ApiShip>? sortieShips = TryGetSortieShipData(SortieRecord);
+			Dictionary<SortieShip, (List<int>, int)> shipEquip = LoadEquipmentData(sortieShips);
+
+			string? savedPortResponseJson = LoadApiResponse("api_port/port");
+
+			if (savedPortResponseJson is not null)
+			{
+				ApiResponse<ApiPortPortResponse> savedPortResponse = JsonSerializer
+					.Deserialize<ApiResponse<ApiPortPortResponse>>(savedPortResponseJson[7..])
+					?? throw new NotImplementedException();
+
+				ApiResponse<ApiPortPortResponse> apiFilePortResponse = JsonSerializer
+					.Deserialize<ApiResponse<ApiPortPortResponse>>(apiFile.Content)
+					?? throw new NotImplementedException();
+
+				apiFilePortResponse.ApiData.ApiShip = savedPortResponse.ApiData.ApiShip;
+				apiFilePortResponse.ApiData.ApiLog = savedPortResponse.ApiData.ApiLog;
+				apiFilePortResponse.ApiData.ApiNdock = savedPortResponse.ApiData.ApiNdock;
+
+				if (SortieRecord is not null)
+				{
+					apiFilePortResponse.ApiData.ApiDeckPort = SortieRecord.FleetData.Fleets
+						.Select((f, i) => f switch
+						{
+							null => null,
+
+							_ => new FleetDataDto
+							{
+								ApiId = i + 1,
+								ApiShip = [.. f.Ships.Select(s => s.DropId ?? 0)],
+								ApiMission = [0, 0, 0, 0],
+							},
+						})
+						.OfType<FleetDataDto>()
+						.ToList();
+
+					// Ensures that the ship data from the sortie record exists in KCDatabase with the correct ID.
+					foreach (SortieShip ship in SortieRecord.FleetData.Fleets.OfType<SortieFleet>().SelectMany(f => f.Ships))
+					{
+						if (ship.DropId is not int dropId) continue;
+
+						if (apiFilePortResponse.ApiData.ApiShip.FirstOrDefault(s => s.ApiId == dropId) is { } s)
+						{
+							apiFilePortResponse.ApiData.ApiShip.Remove(s);
+						}
+
+						(List<int> equipmentIds, int apiSlotEx) = shipEquip.ContainsKey(ship) switch
+						{
+							true => shipEquip[ship],
+							_ => ([-1], -1),
+						};
+
+						if (sortieShips?.FirstOrDefault(s => s.ApiId == dropId) is ApiShip apiShip)
+						{
+							apiShip.ApiNowhp = ship.Hp ?? apiShip.ApiNowhp;
+							apiShip.ApiFuel = ship.Fuel;
+							apiShip.ApiBull = ship.Ammo;
+							apiShip.ApiOnslot = ship.Aircraft ?? apiShip.ApiOnslot;
+						}
+						else
+						{
+							apiShip = ship.ToApiShip(equipmentIds, equipmentIds.Count, apiSlotEx);
+						}
+
+						apiFilePortResponse.ApiData.ApiShip.Add(apiShip);
+					}
+				}
+
+				apiFile.Content = JsonSerializer.Serialize(apiFilePortResponse, JsonSerializerOptions);
+			}
+		}
+
+		switch (apiFileType)
+		{
+			case ApiFileType.Request:
+				Dictionary<string, string> queryParameters = JsonSerializer
+					.Deserialize<Dictionary<string, string>>(apiFile.Content)
+					?? throw new NotImplementedException();
+
+				string queryString = string.Join("&", queryParameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+				APIObserver.Instance.LoadRequest("/kcsapi/" + apiName, queryString);
+				break;
+
+			case ApiFileType.Response:
+				APIObserver.Instance.LoadResponse("/kcsapi/" + apiName, $"svdata={apiFile.Content}");
+				break;
+		}
+	}
+
+	private static List<ApiShip>? TryGetSortieShipData(SortieRecord? sortieRecord)
+	{
+		ApiFile? sortieEquipmentDataFile = sortieRecord?.ApiFiles
+			.FirstOrDefault(f => f.Name is "api_get_member/ship_deck" && f.ApiFileType == ApiFileType.Response);
+
+		if (sortieEquipmentDataFile?.Content is null) return null;
+
+		ApiResponse<ApiGetMemberShipDeckResponse>? sortieEquipmentData = JsonSerializer
+			.Deserialize<ApiResponse<ApiGetMemberShipDeckResponse>>(sortieEquipmentDataFile.Content);
+
+		return sortieEquipmentData?.ApiData.ApiShipData;
+	}
+
+	/// <summary>
+	/// Ensures that the equip data from the sortie record exists in KCDatabase with the correct ID.
+	/// </summary>
+	private Dictionary<SortieShip, (List<int>, int)> LoadEquipmentData(List<ApiShip>? sortieShips)
+	{
+		if (SortieRecord is null) return [];
+
+		string? savedRequireInfoResponseJson = LoadApiResponse("api_get_member/require_info");
+
+		Dictionary<SortieShip, (List<int>, int)> shipEquip = [];
+
+		if (savedRequireInfoResponseJson is null) return [];
+
+		ApiResponse<ApiGetMemberRequireInfoResponse> savedRequireInfoResponse = JsonSerializer
+			.Deserialize<ApiResponse<ApiGetMemberRequireInfoResponse>>(savedRequireInfoResponseJson[7..])
+			?? throw new NotImplementedException();
+
+		int equipmentDropId = 1;
+
+		foreach ((SortieShip ship, List<SortieEquipmentSlot> slots, SortieEquipmentSlot? exSlot) in SortieRecord.FleetData.Fleets
+			.OfType<SortieFleet>()
+			.SelectMany(f => f.Ships)
+			.Select(s => (s, s.EquipmentSlots, s.ExpansionSlot)))
+		{
+			List<int> equipmentIds = [];
+
+			ApiShip? apiShip = sortieShips?.FirstOrDefault(s => s.ApiId == ship.DropId);
+
+			foreach ((SortieEquipment? eq, int i) in slots.Select((s, i) => (s.Equipment, i)))
+			{
+				if (eq is null) continue;
+
+				ApiSlotItem slotItem = AddSlotItem(eq, apiShip?.ApiSlot.Skip(i).FirstOrDefault());
+				equipmentIds.Add(slotItem.ApiId);
+			}
+
+			int exSlotId = -1;
+
+			if (exSlot is not null)
+			{
+				if (exSlot.Equipment is not null)
+				{
+					ApiSlotItem slotItem = AddSlotItem(exSlot.Equipment, apiShip?.ApiSlotEx);
+					exSlotId = slotItem.ApiId;
+				}
+				else
+				{
+					exSlotId = 0;
+				}
+			}
+
+			shipEquip.Add(ship, (equipmentIds, exSlotId));
+
+			ApiSlotItem AddSlotItem(SortieEquipment eq, int? apiId)
+			{
+				ApiSlotItem slotItem;
+
+				if (apiId is int id)
+				{
+					slotItem = eq.ToApiSlotItem(id);
+				}
+				else
+				{
+					slotItem = eq.ToApiSlotItem(equipmentDropId);
+					equipmentDropId++;
+				}
+
+				if (savedRequireInfoResponse.ApiData.ApiSlotItem.FirstOrDefault(s => s.ApiId == slotItem.ApiId) is { } e)
+				{
+					savedRequireInfoResponse.ApiData.ApiSlotItem.Remove(e);
+				}
+
+				savedRequireInfoResponse.ApiData.ApiSlotItem.Add(slotItem);
+
+				return slotItem;
+			}
+		}
+
+		savedRequireInfoResponseJson = JsonSerializer.Serialize(savedRequireInfoResponse, JsonSerializerOptions);
+
+		APIObserver.Instance.LoadResponse("/kcsapi/api_get_member/require_info", $"svdata={savedRequireInfoResponseJson}");
+
+		return shipEquip;
+	}
+
+	private void APICaller_DoWork(object sender, DoWorkEventArgs e)
+	{
+		if (e.Argument is not IEnumerable<string?> files) return;
+
+		Action<string> act = ApiFilesToLoad.Count switch
+		{
+			0 => ExecuteAPI,
+			_ => ExecuteDatabaseSavedRecordApi,
+		};
+
+		foreach (string? file in files)
+		{
+			Invoke(act, file);
+			System.Threading.Thread.Sleep(10);      //ゆるして
+
+			if (APICaller.CancellationPending)
+			{
+				e.Result = file;
+				break;
+			}
+		}
+
+	}
+
+	private void APICaller_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+	{
+
+		if (e.Result != null)
+		{   //canceled
+			int count = APIView.Rows.Count;
+			int result = -1;
+			string canceledFile = e.Result as string;
+
+			for (int i = 0; i < count; i++)
+			{
+				if (APIView[APIView_FileName.Index, i].Value.ToString() == canceledFile)
+				{
+					result = i + 1;     // 探知結果までは処理済みのため
+					break;
+				}
+			}
+
+			if (result != -1 && result < count)
+			{
+				APIView.ClearSelection();
+				APIView.Rows[result].Selected = true;
+				APIView.FirstDisplayedScrollingRowIndex = result;
+			}
+		}
+	}
+
+
+	private void DialogLocalAPILoader2_FormClosing(object sender, FormClosingEventArgs e)
+	{
+		if (APICaller.IsBusy)
+		{
+			e.Cancel = true;
+			System.Media.SystemSounds.Exclamation.Play();
+		}
+	}
+
+
+	private void ButtonSearch_Click(object sender, EventArgs e)
+	{
+
+		int count = APIView.Rows.Count;
+		int index;
+		int result = -1;
+		if (APIView.SelectedRows.Count > 0)
+			index = APIView.SelectedRows[0].Index + 1;
+		else
+			index = 0;
+
+		if (index >= count)
+			index = 0;
+
+		for (int i = index; i < count; i++)
+		{
+			if (APIView[APIView_FileName.Index, i].Value.ToString().ToLower().Contains(TextFilter.Text.ToLower()))
+			{
+				result = i;
+				break;
+			}
+		}
+
+		if (result != -1)
+		{
+			APIView.ClearSelection();
+			APIView.Rows[result].Selected = true;
+			APIView.FirstDisplayedScrollingRowIndex = result;
+		}
+		else
+		{
+			System.Media.SystemSounds.Asterisk.Play();
+		}
+	}
+
+	private void ButtonSearchPrev_Click(object sender, EventArgs e)
+	{
+
+		int count = APIView.Rows.Count;
+		int index;
+		int result = -1;
+		if (APIView.SelectedRows.Count > 0)
+			index = APIView.SelectedRows[0].Index - 1;
+		else
+			index = count - 1;
+
+		if (index < 0)
+			index = count - 1;
+
+		for (int i = index; i >= 0; i--)
+		{
+			if (APIView[APIView_FileName.Index, i].Value.ToString().ToLower().Contains(TextFilter.Text.ToLower()))
+			{
+				result = i;
+				break;
+			}
+		}
+
+		if (result != -1)
+		{
+			APIView.ClearSelection();
+			APIView.Rows[result].Selected = true;
+			APIView.FirstDisplayedScrollingRowIndex = result;
+		}
+		else
+		{
+			System.Media.SystemSounds.Asterisk.Play();
+		}
+	}
+
+
+
+	private void ButtonSearchLastStart2_Click(object sender, EventArgs e)
+	{
+		for (int i = APIView.Rows.Count - 1; i >= 0; i--)
+		{
+			if (APIView[APIView_FileName.Index, i].Value.ToString().ToLower().Contains("s@api_start2@getData."))
+			{
+				APIView.ClearSelection();
+				APIView.Rows[i].Selected = true;
+				APIView.FirstDisplayedScrollingRowIndex = i;
+				return;
+			}
+		}
+
+		//failed
+		System.Media.SystemSounds.Asterisk.Play();
+	}
+
+
+	private void TextFilter_KeyDown(object sender, KeyEventArgs e)
+	{
+		if (e.KeyCode == Keys.Enter)
+		{
+			e.SuppressKeyPress = true;
+			ButtonSearch.PerformClick();
+		}
+	}
+
+
+	private void APIView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+	{
+		try
+		{
+			ProcessStartInfo psi = new()
+			{
+				FileName = CurrentPath + "\\" + APIView.SelectedCells.OfType<DataGridViewCell>().First().Value,
+				UseShellExecute = true
+			};
+			Process.Start(psi);
+		}
+		catch (Exception ex)
+		{
+			Utility.Logger.Add(1, string.Format(LocalAPILoader2Resources.FailedToStart, ex.GetType().Name, ex.Message));
+		}
+	}
+
+	private static string? LoadApiResponse(string apiName)
+	{
+		Configuration.ConfigurationData config = Configuration.Config;
+
+		if (string.IsNullOrEmpty(config.Connection.SaveDataPath)) return null;
+		if (!Directory.Exists(config.Connection.SaveDataPath)) return null;
+
+		string filePath = Path.Combine(config.Connection.SaveDataPath, "kcsapi", apiName);
+
+		if (!File.Exists(filePath)) return null;
+
+		return File.ReadAllText(filePath);
+	}
+}

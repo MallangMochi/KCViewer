@@ -1,0 +1,96 @@
+﻿<UserControl
+	x:Class="KCViewer.Common.EquipmentIcon"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:electronicObserverTypes="clr-namespace:KCViewer.Core.Types;assembly=KCViewer.Core"
+	xmlns:markup="clr-namespace:WpfExtensions.Xaml.Markup;assembly=WpfExtensions.Xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="Root"
+	d:DesignHeight="450"
+	d:DesignWidth="800"
+	mc:Ignorable="d"
+	>
+	<Image
+		Width="16"
+		Height="16"
+		DataContext="{Binding ElementName=Root}"
+		>
+		<Image.Style>
+			<Style TargetType="Image">
+				<Setter Property="Visibility" Value="Visible" />
+				<Style.Triggers>
+					<DataTrigger Binding="{Binding Type}" Value="{x:Null}">
+						<Setter Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+				</Style.Triggers>
+			</Style>
+		</Image.Style>
+
+		<Image.Source>
+			<markup:Switch To="{Binding Type}">
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Nothing}" Value="{StaticResource EquipmentIconType.Nothing}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.MainGunSmall}" Value="{StaticResource EquipmentIconType.MainGunSmall}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.MainGunMedium}" Value="{StaticResource EquipmentIconType.MainGunMedium}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.MainGunLarge}" Value="{StaticResource EquipmentIconType.MainGunLarge}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SecondaryGun}" Value="{StaticResource EquipmentIconType.SecondaryGun}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Torpedo}" Value="{StaticResource EquipmentIconType.Torpedo}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.CarrierBasedFighter}" Value="{StaticResource EquipmentIconType.CarrierBasedFighter}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.CarrierBasedBomber}" Value="{StaticResource EquipmentIconType.CarrierBasedBomber}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.CarrierBasedTorpedo}" Value="{StaticResource EquipmentIconType.CarrierBasedTorpedo}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.CarrierBasedRecon}" Value="{StaticResource EquipmentIconType.CarrierBasedRecon}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Seaplane}" Value="{StaticResource EquipmentIconType.Seaplane}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Radar}" Value="{StaticResource EquipmentIconType.Radar}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.AAShell}" Value="{StaticResource EquipmentIconType.AaShell}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.APShell}" Value="{StaticResource EquipmentIconType.ApShell}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.DamageControl}" Value="{StaticResource EquipmentIconType.DamageControl}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.AAGun}" Value="{StaticResource EquipmentIconType.AaGun}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.HighAngleGun}" Value="{StaticResource EquipmentIconType.HighAngleGun}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.DepthCharge}" Value="{StaticResource EquipmentIconType.DepthCharge}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Sonar}" Value="{StaticResource EquipmentIconType.Sonar}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Engine}" Value="{StaticResource EquipmentIconType.Engine}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandingCraft}" Value="{StaticResource EquipmentIconType.LandingCraft}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Autogyro}" Value="{StaticResource EquipmentIconType.Autogyro}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.ASPatrol}" Value="{StaticResource EquipmentIconType.AsPatrol}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.ExtraArmor}" Value="{StaticResource EquipmentIconType.ExtraArmor}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Searchlight}" Value="{StaticResource EquipmentIconType.Searchlight}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.TransportContainer}" Value="{StaticResource EquipmentIconType.TransportContainer}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.RepairFacility}" Value="{StaticResource EquipmentIconType.RepairFacility}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.StarShell}" Value="{StaticResource EquipmentIconType.StarShell}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.CommandFacility}" Value="{StaticResource EquipmentIconType.CommandFacility}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.AviationPersonnel}" Value="{StaticResource EquipmentIconType.AviationPersonnel}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.AADirector}" Value="{StaticResource EquipmentIconType.AaDirector}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Rocket}" Value="{StaticResource EquipmentIconType.Rocket}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SurfaceShipPersonnel}" Value="{StaticResource EquipmentIconType.SurfaceShipPersonnel}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.FlyingBoat}" Value="{StaticResource EquipmentIconType.FlyingBoat}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Ration}" Value="{StaticResource EquipmentIconType.Ration}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Supplies}" Value="{StaticResource EquipmentIconType.Supplies}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SpecialAmphibiousTank}" Value="{StaticResource EquipmentIconType.SpecialAmphibiousTank}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandBasedAttacker}" Value="{StaticResource EquipmentIconType.LandBasedAttacker}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.Interceptor}" Value="{StaticResource EquipmentIconType.Interceptor}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.JetBomberKeiun}" Value="{StaticResource EquipmentIconType.JetBomberKeiun}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.JetBomberKikka}" Value="{StaticResource EquipmentIconType.JetBomberKikka}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.TransportMaterial}" Value="{StaticResource EquipmentIconType.TransportMaterial}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SubmarineEquipment}" Value="{StaticResource EquipmentIconType.SubmarineEquipment}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SeaplaneFighter}" Value="{StaticResource EquipmentIconType.SeaplaneFighter}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandBasedFighter}" Value="{StaticResource EquipmentIconType.LandBasedFighter}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.NightFighter}" Value="{StaticResource EquipmentIconType.NightFighter}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.NightAttacker}" Value="{StaticResource EquipmentIconType.NightAttacker}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandBasedASPatrol}" Value="{StaticResource EquipmentIconType.LandBasedAsPatrol}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandAssaulter}" Value="{StaticResource EquipmentIconType.LandAssaulter}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.HeavyBomber}" Value="{StaticResource EquipmentIconType.HeavyBomber}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.NightSeaplane}" Value="{StaticResource EquipmentIconType.NightSeaplane}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.NightSeaplaneBomber}" Value="{StaticResource EquipmentIconType.NightSeaplaneBomber}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.ArmyInfantry}" Value="{StaticResource EquipmentIconType.ArmyInfantry}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.SmokeGenerator}" Value="{StaticResource EquipmentIconType.SmokeGenerator}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.BarrageBalloon}" Value="{StaticResource EquipmentIconType.BarrageBalloon}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandBasedFighterJet}" Value="{StaticResource EquipmentIconType.LandBasedFighterJet}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.LandBasedFighterShinden}" Value="{StaticResource EquipmentIconType.LandBasedFighterShinden}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.NightBomber}" Value="{StaticResource EquipmentIconType.NightBomber}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.JetBomberHo229}" Value="{StaticResource EquipmentIconType.JetBomberHo229}" />
+				<markup:Case Label="{x:Static electronicObserverTypes:EquipmentIconType.JetFighterShinden}" Value="{StaticResource EquipmentIconType.JetFighterShinden}" />
+				<markup:Case Value="{StaticResource EquipmentIconType.Unknown}" />
+			</markup:Switch>
+		</Image.Source>
+	</Image>
+</UserControl>

@@ -1,0 +1,49 @@
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using KCViewer.Core.Types;
+using KCViewer.Data;
+using KCViewer.Utility.Data;
+using KCViewer.Window.Wpf;
+
+namespace KCViewer.Window.Tools.FleetImageGenerator;
+
+public class AirBaseViewModel : ObservableObject
+{
+	public IBaseAirCorpsData? Model { get; set; }
+
+	public string Name { get; set; } = "";
+	private AirBaseActionKind ActionKind { get; set; }
+	public string ActionKindDisplay => Constants.GetBaseAirCorpsActionKind(ActionKind);
+
+	public int AirPower { get; set; }
+	public int HighAltitudeAirPower { get; set; }
+	public bool ShowHighAltitude => ActionKind == AirBaseActionKind.AirDefense;
+	public int Range { get; set; }
+
+	public ObservableCollection<EquipmentSlotViewModel> Squadrons { get; private set; } = new();
+
+	public AirBaseViewModel Initialize(IBaseAirCorpsData? ab, List<IBaseAirCorpsData> areaSquadron)
+	{
+		Model = ab;
+
+		if (ab is null)
+		{
+			return this;
+		}
+
+		Name = ab.Name;
+		ActionKind = ab.ActionKind;
+
+		AirPower = Calculator.GetAirSuperiority(ab);
+		HighAltitudeAirPower = Calculator.GetHighAltitudeAirSuperiority(ab, areaSquadron, false);
+		Range = ab.Distance;
+
+		Squadrons = ab.Squadrons.Values
+			.Select(s => new EquipmentSlotViewModel(s?.EquipmentInstance, s?.AircraftMax ?? 0))
+			.ToObservableCollection();
+
+		return this;
+	}
+}

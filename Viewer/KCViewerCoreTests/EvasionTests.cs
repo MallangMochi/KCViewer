@@ -1,0 +1,42 @@
+﻿using System.Collections.Generic;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.Core.Types.Mocks;
+using Xunit;
+
+namespace KCViewerCoreTests;
+
+[Collection(DatabaseCollection.Name)]
+public class EvasionTests
+{
+	private DatabaseFixture Db { get; }
+
+	public EvasionTests(DatabaseFixture db)
+	{
+		Db = db;
+	}
+
+	[Fact]
+	public void EvasionTest1()
+	{
+		ShipDataMock kamikaze = new(Db.MasterShips[ShipId.Kamikaze])
+		{
+			Level = 1,
+			LuckBase = 30,
+			EvasionFit = 3,
+			SlotInstance = new List<IEquipmentData?>
+			{
+				new EquipmentDataMock(Db.MasterEquipment[EquipmentId.Sonar_Type4PassiveSONAR])
+				{
+					Level = 10,
+				},
+				new EquipmentDataMock(Db.MasterEquipment[EquipmentId.RadarSmall_GFCSMk_37]),
+				new EquipmentDataMock(Db.MasterEquipment[EquipmentId.SurfaceShipPersonnel_TorpedoSquadronSkilledLookouts]),
+			},
+		};
+
+		Assert.Equal(51, kamikaze.ShellingEvasion());
+		Assert.Equal(55, kamikaze.TorpedoEvasion());
+		Assert.Equal(61, kamikaze.NightEvasion());
+	}
+}

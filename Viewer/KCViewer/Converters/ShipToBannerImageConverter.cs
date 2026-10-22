@@ -1,0 +1,45 @@
+﻿using System;
+using System.Globalization;
+using System.Windows.Data;
+using System.Windows.Media.Imaging;
+using KCViewer.Core.Types;
+using KCViewer.Resource;
+using KCViewer.Window.Wpf;
+
+namespace KCViewer.Converters;
+
+public class ShipToBannerImageConverter : IValueConverter
+{
+	public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+	{
+		int? shipId = value switch
+		{
+			IShipDataMaster ship => ship.ID,
+			ShipId i => (int)i,
+
+			_ => null,
+		};
+
+		if (shipId is not int id) return null;
+
+		try
+		{
+			string? imageUri = KCResourceHelper
+				.GetShipImagePath(id, false, KCResourceHelper.ResourceTypeShipBanner);
+
+			// Fork: in no folder yet: fetched from the official server and shown when it arrives (Fork/KcvViews/KcvGameImages.cs)
+			if (imageUri is null) return Fork.KcvViews.KcvGameImages.ShipImage(id, KCResourceHelper.ResourceTypeShipBanner, 240, 60);
+
+			return new BitmapImage(new Uri(imageUri, UriKind.RelativeOrAbsolute).ToAbsolute());
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	{
+		throw new NotSupportedException();
+	}
+}

@@ -1,0 +1,490 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvDropRecordWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:drop="clr-namespace:KCViewer.Window.Tools.DropRecordViewer"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding DialogDropRecordViewer.Title}"
+	Width="730"
+	Height="450"
+	d:DataContext="{d:DesignInstance drop:DropRecordViewerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="drop:DropRecordViewerViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the drop record in KanColleViewer's style (mockup v6, viewer-design/mockups/20261004-drop-record-v6.html,
+		approved 2026-10-04) with the viewer's view model. The viewer's conditions in four rows, the check boxes after
+		their labels. Columns 시간·이름 (and the ship type in grey)·해역 「1-5-11 J」 (the node letter coloured, the boss's dark
+		red; 「61-3[甲]-12 P」 on event maps) with the enemy fleet in grey·랭크 (coloured). With 합치기 the viewer's merged
+		table 이름·횟수·S·A·B. The viewer's double click that opens a row's battle log is left out ("2 빼", 2026-10-05).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<drop:DropFilterToDisplayConverter x:Key="DropFilter" />
+			<drop:DifficultyToDisplayConverter x:Key="Difficulty" />
+			<kcv:KcvDropMapConverter x:Key="DropMap" />
+
+			<Style
+				x:Key="Rank"
+				BasedOn="{StaticResource KcvRec.Check}"
+				TargetType="CheckBox"
+				>
+				<Setter Property="Margin" Value="8 0 0 0" />
+			</Style>
+
+			<!--  1-5-11 J 敵通商破壊主力潜水艦隊  -->
+			<DataTemplate x:Key="DropMapTemplate" DataType="{x:Type kcv:KcvDropMap}">
+				<StackPanel Margin="6 0" Orientation="Horizontal">
+					<TextBlock
+						VerticalAlignment="Center"
+						FontSize="13"
+						Text="{Binding Numbers}"
+						/>
+					<Border
+						x:Name="Node"
+						Margin="4 0 0 0"
+						Style="{StaticResource KcvRec.Node}"
+						>
+						<TextBlock HorizontalAlignment="Center" Text="{Binding Letter}" />
+					</Border>
+					<TextBlock
+						Margin="6 0 0 0"
+						Style="{StaticResource KcvRec.Sub}"
+						Text="{Binding EnemyFleet}"
+						/>
+				</StackPanel>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding Letter}" Value="{x:Null}">
+						<Setter TargetName="Node" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  검색 조건: 함선·아이템·함종 / 기간 / 해역·맵·칸·난이도·보스·랭크 / 희귀 드랍만 표시·합치기  -->
+		<ContentControl Grid.Row="0" Style="{StaticResource KcvRec.Conditions}">
+			<StackPanel>
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding DialogDropRecordViewer.LabelShipName, StringFormat={}{0}:}" />
+						<Button
+							Margin="0"
+							Click="OpenShipPicker"
+							Content="{Binding ShipSearchOption, Converter={StaticResource DropFilter}}"
+							Style="{StaticResource KcvRec.Button}"
+							ToolTip="{Binding DialogDropRecordViewer.ShipNameToolTip}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding DialogDropRecordViewer.LabelItemName, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemsSource="{Binding Items}"
+							SelectedItem="{Binding ItemSearchOption}"
+							Style="{StaticResource KcvRec.Combo}"
+							ToolTip="{Binding DialogDropRecordViewer.ItemNameToolTip}"
+							>
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Converter={StaticResource DropFilter}}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding DialogDropRecordViewer.LabelShipType, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemsSource="{Binding ShipTypeOptions}"
+							SelectedItem="{Binding ShipTypeSearchOption}"
+							Style="{StaticResource KcvRec.Combo}"
+							>
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
+				</WrapPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<kcv:KcvRecordPeriod Margin="0 0 14 0" />
+				</WrapPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding Source={x:Static translations:SortieRecordViewerResources.World}, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemsSource="{Binding Worlds}"
+							SelectedItem="{Binding MapAreaID}"
+							Style="{StaticResource KcvRec.Combo}"
+							ToolTip="{Binding DialogDropRecordViewer.MapAreaIDToolTip}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding Source={x:Static translations:SortieRecordViewerResources.Map}, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemsSource="{Binding Maps}"
+							SelectedItem="{Binding MapInfoID}"
+							Style="{StaticResource KcvRec.Combo}"
+							ToolTip="{Binding DialogDropRecordViewer.MapInfoIDToolTip}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding Source={x:Static fork:ForkStrings.KcvRecordCell}, StringFormat={}{0}:}" />
+						<ComboBox
+							IsEnabled="{Binding MapCellIdEnabled}"
+							ItemsSource="{Binding Cells}"
+							SelectedItem="{Binding MapCellID}"
+							Style="{StaticResource KcvRec.Combo}"
+							ToolTip="{Binding DialogDropRecordViewer.MapCellIDToolTip}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding Source={x:Static fork:ForkStrings.KcvRecordDifficulty}, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemsSource="{Binding Difficulties}"
+							SelectedItem="{Binding MapDifficulty}"
+							Style="{StaticResource KcvRec.Combo}"
+							ToolTip="{Binding DialogDropRecordViewer.MapDifficultyToolTip}"
+							>
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Converter={StaticResource Difficulty}}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
+					<CheckBox
+						Content="{Binding DialogDropRecordViewer.IsBossOnly}"
+						IsChecked="{Binding IsBossOnly}"
+						IsThreeState="True"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding Source={x:Static fork:ForkStrings.KcvRecordRank}, StringFormat={}{0}:}" />
+						<CheckBox
+							Margin="0"
+							Content="S"
+							IsChecked="{Binding RankS}"
+							Style="{StaticResource KcvRec.Check}"
+							ToolTip="{Binding DialogDropRecordViewer.RankSToolTip}"
+							/>
+						<CheckBox
+							Content="A"
+							IsChecked="{Binding RankA}"
+							Style="{StaticResource Rank}"
+							ToolTip="{Binding DialogDropRecordViewer.RankAToolTip}"
+							/>
+						<CheckBox
+							Content="B"
+							IsChecked="{Binding RankB}"
+							Style="{StaticResource Rank}"
+							ToolTip="{Binding DialogDropRecordViewer.RankBToolTip}"
+							/>
+						<CheckBox
+							Content="X"
+							IsChecked="{Binding RankX}"
+							Style="{StaticResource Rank}"
+							ToolTip="{Binding DialogDropRecordViewer.RankXToolTip}"
+							/>
+					</StackPanel>
+				</WrapPanel>
+
+				<DockPanel Margin="0 2">
+					<StackPanel
+						VerticalAlignment="Bottom"
+						DockPanel.Dock="Right"
+						Orientation="Horizontal"
+						>
+						<Button
+							Command="{Binding SearchCommand}"
+							Content="{x:Static fork:ForkStrings.KcvRecordSearch}"
+							Style="{StaticResource KcvRec.PrimaryButton}"
+							/>
+						<Button
+							Command="{Binding SearchCancelCommand}"
+							Content="{x:Static fork:ForkStrings.KcvRecordCancel}"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+						<Button
+							Click="ResetConditions"
+							Content="{x:Static fork:ForkStrings.KcvRecordReset}"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+					</StackPanel>
+					<StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+						<CheckBox
+							Margin="0"
+							Content="{Binding DialogDropRecordViewer.IgnoreCommonDrops}"
+							IsChecked="{Binding DropRecordFilter.IgnoreCommonDrops}"
+							Style="{StaticResource KcvRec.Check}"
+							/>
+						<CheckBox
+							Margin="16 0 0 0"
+							Content="{Binding DialogDropRecordViewer.MergeRows}"
+							IsChecked="{Binding MergeRows}"
+							Style="{StaticResource KcvRec.Check}"
+							ToolTip="{Binding DialogDropRecordViewer.MergeRowsToolTip}"
+							/>
+					</StackPanel>
+				</DockPanel>
+			</StackPanel>
+		</ContentControl>
+
+		<!--  each drop  -->
+		<DataGrid
+			Grid.Row="1"
+			ItemsSource="{Binding DataGridRawRowsViewModel.Items}"
+			SelectionChanged="ShowSelection"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridRawRowsViewModel}"
+			Visibility="{Binding RawRows, Converter={StaticResource KcvRec.Visible}}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridRawRowsViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridRawRowsViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridRawRowsViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridRawRowsViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridRawRowsViewModel.ClearSortingCommand}" Header="{Binding DataGridRawRowsViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="140"
+					MinWidth="140"
+					Header="{x:Static fork:ForkStrings.KcvRecordTime}"
+					SortMemberPath="Date"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:DropRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Date, Converter={StaticResource KcvRec.Time}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="170"
+					MinWidth="170"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_Name}"
+					SortMemberPath="Name"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:DropRecordRow}">
+							<TextBlock x:Name="Name" Style="{StaticResource KcvRec.Text}">
+								<Run Text="{Binding Name, Mode=OneWay}" />
+								<Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding ShipId, Mode=OneWay, Converter={StaticResource KcvRec.ShipType}}"
+									/>
+							</TextBlock>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Name}" Value="{x:Static translations:DropRecordViewerResources.NameNotExist}">
+									<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding Name}" Value="{x:Static translations:DropRecordViewerResources.NameFullPort}">
+									<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="280"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_Map}"
+					SortMemberPath="MapDescription"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:DropRecordRow}">
+							<ContentControl
+								VerticalAlignment="Center"
+								Content="{Binding Converter={StaticResource DropMap}}"
+								ContentTemplate="{StaticResource DropMapTemplate}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_Rank}"
+					SortMemberPath="Rank"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:DropRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Rank}" Text="{Binding Rank}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<!--  merged: the viewer's columns 이름·횟수·S·A·B, rates in grey  -->
+		<DataGrid
+			Grid.Row="1"
+			ItemsSource="{Binding DataGridMergedRowsViewModel.Items}"
+			SelectionChanged="ShowSelection"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridMergedRowsViewModel}"
+			Visibility="{Binding MergeRows, Converter={StaticResource KcvRec.Visible}}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridMergedRowsViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridMergedRowsViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridMergedRowsViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridMergedRowsViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridMergedRowsViewModel.ClearSortingCommand}" Header="{Binding DataGridMergedRowsViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="180"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_Name}"
+					SortMemberPath="Name"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:MergedDropRecordRow}">
+							<Grid>
+								<TextBlock x:Name="Name" Style="{StaticResource KcvRec.Text}">
+									<Run Text="{Binding Name, Mode=OneWay}" />
+									<Run
+										FontSize="11"
+										Foreground="{DynamicResource Kcv.InactiveForeground}"
+										Text="{Binding ShipId, Mode=OneWay, Converter={StaticResource KcvRec.ShipType}}"
+										/>
+								</TextBlock>
+								<ContentControl
+									VerticalAlignment="Center"
+									Content="{Binding Converter={StaticResource DropMap}}"
+									ContentTemplate="{StaticResource DropMapTemplate}"
+									Focusable="False"
+									/>
+							</Grid>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding ForkMapSerialId, Converter={StaticResource KcvRec.IsZero}}" Value="False">
+									<Setter TargetName="Name" Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding Name}" Value="{x:Static translations:DropRecordViewerResources.NameNotExist}">
+									<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding Name}" Value="{x:Static translations:DropRecordViewerResources.NameFullPort}">
+									<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					MinWidth="120"
+					Header="{x:Static translations:EncycloRes.Tries}"
+					SortMemberPath="Count"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:MergedDropRecordRow}">
+							<ContentControl
+								Content="{Binding CountDisplay}"
+								ContentTemplate="{StaticResource KcvRec.Count}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					MinWidth="120"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_RankS}"
+					SortMemberPath="CountS"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:MergedDropRecordRow}">
+							<ContentControl
+								Content="{Binding RankDisplayS}"
+								ContentTemplate="{StaticResource KcvRec.Count}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					MinWidth="120"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_RankA}"
+					SortMemberPath="CountA"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:MergedDropRecordRow}">
+							<ContentControl
+								Content="{Binding RankDisplayA}"
+								ContentTemplate="{StaticResource KcvRec.Count}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					MinWidth="120"
+					Header="{x:Static translations:DropRecordViewerResources.RecordView_RankB}"
+					SortMemberPath="CountB"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type drop:MergedDropRecordRow}">
+							<ContentControl
+								Content="{Binding RankDisplayB}"
+								ContentTemplate="{StaticResource KcvRec.Count}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<Border Grid.Row="2" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<TextBlock x:Name="SelectionText" DockPanel.Dock="Right" />
+				<TextBlock x:Name="StatusText" TextTrimming="CharacterEllipsis" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

@@ -1,0 +1,26 @@
+<Project>
+	<!--
+		Fork: used by fork-portable.ps1 only, as DirectoryBuildTargetsPath. It is imported after the project file and the
+		NuGet package targets, so what is here wins over both.
+	-->
+
+	<!--
+		UI languages of the portable: Korean, English and Japanese (user's choice 2026-10-02). The viewer's own texts:
+		the neutral resources are Japanese, en and ko-KR stay, its other translations (zh-CN, zh-TW, es-ES) are left out.
+		The libraries' and the .NET runtime's texts: the culture names they use for the three (the projects keep en;ja,
+		which missed the runtime's ko and ModernWpf's ja-JP and ko-KR).
+	-->
+	<PropertyGroup>
+		<SatelliteResourceLanguages>en;ja;ja-JP;ko;ko-KR</SatelliteResourceLanguages>
+	</PropertyGroup>
+	<ItemGroup>
+		<EmbeddedResource Remove="**\*.zh-CN.resx;**\*.zh-TW.resx;**\*.es-ES.resx" />
+	</ItemGroup>
+
+	<!--
+		The original release's runtime bootstrapper (DotnetRuntimeBootstrapper 2.5.4) rewrites the published exe after
+		every publish, whatever BootstrapperEnabled says, and reads the main dll next to it, which a single-file bundle
+		does not have. A self-contained build needs no bootstrapper: this empty target replaces the package's.
+	-->
+	<Target Name="CreateBootstrapperAfterPublish" />
+</Project>

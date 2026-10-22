@@ -1,0 +1,245 @@
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	>
+	<!--
+		Fork: KanColleViewer's common controls (MetroRadiance), measured on viewer-design/kcv-reference/02-ship-list.png
+		and 03-equipment-list.png. While the style is on, KcvPanels.Apply puts them into the application resources as
+		the implicit styles and under ModernWpf's base keys (DefaultButtonStyle, ...), which the viewer's own styles are
+		based on; turning the style off puts the originals back. Windows opened later pick them up; the layout values
+		(alignment, margins) follow ModernWpf and App.xaml so windows keep their layout.
+		- Button: flat, square corners, dark fill with a 1 px border; the accent on hover (border) and press (fill)
+		- CheckBox, RadioButton: a grey square or circle without a border, a white check or dot
+		- TabItem: text only, the selected tab in the normal text colour, the others dimmed (the 毎日任務 / 毎週任務 tabs)
+	-->
+
+	<Style x:Key="Kcv.ButtonStyle" TargetType="Button">
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.ButtonForeground}" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.ButtonBackground}" />
+		<Setter Property="BorderBrush" Value="{DynamicResource Kcv.ButtonBorder}" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="Padding" Value="12 4" />
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="HorizontalContentAlignment" Value="Center" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+		<Setter Property="SnapsToDevicePixels" Value="True" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="Button">
+					<Border
+						x:Name="Back"
+						Background="{TemplateBinding Background}"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="{TemplateBinding BorderThickness}"
+						>
+						<ContentPresenter
+							Margin="{TemplateBinding Padding}"
+							HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+							RecognizesAccessKey="True"
+							/>
+					</Border>
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.ButtonHover}" />
+							<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsKeyboardFocused" Value="True">
+							<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsPressed" Value="True">
+							<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+							<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+							<Setter Property="Foreground" Value="White" />
+						</Trigger>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style x:Key="Kcv.CheckBoxStyle" TargetType="CheckBox">
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.CheckFill}" />
+		<!--  App.xaml's check box margin  -->
+		<Setter Property="Margin" Value="4 0" />
+		<!--  ModernWpf's check boxes are 32 px high; KanColleViewer's rows are about 20 px apart  -->
+		<Setter Property="MinHeight" Value="22" />
+		<Setter Property="Padding" Value="6 0 0 0" />
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+		<Setter Property="SnapsToDevicePixels" Value="True" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="CheckBox">
+					<Grid Background="Transparent">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<Border
+							x:Name="Box"
+							Width="14"
+							Height="14"
+							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+							Background="{TemplateBinding Background}"
+							BorderBrush="Transparent"
+							BorderThickness="1"
+							>
+							<Grid>
+								<Path
+									x:Name="Mark"
+									Data="M 2,6 L 5,9 L 10,2.5"
+									Stroke="{DynamicResource Kcv.CheckMark}"
+									StrokeThickness="1.8"
+									Visibility="Collapsed"
+									/>
+								<Rectangle
+									x:Name="Partial"
+									Width="6"
+									Height="6"
+									Fill="{DynamicResource Kcv.CheckMark}"
+									Visibility="Collapsed"
+									/>
+							</Grid>
+						</Border>
+						<ContentPresenter
+							x:Name="Text"
+							Grid.Column="1"
+							Margin="{TemplateBinding Padding}"
+							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+							RecognizesAccessKey="True"
+							/>
+					</Grid>
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsChecked" Value="True">
+							<Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+						</Trigger>
+						<Trigger Property="IsChecked" Value="{x:Null}">
+							<Setter TargetName="Partial" Property="Visibility" Value="Visible" />
+						</Trigger>
+						<Trigger Property="HasContent" Value="False">
+							<Setter TargetName="Text" Property="Visibility" Value="Collapsed" />
+						</Trigger>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsKeyboardFocused" Value="True">
+							<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+							<Setter TargetName="Box" Property="Opacity" Value="0.5" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style x:Key="Kcv.RadioButtonStyle" TargetType="RadioButton">
+		<Setter Property="MinHeight" Value="22" />
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.CheckFill}" />
+		<Setter Property="Padding" Value="6 0 12 0" />
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="RadioButton">
+					<Grid Background="Transparent">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<Grid Width="14" Height="14" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+							<Ellipse
+								x:Name="Circle"
+								Fill="{TemplateBinding Background}"
+								Stroke="Transparent"
+								StrokeThickness="1"
+								/>
+							<Ellipse
+								x:Name="Dot"
+								Width="5"
+								Height="5"
+								Fill="{DynamicResource Kcv.CheckMark}"
+								Visibility="Collapsed"
+								/>
+						</Grid>
+						<ContentPresenter
+							x:Name="Text"
+							Grid.Column="1"
+							Margin="{TemplateBinding Padding}"
+							VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+							RecognizesAccessKey="True"
+							/>
+					</Grid>
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsChecked" Value="True">
+							<Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+						</Trigger>
+						<Trigger Property="HasContent" Value="False">
+							<Setter TargetName="Text" Property="Visibility" Value="Collapsed" />
+						</Trigger>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter TargetName="Circle" Property="Stroke" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsKeyboardFocused" Value="True">
+							<Setter TargetName="Circle" Property="Stroke" Value="{DynamicResource Kcv.Accent}" />
+						</Trigger>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+							<Setter TargetName="Circle" Property="Opacity" Value="0.5" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style x:Key="Kcv.TabItemStyle" TargetType="TabItem">
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Padding" Value="12 6" />
+		<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="TabItem">
+					<Border
+						x:Name="Back"
+						Padding="{TemplateBinding Padding}"
+						Background="{TemplateBinding Background}"
+						>
+						<ContentPresenter
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							ContentSource="Header"
+							RecognizesAccessKey="True"
+							/>
+					</Border>
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+						</Trigger>
+						<Trigger Property="IsSelected" Value="True">
+							<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+						</Trigger>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Opacity" Value="0.5" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+</ResourceDictionary>

@@ -1,0 +1,408 @@
+﻿<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:controls="http://schemas.modernwpf.com/2019"
+	xmlns:models="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager.Models"
+	xmlns:questTasks="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager.ViewModels.Tasks"
+	xmlns:questTrackerManager="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager"
+	xmlns:views="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager.Views"
+	>
+
+	<ResourceDictionary.MergedDictionaries>
+		<ResourceDictionary Source="Styles.xaml" />
+		<ResourceDictionary Source="CommonTemplates.xaml" />
+	</ResourceDictionary.MergedDictionaries>
+
+	<DataTemplate x:Key="ShortTaskDisplayTemplate" DataType="{x:Type questTasks:IQuestTaskViewModel}">
+		<DataTemplate.Resources>
+			<ResourceDictionary Source="Styles.xaml" />
+		</DataTemplate.Resources>
+		<TextBlock Text="{Binding Display}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="BossKillTaskTemplate" DataType="{x:Type questTasks:BossKillTaskViewModel}">
+		<DataTemplate.Resources>
+			<DataTemplate x:Key="MapTemplate" DataType="{x:Type models:MapInfoModel}">
+				<TextBlock Text="{Binding Display}" />
+			</DataTemplate>
+		</DataTemplate.Resources>
+
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource MapTemplate}"
+				ItemsSource="{Binding AllMaps}"
+				SelectedItem="{Binding Model.Map, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding Ranks}"
+				SelectedItem="{Binding Model.Rank, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="ExpeditionTaskTemplate" DataType="{x:Type questTasks:ExpeditionTaskViewModel}">
+		<DataTemplate.Resources>
+			<DataTemplate x:Key="ExpeditionTemplate" DataType="{x:Type models:ExpeditionModel}">
+				<TextBlock Text="{Binding Display}" />
+			</DataTemplate>
+		</DataTemplate.Resources>
+
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource ExpeditionTemplate}"
+				ItemsSource="{Binding Expeditions}"
+				SelectedItem="{Binding Model.Expedition}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="BattleNodeIdTaskTemplate" DataType="{x:Type questTasks:BattleNodeIdTaskViewModel}">
+		<DataTemplate.Resources>
+			<DataTemplate x:Key="MapTemplate" DataType="{x:Type models:MapInfoModel}">
+				<TextBlock Text="{Binding Display}" />
+			</DataTemplate>
+		</DataTemplate.Resources>
+
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource MapTemplate}"
+				ItemsSource="{Binding AllMaps}"
+				SelectedItem="{Binding Model.Map, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding Ranks}"
+				SelectedItem="{Binding Model.Rank, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<Border BorderBrush="Gray" BorderThickness="1">
+				<StackPanel Orientation="Horizontal">
+					<StackPanel.Resources>
+						<ResourceDictionary Source="Styles.xaml" />
+					</StackPanel.Resources>
+					<Button Command="{Binding AddNodeIdCommand}" Content="+" />
+					<ItemsControl ItemsSource="{Binding NodeIds}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Horizontal" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<controls:NumberBox Margin="4 4 -1 4" Value="{Binding Id}" />
+									<Button
+										Margin="-1 4 4 4"
+										Command="{Binding DataContext.RemoveNodeIdCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+										CommandParameter="{Binding}"
+										Content="ｘ"
+										/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<TextBox Text="{Binding Model.Name, UpdateSourceTrigger=PropertyChanged}" />
+				</StackPanel>
+			</Border>
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="EquipmentScrapTaskTemplate" DataType="{x:Type questTasks:EquipmentScrapTaskViewModel}">
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<Button Command="{Binding OpenEquipmentPickerCommand}" ToolTip="{Binding SelectedEquipment.NameEN}">
+				<Button.Content>
+					<TextBlock
+						MaxWidth="150"
+						Text="{Binding SelectedEquipment.NameEN}"
+						TextTrimming="CharacterEllipsis"
+						/>
+				</Button.Content>
+			</Button>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="EquipmentCategoryScrapTaskTemplate" DataType="{x:Type questTasks:EquipmentCategoryScrapTaskViewModel}">
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding Categories}"
+				SelectedItem="{Binding Model.Category}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="EquipmentCardTypeScrapTaskTemplate" DataType="{x:Type questTasks:EquipmentCardTypeScrapTaskViewModel}">
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding CardTypes}"
+				SelectedItem="{Binding Model.CardType}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="EquipmentIconTypeScrapTaskTemplate" DataType="{x:Type questTasks:EquipmentIconTypeScrapTaskViewModel}">
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding IconTypes}"
+				SelectedItem="{Binding Model.IconType}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="NodeReachTaskTemplate" DataType="{x:Type questTasks:NodeReachTaskViewModel}">
+		<DataTemplate.Resources>
+			<DataTemplate x:Key="MapTemplate" DataType="{x:Type models:MapInfoModel}">
+				<TextBlock Text="{Binding Display}" />
+			</DataTemplate>
+		</DataTemplate.Resources>
+
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource MapTemplate}"
+				ItemsSource="{Binding AllMaps}"
+				SelectedItem="{Binding Model.Map, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<Border BorderBrush="Gray" BorderThickness="1">
+				<StackPanel Orientation="Horizontal">
+					<StackPanel.Resources>
+						<ResourceDictionary Source="Styles.xaml" />
+					</StackPanel.Resources>
+					<Button Command="{Binding AddNodeIdCommand}" Content="+" />
+					<ItemsControl ItemsSource="{Binding NodeIds}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Horizontal" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<controls:NumberBox Margin="4 4 -1 4" Value="{Binding Id}" />
+									<Button
+										Margin="-1 4 4 4"
+										Command="{Binding DataContext.RemoveNodeIdCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+										CommandParameter="{Binding}"
+										Content="ｘ"
+										/>
+								</StackPanel>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+					<TextBox Text="{Binding Model.Name, UpdateSourceTrigger=PropertyChanged}" />
+				</StackPanel>
+			</Border>
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="MapFirstClearTaskTemplate" DataType="{x:Type questTasks:MapFirstClearTaskViewModel}">
+		<DataTemplate.Resources>
+			<DataTemplate x:Key="MapTemplate" DataType="{x:Type models:MapInfoModel}">
+				<TextBlock Text="{Binding Display}" />
+			</DataTemplate>
+		</DataTemplate.Resources>
+
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource MapTemplate}"
+				ItemsSource="{Binding AllMaps}"
+				SelectedItem="{Binding Model.Map, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="ExerciseTaskTemplate" DataType="{x:Type questTasks:ExerciseTaskViewModel}">
+		<StackPanel Orientation="Horizontal">
+			<Button
+				Command="{Binding DataContext.RemoveTaskCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+				CommandParameter="{Binding Model}"
+				Content="ｘ"
+				/>
+
+			<ComboBox
+				ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+				ItemsSource="{Binding Ranks}"
+				SelectedItem="{Binding Model.Rank, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox
+				Maximum="{Binding Model.Count}"
+				Minimum="0"
+				Value="{Binding Model.Progress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+				/>
+
+			<controls:NumberBox Minimum="1" Value="{Binding Model.Count, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+			<TextBlock VerticalAlignment="Center" Text="{Binding Display}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<DataTemplate x:Key="UnknownTaskTemplate">
+		<TextBlock Padding="4" Text="{Binding ViewModel.Translation.UnknownTask, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=questTrackerManager:QuestTrackerManagerWindow}}" />
+	</DataTemplate>
+
+	<views:TaskTemplateSelector
+		x:Key="TaskTemplateSelector"
+		BattleNodeId="{StaticResource BattleNodeIdTaskTemplate}"
+		BossKill="{StaticResource BossKillTaskTemplate}"
+		EquipmentCardTypeScrap="{StaticResource EquipmentCardTypeScrapTaskTemplate}"
+		EquipmentCategoryScrap="{StaticResource EquipmentCategoryScrapTaskTemplate}"
+		EquipmentIconTypeScrap="{StaticResource EquipmentIconTypeScrapTaskTemplate}"
+		EquipmentScrap="{StaticResource EquipmentScrapTaskTemplate}"
+		Exercise="{StaticResource ExerciseTaskTemplate}"
+		Expedition="{StaticResource ExpeditionTaskTemplate}"
+		MapFirstClear="{StaticResource MapFirstClearTaskTemplate}"
+		NodeReach="{StaticResource NodeReachTaskTemplate}"
+		Unknown="{StaticResource UnknownTaskTemplate}"
+		/>
+
+</ResourceDictionary>

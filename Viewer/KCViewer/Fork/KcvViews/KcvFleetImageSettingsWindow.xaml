@@ -1,0 +1,29 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetImageSettingsWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fleetImage="clr-namespace:KCViewer.Window.Tools.FleetImageGenerator"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static fork:ForkStrings.KcvFleetImageSettings}"
+	Width="600"
+	Height="520"
+	d:DataContext="{d:DesignInstance fleetImage:FleetImageGeneratorViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="fleetImage:FleetImageGeneratorViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the settings window of 편성 이미지 출력 in KanColleViewer's style (mockup 20261007-fleet-image-v2), named
+		「편성 이미지 설정」 (the viewer's is 「설정」 as its other settings windows), with the same view model as the window
+		that opened it. 600×520 first, then the last size is kept; the tabs' content scrolls when the window is lower.
+	-->
+	<kcv:KcvFleetImageSettingsView Margin="2 4 2 4" />
+</common:WindowBase>

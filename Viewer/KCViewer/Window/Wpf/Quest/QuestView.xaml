@@ -1,0 +1,348 @@
+﻿<UserControl
+	x:Class="KCViewer.Window.Wpf.Quest.QuestView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="clr-namespace:KCViewer.Window.Wpf.Quest"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:system="clr-namespace:System;assembly=System.Runtime"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	x:Name="QuestControl"
+	d:DataContext="{d:DesignInstance local:QuestViewModel}"
+	d:DesignHeight="450"
+	d:DesignWidth="800"
+	TextElement.FontFamily="{Binding FontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+	TextElement.FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+	TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}"
+	mc:Ignorable="d"
+	>
+	<UserControl.Resources>
+		<local:QuestViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+
+		<ContextMenu x:Key="MainContextMenu" DataContext="{StaticResource Proxy}">
+			<MenuItem Header="{Binding DataContext.FormQuest.MenuMain_QuestFilter}">
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowInProgressOnly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowRunningOnly}"
+					/>
+				<Separator />
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowOneTime}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowOnce}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowDaily}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowDaily}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowWeekly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowWeekly}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowMonthly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowMonthly}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowOther}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowOther}"
+					/>
+			</MenuItem>
+			<MenuItem Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter}">
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter_State}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.StateColumn.Visible}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter_Type}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.TypeColumn.Visible}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter_Category}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.CategoryColumn.Visible}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter_Name}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.NameColumn.Visible}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.MenuMain_ColumnFilter_Progress}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.ProgressColumn.Visible}"
+					/>
+			</MenuItem>
+			<Separator />
+			<MenuItem
+				Header="{Binding DataContext.FormQuest.ShowQuestCode}"
+				IsCheckable="True"
+				IsChecked="{Binding DataContext.ShowQuestCode}"
+				/>
+			<MenuItem Header="{Binding DataContext.FormQuest.SizeAdjustment}">
+				<MenuItem Header="{Binding DataContext.FormQuest.Header}">
+					<StackPanel Orientation="Horizontal">
+						<TextBlock
+							Margin="4"
+							VerticalAlignment="Center"
+							Text="{Binding DataContext.HeaderMinSize}"
+							/>
+						<Slider
+							Width="200"
+							Maximum="48"
+							Minimum="10"
+							Value="{Binding DataContext.HeaderMinSize}"
+							/>
+					</StackPanel>
+				</MenuItem>
+				<MenuItem Header="{Binding DataContext.FormQuest.Row}">
+					<StackPanel Orientation="Horizontal">
+						<TextBlock
+							Margin="4"
+							VerticalAlignment="Center"
+							Text="{Binding DataContext.RowMinSize}"
+							/>
+						<Slider
+							Width="200"
+							Maximum="32"
+							Minimum="10"
+							Value="{Binding DataContext.RowMinSize}"
+							/>
+					</StackPanel>
+				</MenuItem>
+			</MenuItem>
+			<Separator />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestTitle_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTitle}" />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestDescription_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestDescription}" />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestTranslate_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTranslate}" />
+			<Separator />
+			<MenuItem
+				Command="{Binding DataContext.LookUpOnDuckDuckGoCommand}"
+				Header="{Binding DataContext.DuckDuckGoSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.LookUpOnStartpageCommand}"
+				Header="{Binding DataContext.StartpageSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.MenuMain_KcwikiQuest_ClickCommand}"
+				Header="{Binding DataContext.WikiSearchText}"
+				IsEnabled="{Binding DataContext.WikiSearchEnabled}"
+				/>
+			<Separator />
+			<MenuItem Command="{Binding DataContext.MenuMain_Initialize_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuMain_Initialize}" />
+		</ContextMenu>
+
+		<ContextMenu x:Key="ProgressContextMenu" DataContext="{StaticResource Proxy}">
+			<MenuItem Command="{Binding DataContext.MenuProgress_Increment_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Increment}" />
+			<MenuItem Command="{Binding DataContext.MenuProgress_Decrement_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Decrement}" />
+			<Separator />
+			<MenuItem Command="{Binding DataContext.MenuProgress_Reset_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Reset}" />
+			<Separator />
+			<MenuItem Command="{Binding DataContext.ManageTrackerCommand}" Header="{Binding DataContext.FormQuest.ModifyProgress}" />
+		</ContextMenu>
+	</UserControl.Resources>
+
+	<Grid
+		Background="Transparent"
+		ContextMenu="{StaticResource MainContextMenu}"
+		DataContext="{Binding ViewModel, ElementName=QuestControl}"
+		>
+		<DataGrid
+			x:Name="DataGrid"
+			AutoGenerateColumns="False"
+			CanUserAddRows="False"
+			CanUserDeleteRows="False"
+			CanUserReorderColumns="False"
+			CanUserResizeRows="False"
+			ColumnWidth="*"
+			HeadersVisibility="Column"
+			HorizontalScrollBarVisibility="Disabled"
+			IsReadOnly="True"
+			ItemsSource="{Binding View, IsAsync=True}"
+			SelectedItem="{Binding SelectedQuest}"
+			SelectionMode="Single"
+			>
+			<DataGrid.ColumnHeaderStyle>
+				<Style BasedOn="{StaticResource DefaultDataGridColumnHeaderStyle}" TargetType="{x:Type DataGridColumnHeader}">
+					<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+					<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+					<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+					<Setter Property="ContextMenu" Value="{StaticResource MainContextMenu}" />
+					<Setter Property="Padding" Value="5 0" />
+					<Setter Property="MinHeight" Value="{Binding DataContext.HeaderMinSize, Source={StaticResource Proxy}}" />
+					<Setter Property="Template" Value="{StaticResource DataGridColumnHeaderTemplate}" />
+					<Style.Triggers>
+						<Trigger Property="SortDirection" Value="{x:Null}">
+							<Setter Property="Padding" Value="5 0" />
+						</Trigger>
+					</Style.Triggers>
+				</Style>
+			</DataGrid.ColumnHeaderStyle>
+
+			<DataGrid.RowStyle>
+				<Style d:DataContext="{d:DesignInstance local:QuestItemViewModel}" TargetType="DataGridRow">
+					<Setter Property="Background" Value="{Binding Background}" />
+				</Style>
+			</DataGrid.RowStyle>
+
+			<ui:DataGridHelper.CheckBoxColumnElementStyle>
+				<Style BasedOn="{StaticResource DataGridReadOnlyCheckBoxStyle}" TargetType="CheckBox">
+					<Setter Property="Margin" Value="0" />
+					<Setter Property="Padding" Value="0" />
+					<Setter Property="HorizontalAlignment" Value="Center" />
+				</Style>
+			</ui:DataGridHelper.CheckBoxColumnElementStyle>
+
+			<ui:DataGridHelper.TextColumnElementStyle>
+				<Style BasedOn="{StaticResource DataGridTextBlockStyle}" TargetType="TextBlock">
+					<Setter Property="Padding" Value="5 0" />
+				</Style>
+			</ui:DataGridHelper.TextColumnElementStyle>
+
+			<DataGrid.Columns>
+				<DataGridCheckBoxColumn
+					Width="{Binding DataContext.StateColumn.Width, Mode='TwoWay', Source={StaticResource Proxy}}"
+					Binding="{Binding QuestView_State}"
+					SortDirection="{Binding DataContext.StateColumn.SortDirection, Mode='TwoWay', Source={StaticResource Proxy}}"
+					SortMemberPath="StateSort"
+					Visibility="{Binding DataContext.StateColumn.Visible, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource Proxy}}"
+					>
+					<DataGridCheckBoxColumn.CellStyle>
+						<Style BasedOn="{StaticResource DefaultDataGridCellStyle}" TargetType="DataGridCell">
+							<Setter Property="ToolTip" Value="{Binding QuestView_StateToolTip}" />
+							<Setter Property="ContextMenu" Value="{StaticResource MainContextMenu}" />
+						</Style>
+					</DataGridCheckBoxColumn.CellStyle>
+				</DataGridCheckBoxColumn>
+
+				<DataGridTextColumn
+					Width="{Binding DataContext.TypeColumn.Width, Mode='TwoWay', Source={StaticResource Proxy}}"
+					Binding="{Binding QuestView_TypeDisplay}"
+					FontFamily="{Binding DataContext.Font, Source={StaticResource Proxy}}"
+					FontSize="{Binding DataContext.FontSize, Source={StaticResource Proxy}}"
+					Foreground="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}"
+					Header="{Binding DataContext.FormQuest.QuestView_Type, Source={StaticResource Proxy}}"
+					SortDirection="{Binding DataContext.TypeColumn.SortDirection, Mode='TwoWay', Source={StaticResource Proxy}}"
+					SortMemberPath="QuestView_Type"
+					Visibility="{Binding DataContext.TypeColumn.Visible, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource Proxy}}"
+					>
+					<DataGridTextColumn.CellStyle>
+						<Style BasedOn="{StaticResource DefaultDataGridCellStyle}" TargetType="DataGridCell">
+							<Setter Property="ToolTip" Value="{Binding QuestView_TypeToolTip}" />
+							<Setter Property="ContextMenu" Value="{StaticResource MainContextMenu}" />
+							<Setter Property="HorizontalAlignment" Value="Center" />
+						</Style>
+					</DataGridTextColumn.CellStyle>
+				</DataGridTextColumn>
+
+				<DataGridTextColumn
+					Width="{Binding DataContext.CategoryColumn.Width, Mode='TwoWay', Source={StaticResource Proxy}}"
+					Binding="{Binding QuestView_CategoryDisplay}"
+					FontFamily="{Binding DataContext.Font, Source={StaticResource Proxy}}"
+					FontSize="{Binding DataContext.FontSize, Source={StaticResource Proxy}}"
+					Foreground="{Binding QuestView_CategoryForeground}"
+					Header="{Binding DataContext.FormQuest.QuestView_Category, Source={StaticResource Proxy}}"
+					SortDirection="{Binding DataContext.CategoryColumn.SortDirection, Mode='TwoWay', Source={StaticResource Proxy}}"
+					SortMemberPath="QuestView_Category"
+					Visibility="{Binding DataContext.CategoryColumn.Visible, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource Proxy}}"
+					>
+					<DataGridTextColumn.CellStyle>
+						<Style
+							d:DataContext="{d:DesignInstance local:QuestItemViewModel}"
+							BasedOn="{StaticResource DefaultDataGridCellStyle}"
+							TargetType="DataGridCell"
+							>
+							<Setter Property="ToolTip" Value="{Binding QuestView_CategoryToolTip}" />
+							<Setter Property="ContextMenu" Value="{StaticResource MainContextMenu}" />
+							<Setter Property="Background" Value="{Binding QuestView_CategoryBackground}" />
+							<Setter Property="HorizontalAlignment" Value="Stretch" />
+						</Style>
+					</DataGridTextColumn.CellStyle>
+
+					<DataGridTextColumn.ElementStyle>
+						<Style BasedOn="{StaticResource DataGridTextBlockStyle}" TargetType="TextBlock">
+							<Setter Property="TextAlignment" Value="Center" />
+							<Setter Property="Padding" Value="5 0" />
+						</Style>
+					</DataGridTextColumn.ElementStyle>
+				</DataGridTextColumn>
+
+				<DataGridTextColumn
+					Width="{Binding DataContext.NameColumn.Width, Mode='TwoWay', Source={StaticResource Proxy}}"
+					Binding="{Binding QuestView_Name}"
+					FontFamily="{Binding DataContext.Font, Source={StaticResource Proxy}}"
+					FontSize="{Binding DataContext.FontSize, Source={StaticResource Proxy}}"
+					Foreground="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}"
+					Header="{Binding DataContext.FormQuest.QuestView_Name, Source={StaticResource Proxy}}"
+					SortDirection="{Binding DataContext.NameColumn.SortDirection, Mode='TwoWay', Source={StaticResource Proxy}}"
+					SortMemberPath="QuestId"
+					Visibility="{Binding DataContext.NameColumn.Visible, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource Proxy}}"
+					>
+					<DataGridTextColumn.CellStyle>
+						<Style BasedOn="{StaticResource DefaultDataGridCellStyle}" TargetType="DataGridCell">
+							<Setter Property="ToolTip" >
+								<Setter.Value>
+									<TextBlock>
+										<Run Text="{Binding QuestView_NameToolTip}" /><Run FontStyle="Italic" Text="{Binding QuestView_NameToolTipExtra}" />
+									</TextBlock>
+								</Setter.Value>
+							</Setter>
+							<Setter Property="ContextMenu" Value="{StaticResource MainContextMenu}" />
+						</Style>
+					</DataGridTextColumn.CellStyle>
+
+					<DataGridTextColumn.ElementStyle>
+						<Style BasedOn="{StaticResource DataGridTextBlockStyle}" TargetType="TextBlock">
+							<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+							<Setter Property="Padding" Value="5 0" />
+						</Style>
+					</DataGridTextColumn.ElementStyle>
+				</DataGridTextColumn>
+
+				<DataGridTemplateColumn
+					Width="{Binding DataContext.ProgressColumn.Width, Mode='TwoWay', Source={StaticResource Proxy}}"
+					Header="{Binding DataContext.FormQuest.QuestView_Progress, Source={StaticResource Proxy}}"
+					SortDirection="{Binding DataContext.ProgressColumn.SortDirection, Mode='TwoWay', Source={StaticResource Proxy}}"
+					SortMemberPath="QuestView_Progress"
+					Visibility="{Binding DataContext.ProgressColumn.Visible, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource Proxy}}"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type local:QuestItemViewModel}">
+							<StackPanel
+								VerticalAlignment="Bottom"
+								Background="Transparent"
+								ContextMenu="{StaticResource ProgressContextMenu}"
+								ToolTip="{Binding QuestView_ProgressToolTip}"
+								>
+								<TextBlock
+									Padding="5 0"
+									FontFamily="{Binding FontFamily, ElementName=QuestControl}"
+									FontSize="{Binding FontSize, ElementName=QuestControl}"
+									Foreground="{Binding Foreground, ElementName=QuestControl}"
+									Text="{Binding QuestView_ProgressText}"
+									TextTrimming="CharacterEllipsis"
+									TextWrapping="NoWrap"
+									/>
+								<ProgressBar
+									Foreground="{Binding ProgressBrush}"
+									Maximum="1"
+									Value="{Binding QuestView_Progress}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</UserControl>

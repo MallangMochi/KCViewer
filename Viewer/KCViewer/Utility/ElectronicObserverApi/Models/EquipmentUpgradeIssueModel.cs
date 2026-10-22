@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace KCViewer.Utility.ElectronicObserverApi.Models;
+
+public record EquipmentUpgradeIssueModel : DataIssueModel
+{
+	[JsonPropertyName("expected")] public List<int> ExpectedUpgrades { get; set; } = new();
+
+	[JsonPropertyName("actual")] public List<int> ActualUpgrades { get; set; } = new();
+
+	[JsonPropertyName("day")] public DayOfWeek Day { get; set; }
+
+	[JsonPropertyName("helperId")] public int HelperId { get; set; }
+}

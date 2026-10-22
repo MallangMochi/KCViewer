@@ -1,0 +1,81 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvTextInputWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:input="clr-namespace:KCViewer.Dialogs.TextInput"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Width="340"
+	d:DataContext="{d:DesignInstance input:TextInputViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship group's name in KanColleViewer's style (KcvTableDialogs, mockup 20261017-table-dialogs-v2): the
+		viewer's title (그룹 추가, 그룹 복사, 그룹 이름 변경), 그룹 이름 with the name (selected when renaming), OK only with
+		a name, 취소.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvHasTextConverter x:Key="HasText" />
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Command="{Binding OkCommand}"
+					Content="OK"
+					IsDefault="True"
+					IsEnabled="{Binding Text, ElementName=NameBox, Converter={StaticResource HasText}}"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Command="{Binding CancelCommand}"
+					Content="{x:Static translations:GeneralRes.Cancel}"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<StackPanel Margin="12 6 12 4">
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.GroupNameBox}">
+				<DockPanel Margin="0 2">
+					<TextBlock
+						VerticalAlignment="Center"
+						DockPanel.Dock="Left"
+						Style="{StaticResource Cfg.Lbl}"
+						Text="{x:Static fork:ForkStrings.GroupName}"
+						/>
+					<TextBox
+						x:Name="NameBox"
+						Style="{StaticResource Cfg.Field}"
+						Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+						/>
+				</DockPanel>
+			</ContentControl>
+		</StackPanel>
+	</DockPanel>
+</Window>

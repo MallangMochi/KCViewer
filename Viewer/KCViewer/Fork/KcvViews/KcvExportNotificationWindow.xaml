@@ -1,0 +1,62 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvExportNotificationWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Width="420"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ResizeMode="NoResize"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	>
+	<!--
+		Fork: the sortie record's failure notice in KanColleViewer's style (KcvContentDialogService, mockup
+		20261020-csv-export-dialogs-v2): the viewer's text in a box (scrolls when long), OK (Enter, Esc).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<Button
+				MinWidth="72"
+				HorizontalAlignment="Right"
+				Click="OkButton_Click"
+				Content="OK"
+				IsCancel="True"
+				IsDefault="True"
+				Style="{StaticResource KcvRec.PrimaryButton}"
+				/>
+		</Border>
+
+		<Border
+			Margin="14 10 14 12"
+			Padding="8 5"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="1"
+			>
+			<ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
+				<TextBlock
+					x:Name="MessageText"
+					FontSize="13"
+					LineHeight="20"
+					TextWrapping="Wrap"
+					/>
+			</ScrollViewer>
+		</Border>
+	</DockPanel>
+</Window>

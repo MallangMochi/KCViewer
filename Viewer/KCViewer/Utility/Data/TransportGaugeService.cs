@@ -1,0 +1,87 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using KCViewer.Core.Services.Data;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Data;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.ViewModels.Translations;
+
+namespace KCViewer.Utility.Data;
+
+public class TransportGaugeService : ITransportGaugeService
+{
+	private IKCDatabase KCDatabase { get; }
+	private FormFleetOverviewTranslationViewModel Translations { get; }
+
+	public TransportGaugeService(IKCDatabase db, FormFleetOverviewTranslationViewModel translations)
+	{
+		KCDatabase = db;
+		Translations = translations;
+
+		InitializeConfiguration();
+	}
+
+	private void InitializeConfiguration()
+	{
+		foreach (TpGauge gauge in GetEventLandingGauges(false))
+		{
+			if (Configuration.Config.FormFleet.TankTpGaugesToDisplay.Any(g => g.TpGauge == gauge)) continue;
+
+			Configuration.Config.FormFleet.TankTpGaugesToDisplay.Add(new()
+			{
+				TpGauge = gauge,
+			});
+		}
+	}
+
+	public string GetCurrentEventLandingOperationToolTip(List<IFleetData> fleets)
+	{
+		// LastOrDefault is used here because in debug we add old event areas to KCDatabase. In release there's 0 or 1 event area.
+		if (KCDatabase.MapArea.Values.LastOrDefault(area => area.IsEventArea) is not { } eventArea) return "";
+
+		return GetEventLandingOperationToolTip(fleets, Enum.GetValues<TpGauge>().Where(gauge => gauge.GetGaugeAreaId() == eventArea.MapAreaID).ToList(), false);
+	}
+
+	public string GetAllEventLandingOperationToolTip(List<IFleetData> fleets)
+	{
+		return GetEventLandingOperationToolTip(fleets, GetEventLandingGauges(false), true);
+	}
+
+	public string GetEventLandingOperationToolTip(List<IFleetData> fleets, List<TpGauge> gauges, bool displayEventName)
+	{
+		StringBuilder sb = new();
+
+		foreach (TpGauge gauge in gauges)
+		{
+			int tp = gauge.GetTp(fleets);
+
+			if (displayEventName)
+			{
+				sb.Append($"{gauge.GetEventName()} ");
+			}
+
+			sb.AppendLine($"E{gauge.GetGaugeMapId()}-{gauge.GetGaugeIndex()}: S {tp} / A {(int)(tp * 0.7)}");
+		}
+
+		if (sb.Length is 0) return "";
+
+		return $"""
+			{Translations.LandingOperationTooltip}:
+			{sb.ToString().TrimEnd()}
+			""";
+	}
+
+	public List<TpGauge> GetEventLandingGauges(bool includeNone)
+	{
+		List<TpGauge> gauges = Enum.GetValues<TpGauge>().Skip(2).ToList();
+
+		if (includeNone)
+		{
+			gauges.Insert(0, TpGauge.None);
+		}
+
+		return gauges;
+	}
+}

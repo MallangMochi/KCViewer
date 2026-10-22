@@ -1,0 +1,104 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvNotifierWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	AllowsTransparency="True"
+	Background="Transparent"
+	ResizeMode="NoResize"
+	ShowInTaskbar="False"
+	SizeToContent="WidthAndHeight"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStyle="None"
+	>
+	<!--
+		Fork: the notification window in KanColleViewer's style (KcvNotifierWindow.TryShow, mockup
+		viewer-design/mockups/20261018-alarm-v2.html, approved 2026-10-18 "구현"): a title bar with the viewer's icon,
+		the notification's name and ✕ over the message, the accent border; 300 wide, as tall as the message. With an
+		image it is the image's size, the message over it, and without 창 테두리 표시 the image alone (its transparent
+		parts see-through), as the viewer's.
+	-->
+	<Window.Resources>
+		<Style x:Key="Close" TargetType="Button">
+			<Setter Property="Width" Value="30" />
+			<Setter Property="Height" Value="26" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border x:Name="Back" Background="Transparent">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.ButtonHover}" />
+								<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
+
+	<Border
+		x:Name="Frame"
+		Background="{DynamicResource Kcv.Background}"
+		BorderBrush="{DynamicResource Kcv.Accent}"
+		BorderThickness="1"
+		>
+		<DockPanel>
+			<Grid
+				x:Name="TitleBar"
+				Height="26"
+				Background="{DynamicResource Kcv.StatusBackground}"
+				DockPanel.Dock="Top"
+				>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<Image
+					x:Name="Logo"
+					Grid.Column="0"
+					Width="14"
+					Height="14"
+					Margin="8 0 6 0"
+					/>
+				<TextBlock
+					x:Name="TitleText"
+					Grid.Column="1"
+					VerticalAlignment="Center"
+					FontSize="12"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					TextTrimming="CharacterEllipsis"
+					/>
+				<Button
+					Grid.Column="2"
+					Click="CloseClicked"
+					Content="✕"
+					Style="{StaticResource Close}"
+					/>
+			</Grid>
+			<Grid x:Name="Body">
+				<Image
+					x:Name="Picture"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Top"
+					Stretch="None"
+					Visibility="Collapsed"
+					/>
+				<TextBlock
+					x:Name="Message"
+					Margin="10 7 10 10"
+					VerticalAlignment="Top"
+					FontSize="13.5"
+					TextWrapping="Wrap"
+					/>
+			</Grid>
+		</DockPanel>
+	</Border>
+</Window>

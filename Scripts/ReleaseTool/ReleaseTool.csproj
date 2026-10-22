@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		The release files of the program update (UPDATER-DESIGN.md, sections 3, 4 and 8-2), made by fork-portable.ps1 -Release:
+		the install list in the built folder, the package zip, the remote json and its signature. Uses the viewer's own
+		definition of the files (UpdateFormat.cs), so what it writes is what the viewer and KCUpdater read.
+	-->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<InvariantGlobalization>true</InvariantGlobalization>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Include="..\..\Viewer\KCViewer\Fork\Update\UpdateFormat.cs" Link="UpdateFormat.cs" />
+	</ItemGroup>
+
+</Project>

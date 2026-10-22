@@ -1,0 +1,317 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvBaseAirCorpsDetailWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="960"
+	Height="480"
+	d:DataContext="{d:DesignInstance kcv:KcvBaseAirCorpsDetailViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvBaseAirCorpsDetailViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the land base details window (mockup 5, user's approval 2026-10-02), laid out as the fleet details
+		window. Left: the areas (the selected one in the accent colour), the area's numbers, its state and the checks.
+		Right: one row per base: action and name; range (6 + 1); the worst condition and the fighter power (air defense
+		power for an air defense base); planes with a gauge; its state; the squadrons as [18/18] icon name
+		(proficiency n), (fatigued) in orange, an empty slot dimmed.
+	-->
+	<Window.Resources>
+		<Style x:Key="Box" TargetType="Border">
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Margin" Value="0 0 0 6" />
+		</Style>
+		<Style x:Key="Sub" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="11" />
+		</Style>
+
+		<!--  an area of the list: flat, the selected one filled with the accent (as the fleet details' fleets)  -->
+		<Style x:Key="AreaButton" TargetType="Button">
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="Height" Value="32" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border x:Name="Back" Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
+
+	<Grid Margin="10 8 10 10">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="210" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<!--  Left: areas, numbers, state, checks  -->
+		<StackPanel Grid.Column="0" Margin="0 0 8 0">
+			<Border Style="{StaticResource Box}">
+				<ItemsControl ItemsSource="{Binding Tabs}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvAirAreaTab}">
+							<Button
+								x:Name="Area"
+								Command="{Binding DataContext.SelectAreaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+								CommandParameter="{Binding Id}"
+								Content="{Binding Title}"
+								Style="{StaticResource AreaButton}"
+								/>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsSelected}" Value="True">
+									<Setter TargetName="Area" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Area" Property="Foreground" Value="White" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Border>
+
+			<Border Padding="0 8" Style="{StaticResource Box}" Visibility="{Binding HasArea, Converter={StaticResource BooleanToVisibilityConverter}}">
+				<StackPanel>
+					<StackPanel.Resources>
+						<Style BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+							<Setter Property="FontSize" Value="13" />
+							<Setter Property="Margin" Value="0 2" />
+							<Setter Property="HorizontalAlignment" Value="Center" />
+						</Style>
+					</StackPanel.Resources>
+					<TextBlock Text="{Binding CorpsCount}" />
+					<TextBlock Text="{Binding ActionSummary}" />
+					<TextBlock Text="{Binding DefensePower}" />
+					<TextBlock Text="{Binding HighAltitude}" />
+				</StackPanel>
+			</Border>
+
+			<!--  出撃準備中 and the checks  -->
+			<Border MinHeight="34" Background="{Binding StateBrush}">
+				<TextBlock
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center"
+					FontSize="14"
+					Foreground="White"
+					Text="{Binding StateText}"
+					/>
+			</Border>
+			<ItemsControl Margin="0 3 0 0" ItemsSource="{Binding Checks}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvAirCheck}">
+						<Border
+							x:Name="Line"
+							MinHeight="27"
+							Margin="0 0 0 3"
+							Padding="8 0"
+							Background="{DynamicResource Kcv.HeaderBackground}"
+							>
+							<TextBlock
+								x:Name="CheckText"
+								VerticalAlignment="Center"
+								FontSize="12"
+								Style="{StaticResource Kcv.Text}"
+								Text="{Binding Text}"
+								TextTrimming="CharacterEllipsis"
+								/>
+						</Border>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding Ok}" Value="False">
+								<Setter TargetName="Line" Property="Background" Value="{x:Static kcv:KcvBrushes.DangerBar}" />
+								<Setter TargetName="CheckText" Property="Foreground" Value="White" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+
+		<!--  Right: the bases  -->
+		<Border Grid.Column="1" Margin="0" Style="{StaticResource Box}">
+			<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+				<ItemsControl ItemsSource="{Binding Corps}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvAirCorps}">
+							<Border
+								Padding="12 8"
+								Background="Transparent"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								BorderThickness="0 0 0 1"
+								>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="132" />
+										<ColumnDefinition Width="64" />
+										<ColumnDefinition Width="150" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+
+									<!--  出撃 / 第1基地航空隊  -->
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock FontSize="12" Style="{StaticResource Kcv.SubText}" Text="{Binding ActionText}" />
+										<TextBlock
+											FontSize="16"
+											Style="{StaticResource Kcv.Text}"
+											Text="{Binding Name}"
+											TextTrimming="CharacterEllipsis"
+											/>
+									</StackPanel>
+
+									<!--  range 7 (6 + 1)  -->
+									<StackPanel Grid.Column="1" VerticalAlignment="Center">
+										<TextBlock Style="{StaticResource Sub}" Text="{x:Static fork:ForkStrings.KcvAirDistance}" />
+										<TextBlock FontSize="17" Style="{StaticResource Kcv.Text}" Text="{Binding Distance}" />
+										<TextBlock Style="{StaticResource Sub}" Text="{Binding DetailBonusText}" />
+									</StackPanel>
+
+									<!--  ■ 보통   제공 44 / 69 / 72기 / gauge / state  -->
+									<StackPanel Grid.Column="2" Margin="0 0 14 0" VerticalAlignment="Center">
+										<DockPanel>
+											<TextBlock DockPanel.Dock="Right" Style="{StaticResource Sub}" VerticalAlignment="Center">
+												<Run Text="{Binding PowerLabel, Mode=OneWay}" />
+												<Run FontSize="13" Foreground="{DynamicResource Kcv.Foreground}" Text="{Binding Power, Mode=OneWay}" />
+											</TextBlock>
+											<StackPanel Orientation="Horizontal">
+												<Rectangle
+													Width="10"
+													Height="10"
+													Margin="0 0 5 0"
+													VerticalAlignment="Center"
+													Fill="{Binding ConditionBrush}"
+													Stroke="{DynamicResource Kcv.MarkBorder}"
+													StrokeThickness="1"
+													/>
+												<TextBlock FontSize="12" Style="{StaticResource Kcv.Text}" Text="{Binding ConditionText}" VerticalAlignment="Center" />
+											</StackPanel>
+										</DockPanel>
+										<TextBlock Margin="0 4 0 0" Style="{StaticResource Sub}">
+											<Run x:Name="Planes" FontSize="12" Foreground="{DynamicResource Kcv.Foreground}" Text="{Binding Planes, Mode=OneWay}" /><Run Text="{Binding PlanesMaxText, Mode=OneWay}" />
+										</TextBlock>
+										<ProgressBar
+											Height="5"
+											Margin="0 2 0 0"
+											Maximum="{Binding PlanesMax}"
+											Style="{StaticResource Kcv.Gauge}"
+											Value="{Binding Planes, Mode=OneWay}"
+											>
+											<ProgressBar.Foreground>
+												<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+													<Binding Path="Planes" />
+													<Binding Path="PlanesMax" />
+												</MultiBinding>
+											</ProgressBar.Foreground>
+										</ProgressBar>
+										<Border Margin="0 5 0 0" MinHeight="22" Background="{DynamicResource Kcv.TableHeaderBackground}">
+											<TextBlock
+												HorizontalAlignment="Center"
+												VerticalAlignment="Center"
+												FontSize="12"
+												Style="{StaticResource Kcv.Text}"
+												Text="{Binding StatusText}"
+												/>
+										</Border>
+									</StackPanel>
+
+									<!--  [18/18] icon 一式陸攻 (熟練度 7)  -->
+									<ItemsControl
+										Grid.Column="3"
+										VerticalAlignment="Center"
+										Grid.IsSharedSizeScope="True"
+										ItemsSource="{Binding Squadrons}"
+										>
+										<ItemsControl.ItemTemplate>
+											<DataTemplate DataType="{x:Type kcv:KcvAirSquadron}">
+												<Grid Margin="0 1">
+													<Grid.ColumnDefinitions>
+														<ColumnDefinition Width="Auto" MinWidth="56" SharedSizeGroup="AirCount" />
+														<ColumnDefinition Width="Auto" />
+														<ColumnDefinition Width="*" />
+													</Grid.ColumnDefinitions>
+													<TextBlock
+														x:Name="Count"
+														Grid.Column="0"
+														Margin="0 0 6 0"
+														HorizontalAlignment="Right"
+														VerticalAlignment="Center"
+														Style="{StaticResource Sub}"
+														>
+														<Run Text="[" /><Run x:Name="Current" Text="{Binding Count, Mode=OneWay}" /><Run Text="{Binding DetailMaxText, Mode=OneWay}" />
+													</TextBlock>
+													<Image
+														x:Name="Icon"
+														Grid.Column="1"
+														Width="20"
+														Height="20"
+														Margin="0 0 4 0"
+														Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+														Style="{StaticResource Kcv.EquipmentIcon}"
+														/>
+													<TextBlock
+														x:Name="Name"
+														Grid.Column="2"
+														VerticalAlignment="Center"
+														FontSize="12"
+														Style="{StaticResource Kcv.Text}"
+														TextTrimming="CharacterEllipsis"
+														>
+														<Run Text="{Binding Name, Mode=OneWay}" /><Run Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding ProficiencyText, Mode=OneWay}" /><Run Foreground="{x:Static kcv:KcvAirBases.TiredMark}" Text="{Binding TiredText, Mode=OneWay}" />
+													</TextBlock>
+													<TextBlock
+														x:Name="Placeholder"
+														Grid.Column="2"
+														VerticalAlignment="Center"
+														FontSize="12"
+														Foreground="{DynamicResource Kcv.InactiveForeground}"
+														Text="{Binding PlaceholderText}"
+														Visibility="Collapsed"
+														/>
+												</Grid>
+												<DataTemplate.Triggers>
+													<DataTrigger Binding="{Binding Short}" Value="True">
+														<Setter TargetName="Current" Property="Foreground" Value="{x:Static kcv:KcvBrushes.DangerMark}" />
+													</DataTrigger>
+													<DataTrigger Binding="{Binding Deployed}" Value="False">
+														<Setter TargetName="Count" Property="Visibility" Value="Hidden" />
+														<Setter TargetName="Icon" Property="Visibility" Value="Hidden" />
+														<Setter TargetName="Name" Property="Visibility" Value="Collapsed" />
+														<Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+													</DataTrigger>
+												</DataTemplate.Triggers>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</Grid>
+							</Border>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding PlanesShort}" Value="True">
+									<Setter TargetName="Planes" Property="Foreground" Value="{x:Static kcv:KcvBrushes.DangerMark}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</Border>
+	</Grid>
+</common:WindowBase>

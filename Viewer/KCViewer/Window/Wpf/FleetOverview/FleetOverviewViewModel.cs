@@ -1,0 +1,216 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using KCViewer.Core;
+using KCViewer.Core.Services.Data;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.Data;
+using KCViewer.Observer;
+using KCViewer.Resource;
+using KCViewer.Utility;
+using KCViewer.Utility.Data;
+using KCViewer.ViewModels;
+using KCViewer.ViewModels.Translations;
+using KCViewer.Window.Wpf.Fleet;
+
+namespace KCViewer.Window.Wpf.FleetOverview;
+
+// Fork: partial for the KanColleViewer fleet overview's cards (FleetOverviewViewModel.Fork.cs).
+public partial class FleetOverviewViewModel : AnchorableViewModel
+{
+	public FormFleetOverviewTranslationViewModel FormFleetOverview { get; }
+	public ITransportGaugeService TransportGaugeService { get; }
+
+	public List<FleetViewModel> Fleets { get; }
+	public FleetOverviewItemViewModel AnchorageRepairingTimer { get; }
+	public FleetOverviewItemViewModel HomePortSupplyTimer { get; }
+	public CombinedFleetOverviewItemViewModel CombinedTag { get; }
+
+	public FleetOverviewViewModel(List<FleetViewModel> fleets) : base("Fleets", "Fleets", IconContent.FormFleet)
+	{
+		FormFleetOverview = Ioc.Default.GetRequiredService<FormFleetOverviewTranslationViewModel>();
+		TransportGaugeService = Ioc.Default.GetRequiredService<ITransportGaugeService>();
+
+		Title = FormFleetOverview.Title;
+		FormFleetOverview.PropertyChanged += (_, _) => Title = FormFleetOverview.Title;
+
+		Fleets = fleets;
+
+		//api register
+		APIObserver o = APIObserver.Instance;
+
+		o.ApiReqNyukyo_Start.RequestReceived += Updated;
+		o.ApiReqNyukyo_SpeedChange.RequestReceived += Updated;
+		o.ApiReqHensei_Change.RequestReceived += Updated;
+		o.ApiReqKousyou_DestroyShip.RequestReceived += Updated;
+		o.ApiReqMember_UpdateDeckName.RequestReceived += Updated;
+		o.ApiReqMap_Start.RequestReceived += Updated;
+		o.ApiReqHensei_Combined.RequestReceived += Updated;
+		o.ApiReqKaisou_OpenExSlot.RequestReceived += Updated;
+
+		o.ApiPort_Port.ResponseReceived += Updated;
+		o.ApiGetMember_Ship2.ResponseReceived += Updated;
+		o.ApiGetMember_NDock.ResponseReceived += Updated;
+		o.ApiReqKousyou_GetShip.ResponseReceived += Updated;
+		o.ApiReqHokyu_Charge.ResponseReceived += Updated;
+		o.ApiReqKousyou_DestroyShip.ResponseReceived += Updated;
+		o.ApiGetMember_Ship3.ResponseReceived += Updated;
+		o.ApiReqKaisou_PowerUp.ResponseReceived += Updated; //requestのほうは面倒なのでこちらでまとめてやる
+		o.ApiGetMember_Deck.ResponseReceived += Updated;
+		o.ApiReqMap_Start.ResponseReceived += Updated;
+		o.ApiReqMap_Next.ResponseReceived += Updated;
+		o.ApiGetMember_ShipDeck.ResponseReceived += Updated;
+		o.ApiReqHensei_PresetSelect.ResponseReceived += Updated;
+		o.ApiReqKaisou_SlotExchangeIndex.ResponseReceived += Updated;
+		o.ApiGetMember_RequireInfo.ResponseReceived += Updated;
+		o.ApiReqKaisou_SlotDeprive.ResponseReceived += Updated;
+		o.ApiReqKaisou_Marriage.ResponseReceived += Updated;
+		o.ApiReqMap_AnchorageRepair.ResponseReceived += Updated;
+
+		AnchorageRepairingTimer = new()
+		{
+			Text = "-",
+			Icon = IconContent.FleetAnchorageRepairing,
+			Visible = false,
+		};
+
+		HomePortSupplyTimer = new()
+		{
+			Text = "-",
+			Icon = IconContent.ConditionSparkle,
+			Visible = false,
+		};
+
+		CombinedTag = new()
+		{
+			Text = "-",
+			Icon = IconContent.FleetCombined,
+			Visible = false,
+		};
+
+		ConfigurationChanged();
+
+		Utility.SystemEvents.UpdateTimerTick += UpdateTimerTick;
+		Utility.Configuration.Instance.ConfigurationChanged += ConfigurationChanged;
+
+		ForkInitialize();
+	}
+
+	private void ConfigurationChanged()
+	{
+		AnchorageRepairingTimer.Visible = Configuration.Config.FormFleet.ShowAnchorageRepairingTimer;
+		HomePortSupplyTimer.Visible = Configuration.Config.FormFleet.ShowHomePortSupplyTimer;
+	}
+
+	private void Updated(string apiname, dynamic data)
+	{
+		if (KCDatabase.Instance.Fleet.CombinedFlag > 0)
+		{
+			CombinedTag.Text = Constants.GetCombinedFleet(KCDatabase.Instance.Fleet.CombinedFlag);
+
+			FleetData fleet1 = KCDatabase.Instance.Fleet[1];
+			FleetData fleet2 = KCDatabase.Instance.Fleet[2];
+
+			int tp = TpGauge.Normal.GetTp([fleet1, fleet2]);
+
+			List<IShipData> members = fleet1.MembersWithoutEscaped!
+				.Concat(fleet2.MembersWithoutEscaped!)
+				.Where(s => s is not null)
+				.ToList()!;
+
+			// 各艦ごとの ドラム缶 or 大発系 を搭載している個数
+			IEnumerable<int> transport = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.CategoryType == EquipmentTypes.TransportContainer));
+			IEnumerable<int> landing = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.CategoryType == EquipmentTypes.LandingCraft || eq?.CategoryType == EquipmentTypes.SpecialAmphibiousTank));
+			IEnumerable<int> radar = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.IsSurfaceRadar == true));
+
+			string tankTpToolTip = GetTankTpTooltip(fleet1, fleet2);
+
+			if (tankTpToolTip.Length > 0)
+			{
+				tankTpToolTip = $"\r\n{tankTpToolTip}";
+			}
+
+			CombinedTag.ToolTip = string.Format(FormFleetOverview.CombinedFleetToolTip,
+				transport.Sum(),
+				landing.Sum(),
+				tp,
+				(int)Math.Floor(tp * 0.7),
+				Calculator.GetAirSuperiority(fleet1) + Calculator.GetAirSuperiority(fleet2),
+				Math.Floor(fleet1.GetSearchingAbility() * 100) / 100 + Math.Floor(fleet2.GetSearchingAbility() * 100) / 100,
+				Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 1) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 1) * 100) / 100,
+				Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 2) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 2) * 100) / 100,
+				Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 3) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 3) * 100) / 100,
+				Math.Floor(Calculator.GetSearchingAbility_New33(fleet1, 4) * 100) / 100 + Math.Floor(Calculator.GetSearchingAbility_New33(fleet2, 4) * 100) / 100,
+				radar.Sum(),
+				radar.Count(i => i > 0),
+				transport.Count(i => i > 0),
+				landing.Count(i => i > 0),
+				tankTpToolTip
+			);
+
+			CombinedTag.SmokeGeneratorRates = new List<IFleetData> { fleet1, fleet2 }.GetSmokeTriggerRates().TotalRate();
+
+			CombinedTag.Visible = true;
+		}
+		else
+		{
+			CombinedTag.Visible = false;
+		}
+
+		if (KCDatabase.Instance.Fleet.AnchorageRepairingTimer > DateTime.MinValue)
+		{
+			AnchorageRepairingTimer.Text = DateTimeHelper.ToTimeElapsedString(KCDatabase.Instance.Fleet.AnchorageRepairingTimer);
+			AnchorageRepairingTimer.Tag = KCDatabase.Instance.Fleet.AnchorageRepairingTimer;
+			AnchorageRepairingTimer.ToolTip =
+				$"""
+				{FleetOverviewResources.AnchorageRepairToolTip}
+				{FleetOverviewResources.TimerStart}：{DateTimeHelper.TimeToCSVString(KCDatabase.Instance.Fleet.AnchorageRepairingTimer)}
+				{FleetOverviewResources.Recovery}：{DateTimeHelper.TimeToCSVString(KCDatabase.Instance.Fleet.AnchorageRepairingTimer.AddMinutes(20))}
+				""";
+		}
+
+		if (KCDatabase.Instance.HomePortSupplyService.HomePortSupplyTimer > DateTime.MinValue)
+		{
+			HomePortSupplyTimer.Text = DateTimeHelper.ToTimeElapsedString(KCDatabase.Instance.HomePortSupplyService.HomePortSupplyTimer);
+			HomePortSupplyTimer.Tag = KCDatabase.Instance.HomePortSupplyService.HomePortSupplyTimer;
+			HomePortSupplyTimer.ToolTip =
+				$"""
+				{FleetOverviewResources.HomePortSupplyToolTip}
+				{FleetOverviewResources.TimerStart}：{DateTimeHelper.TimeToCSVString(KCDatabase.Instance.HomePortSupplyService.HomePortSupplyTimer)}
+				{FleetOverviewResources.Recovery}：{DateTimeHelper.TimeToCSVString(KCDatabase.Instance.HomePortSupplyService.HomePortSupplyTimer.AddMinutes(15))}
+				""";
+		}
+
+		ForkUpdated();
+	}
+
+	private string GetTankTpTooltip(IFleetData fleet1, IFleetData fleet2)
+	{
+		if (Configuration.Config.FormFleet.DisplayOnlyCurrentEventTankTp)
+		{
+			return TransportGaugeService.GetCurrentEventLandingOperationToolTip([fleet1, fleet2]);
+		}
+
+		List<TpGauge> gauges = Configuration.Config.FormFleet.TankTpGaugesToDisplay
+			.Where(g => g.ShouldDisplay)
+			.Select(g => g.TpGauge)
+			.ToList();
+
+		return TransportGaugeService.GetEventLandingOperationToolTip([fleet1, fleet2], gauges, true);
+	}
+
+	private void UpdateTimerTick()
+	{
+		if (AnchorageRepairingTimer is { Visible: true, Tag: DateTime repairTime })
+		{
+			AnchorageRepairingTimer.Text = DateTimeHelper.ToTimeElapsedString(repairTime);
+		}
+
+		if (HomePortSupplyTimer is { Visible: true, Tag: DateTime supplyTime })
+		{
+			HomePortSupplyTimer.Text = DateTimeHelper.ToTimeElapsedString(supplyTime);
+		}
+	}
+}

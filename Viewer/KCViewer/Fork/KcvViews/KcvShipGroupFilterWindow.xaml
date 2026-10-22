@@ -1,0 +1,910 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvShipGroupFilterWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static translations:ShipGroupFilterResources.Title}"
+	Width="760"
+	Height="560"
+	MinWidth="620"
+	MinHeight="380"
+	d:DataContext="{d:DesignInstance kcv:KcvShipGroupFilterViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship group's 필터 설정 in KanColleViewer's style (mockup viewer-design/mockups/20261019-group-filter-v6.html,
+		approved 2026-10-19 "구현"). 필터: the 「조건」 box with the brackets and their AND/OR in the gutter on the left and the
+		lines on the right (a block's head 사용 · 이름 · NOT · ▲▼ · ✕, a condition 사용 · 항목 · 비교 · 값 with the viewer's
+		note · ✕, 「＋ 조건」 「＋ 묶음」), the whole expression below (a click shows it in code, as the viewer). 포함/제외
+		목록: the viewer's. 메뉴 ▾ (필터 가져오기·내보내기), OK (Enter) and 취소 (Esc).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<BooleanToVisibilityConverter x:Key="Visible" />
+
+			<Style x:Key="Flt.Tabs" TargetType="TabControl">
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TabControl">
+							<DockPanel>
+								<Border
+									Padding="12 0"
+									BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+									BorderThickness="0 0 0 1"
+									DockPanel.Dock="Top"
+									>
+									<TabPanel IsItemsHost="True" />
+								</Border>
+								<!--  named as the viewer's template: UI Automation finds the selected tab's content by this name  -->
+								<ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
+							</DockPanel>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  the tabs of the mockup: text, the selected one in the text colour over a line of the accent  -->
+			<Style x:Key="Flt.Tab" TargetType="TabItem">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+				<Setter Property="FontSize" Value="13" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TabItem">
+							<Border
+								x:Name="Back"
+								Margin="0 0 2 -1"
+								Padding="14 6 14 5"
+								Background="Transparent"
+								BorderBrush="Transparent"
+								BorderThickness="0 0 0 2"
+								>
+								<ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.AccentHighlight}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  사용: the box alone  -->
+			<Style x:Key="Flt.Check" TargetType="CheckBox">
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="CheckBox">
+							<Border
+								x:Name="Box"
+								Width="13"
+								Height="13"
+								Background="{DynamicResource Kcv.CheckFill}"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								BorderThickness="1"
+								CornerRadius="2"
+								>
+								<Path
+									x:Name="Mark"
+									Margin="1"
+									Data="M 1.5,5.5 L 4.2,8.2 L 9,2.5"
+									Stroke="White"
+									StrokeThickness="1.6"
+									Visibility="Collapsed"
+									/>
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+									<Setter TargetName="Box" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.AccentHighlight}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  NOT  -->
+			<Style x:Key="Flt.Toggle" TargetType="ToggleButton">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ToggleButton">
+							<Border
+								x:Name="Back"
+								Height="18"
+								Padding="6 0"
+								Background="Transparent"
+								BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+								BorderThickness="1"
+								>
+								<ContentPresenter VerticalAlignment="Center" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter Property="Foreground" Value="White" />
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.AccentHighlight}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  ▲ ▼ ✕  -->
+			<Style x:Key="Flt.Icon" TargetType="Button">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Border
+								Width="18"
+								Height="20"
+								Background="Transparent"
+								>
+								<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+								<Trigger Property="IsEnabled" Value="False">
+									<Setter Property="Opacity" Value="0.35" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  「＋ 조건」 「＋ 묶음」 in a dashed box  -->
+			<Style x:Key="Flt.Link" TargetType="Button">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+				<Setter Property="FontSize" Value="12" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Grid Background="Transparent">
+								<Rectangle
+									x:Name="Frame"
+									Stroke="{DynamicResource Kcv.Separator}"
+									StrokeDashArray="3 2"
+									StrokeThickness="1"
+									/>
+								<ContentPresenter Margin="8 2 8 3" VerticalAlignment="Center" />
+							</Grid>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+									<Setter TargetName="Frame" Property="Stroke" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  AND / OR at a bracket (OR in orange), faint and dashed when the block has fewer than two items  -->
+			<Style x:Key="Flt.Join" TargetType="Button">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.ButtonForeground}" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="FontWeight" Value="SemiBold" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Grid>
+								<Rectangle
+									x:Name="Frame"
+									Fill="{DynamicResource Kcv.ButtonBackground}"
+									Stroke="{DynamicResource Kcv.ButtonBorder}"
+									StrokeThickness="1"
+									/>
+								<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+							</Grid>
+							<ControlTemplate.Triggers>
+								<Trigger Property="Tag" Value="Single">
+									<Setter TargetName="Frame" Property="StrokeDashArray" Value="3 2" />
+								</Trigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Frame" Property="Stroke" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<Style x:Key="Flt.Result" TargetType="Button">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="Button">
+							<Border
+								x:Name="Box"
+								MinHeight="40"
+								Padding="7 5"
+								Background="{DynamicResource Kcv.ButtonBackground}"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								BorderThickness="1"
+								>
+								<ContentPresenter />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsKeyboardFocused" Value="True">
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<Style
+				x:Key="Flt.Combo"
+				BasedOn="{StaticResource KcvRec.Combo}"
+				TargetType="ComboBox"
+				>
+				<Setter Property="MinWidth" Value="0" />
+				<Setter Property="Height" Value="22" />
+				<Setter Property="Margin" Value="6 0 0 0" />
+				<Setter Property="FontSize" Value="12.5" />
+			</Style>
+
+			<!--  the text box inside the box of a ship's name, without the viewer's own look  -->
+			<Style x:Key="Flt.InnerText" TargetType="TextBox">
+				<Setter Property="MinHeight" Value="0" />
+				<Setter Property="Padding" Value="0" />
+				<Setter Property="Background" Value="Transparent" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="CaretBrush" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="SelectionBrush" Value="{DynamicResource Kcv.Accent}" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TextBox">
+							<ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  함명: a ship's name typed or picked from the list (the viewer's), without completing what is typed  -->
+			<Style
+				x:Key="Flt.NameCombo"
+				BasedOn="{StaticResource Flt.Combo}"
+				TargetType="ComboBox"
+				>
+				<Setter Property="Margin" Value="0" />
+				<Setter Property="IsEditable" Value="True" />
+				<Setter Property="IsTextSearchEnabled" Value="False" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ComboBox">
+							<Grid>
+								<ToggleButton
+									x:Name="Toggle"
+									ClickMode="Press"
+									Focusable="False"
+									IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+									>
+									<ToggleButton.Template>
+										<ControlTemplate TargetType="ToggleButton">
+											<Border
+												x:Name="Box"
+												Background="{DynamicResource Kcv.ButtonBackground}"
+												BorderBrush="{DynamicResource Kcv.Separator}"
+												BorderThickness="1"
+												>
+												<Path
+													Width="8"
+													Height="5"
+													Margin="0 0 7 0"
+													HorizontalAlignment="Right"
+													VerticalAlignment="Center"
+													Data="M 0,0 L 4,4 L 8,0"
+													Stroke="{DynamicResource Kcv.SubForeground}"
+													StrokeThickness="1.4"
+													/>
+											</Border>
+											<ControlTemplate.Triggers>
+												<Trigger Property="IsMouseOver" Value="True">
+													<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+												</Trigger>
+												<Trigger Property="IsChecked" Value="True">
+													<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+												</Trigger>
+											</ControlTemplate.Triggers>
+										</ControlTemplate>
+									</ToggleButton.Template>
+								</ToggleButton>
+								<TextBox
+									x:Name="PART_EditableTextBox"
+									Margin="6 1 22 1"
+									IsReadOnly="{TemplateBinding IsReadOnly}"
+									Style="{StaticResource Flt.InnerText}"
+									/>
+								<Popup
+									x:Name="PART_Popup"
+									AllowsTransparency="True"
+									Focusable="False"
+									IsOpen="{TemplateBinding IsDropDownOpen}"
+									Placement="Bottom"
+									PopupAnimation="None"
+									>
+									<Border
+										MinWidth="{Binding ActualWidth, ElementName=Toggle}"
+										MaxHeight="{TemplateBinding MaxDropDownHeight}"
+										Background="{DynamicResource Kcv.Background}"
+										BorderBrush="{DynamicResource Kcv.Separator}"
+										BorderThickness="1"
+										>
+										<ScrollViewer SnapsToDevicePixels="True">
+											<ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+										</ScrollViewer>
+									</Border>
+								</Popup>
+							</Grid>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  a value typed: the record windows' text box, red while the value is wrong (over the accent of the focus too)  -->
+			<Style x:Key="Flt.Value" TargetType="TextBox">
+				<Setter Property="Height" Value="22" />
+				<Setter Property="FontSize" Value="12.5" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="Background" Value="{DynamicResource Kcv.ButtonBackground}" />
+				<Setter Property="BorderBrush" Value="{DynamicResource Kcv.Separator}" />
+				<Setter Property="CaretBrush" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="SelectionBrush" Value="{DynamicResource Kcv.Accent}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="SnapsToDevicePixels" Value="True" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TextBox">
+							<Border
+								x:Name="Box"
+								Background="{TemplateBinding Background}"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="1"
+								>
+								<ScrollViewer
+									x:Name="PART_ContentHost"
+									Margin="5 2"
+									VerticalAlignment="Center"
+									/>
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<Trigger Property="IsKeyboardFocused" Value="True">
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<DataTrigger Binding="{Binding IsValid}" Value="False">
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.LackForeground}" />
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+								</DataTrigger>
+								<Trigger Property="IsEnabled" Value="False">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  a comparison: its symbol in the box, 「symbol name」 in the list  -->
+			<kcv:KcvFilterOperatorTemplateSelector x:Key="Flt.OperatorTemplate">
+				<kcv:KcvFilterOperatorTemplateSelector.Short>
+					<DataTemplate DataType="{x:Type kcv:KcvFilterOperator}">
+						<TextBlock Text="{Binding Symbol}" />
+					</DataTemplate>
+				</kcv:KcvFilterOperatorTemplateSelector.Short>
+				<kcv:KcvFilterOperatorTemplateSelector.Long>
+					<DataTemplate DataType="{x:Type kcv:KcvFilterOperator}">
+						<TextBlock Text="{Binding Name}" />
+					</DataTemplate>
+				</kcv:KcvFilterOperatorTemplateSelector.Long>
+			</kcv:KcvFilterOperatorTemplateSelector>
+
+			<DataTemplate DataType="{x:Type kcv:KcvFilterBracket}">
+				<Grid Width="53" Height="{Binding Height}">
+					<Button
+						x:Name="Join"
+						Width="40"
+						Height="20"
+						HorizontalAlignment="Left"
+						VerticalAlignment="Center"
+						Command="{Binding ToggleCommand}"
+						Content="AND"
+						Style="{StaticResource Flt.Join}"
+						/>
+					<Border
+						Width="7"
+						Margin="46 0 0 0"
+						HorizontalAlignment="Left"
+						BorderBrush="{DynamicResource Kcv.AccentHighlight}"
+						BorderThickness="2 2 0 2"
+						/>
+				</Grid>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding And}" Value="False">
+						<Setter TargetName="Join" Property="Content" Value="OR" />
+						<Setter TargetName="Join" Property="Foreground" Value="{DynamicResource Kcv.Critical}" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding Single}" Value="True">
+						<Setter TargetName="Join" Property="Tag" Value="Single" />
+						<Setter TargetName="Join" Property="Opacity" Value="0.45" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+
+			<DataTemplate DataType="{x:Type kcv:KcvFilterHeaderLine}">
+				<DockPanel Height="32">
+					<StackPanel
+						Margin="0 0 7 0"
+						VerticalAlignment="Center"
+						DockPanel.Dock="Right"
+						Orientation="Horizontal"
+						>
+						<Button
+							Command="{Binding MoveUpCommand}"
+							Content="▲"
+							IsEnabled="{Binding CanMoveUp}"
+							Style="{StaticResource Flt.Icon}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionView_Up_ToolTip}"
+							/>
+						<Button
+							Command="{Binding MoveDownCommand}"
+							Content="▼"
+							IsEnabled="{Binding CanMoveDown}"
+							Style="{StaticResource Flt.Icon}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionView_Down_ToolTip}"
+							/>
+						<Button
+							Margin="6 0 0 0"
+							Command="{Binding RemoveCommand}"
+							Content="✕"
+							Style="{StaticResource Flt.Icon}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.Expression_Delete}"
+							/>
+					</StackPanel>
+					<StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+						<CheckBox
+							IsChecked="{Binding Enabled}"
+							Style="{StaticResource Flt.Check}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionView_Enabled}"
+							/>
+						<TextBlock
+							Margin="8 0"
+							VerticalAlignment="Center"
+							FontSize="12.5"
+							Text="{Binding Name}"
+							/>
+						<ToggleButton
+							Content="NOT"
+							IsChecked="{Binding Not}"
+							Style="{StaticResource Flt.Toggle}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionView_Inverse_ToolTip}"
+							/>
+					</StackPanel>
+				</DockPanel>
+			</DataTemplate>
+
+			<DataTemplate DataType="{x:Type kcv:KcvFilterConditionLine}">
+				<Border
+					Height="28"
+					Margin="0 2"
+					Padding="6 0"
+					Background="{DynamicResource Kcv.Background}"
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="1"
+					>
+					<DockPanel>
+						<Button
+							Command="{Binding RemoveCommand}"
+							Content="✕"
+							DockPanel.Dock="Right"
+							Style="{StaticResource Flt.Icon}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionDetail_Delete}"
+							/>
+						<CheckBox
+							DockPanel.Dock="Left"
+							IsChecked="{Binding Enabled}"
+							Style="{StaticResource Flt.Check}"
+							ToolTip="{x:Static translations:ShipGroupFilterResources.ExpressionDetailView_Enabled_ToolTip}"
+							/>
+						<ComboBox
+							Width="150"
+							DockPanel.Dock="Left"
+							ItemsSource="{Binding Fields}"
+							SelectedItem="{Binding Field}"
+							Style="{StaticResource Flt.Combo}"
+							/>
+						<ComboBox
+							Width="{Binding OperatorWidth}"
+							DockPanel.Dock="Left"
+							IsEnabled="{Binding IsEditable}"
+							ItemTemplateSelector="{StaticResource Flt.OperatorTemplate}"
+							ItemsSource="{Binding Operators}"
+							SelectedItem="{Binding Operator}"
+							Style="{StaticResource Flt.Combo}"
+							/>
+						<Grid
+							Width="{Binding ValueWidth}"
+							Margin="6 0 0 0"
+							DockPanel.Dock="Left"
+							>
+							<TextBox
+								IsEnabled="{Binding IsEditable}"
+								Style="{StaticResource Flt.Value}"
+								Text="{Binding ValueText, UpdateSourceTrigger=PropertyChanged}"
+								Visibility="{Binding IsTextValue, Converter={StaticResource Visible}}"
+								/>
+							<ComboBox
+								Margin="0"
+								ItemsSource="{Binding Choices}"
+								SelectedItem="{Binding Choice}"
+								Style="{StaticResource Flt.Combo}"
+								Visibility="{Binding IsChoiceValue, Converter={StaticResource Visible}}"
+								/>
+							<ComboBox
+								ItemsSource="{Binding Choices}"
+								Style="{StaticResource Flt.NameCombo}"
+								Text="{Binding ValueText, UpdateSourceTrigger=PropertyChanged}"
+								Visibility="{Binding IsNameValue, Converter={StaticResource Visible}}"
+								/>
+						</Grid>
+						<TextBlock
+							Margin="8 0 4 0"
+							VerticalAlignment="Center"
+							FontSize="12"
+							Foreground="{DynamicResource Kcv.InactiveForeground}"
+							Text="{Binding Description}"
+							TextTrimming="CharacterEllipsis"
+							ToolTip="{Binding Description}"
+							/>
+					</DockPanel>
+				</Border>
+			</DataTemplate>
+
+			<DataTemplate DataType="{x:Type kcv:KcvFilterAddLine}">
+				<StackPanel Height="32" Orientation="Horizontal">
+					<Button
+						Command="{Binding AddConditionCommand}"
+						Content="{x:Static fork:ForkStrings.FilterAddCondition}"
+						Style="{StaticResource Flt.Link}"
+						/>
+					<Button
+						Margin="6 0 0 0"
+						Command="{Binding AddBlockCommand}"
+						Content="{x:Static fork:ForkStrings.FilterAddBlock}"
+						Style="{StaticResource Flt.Link}"
+						/>
+				</StackPanel>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<DockPanel>
+				<Button
+					x:Name="MenuButton"
+					MinWidth="0"
+					Margin="0"
+					Padding="9 2"
+					Click="MenuButton_Click"
+					Content="{x:Static fork:ForkStrings.FilterMenu}"
+					DockPanel.Dock="Left"
+					Style="{StaticResource KcvRec.Button}"
+					>
+					<Button.ContextMenu>
+						<ContextMenu>
+							<MenuItem x:Name="ImportItem" Click="ImportItem_Click" />
+							<MenuItem x:Name="ExportItem" Click="ExportItem_Click" />
+						</ContextMenu>
+					</Button.ContextMenu>
+				</Button>
+				<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+					<Button
+						MinWidth="72"
+						Click="OkButton_Click"
+						Content="OK"
+						IsDefault="True"
+						IsEnabled="{Binding IsValid}"
+						Style="{StaticResource KcvRec.PrimaryButton}"
+						/>
+					<Button
+						MinWidth="72"
+						Content="{x:Static translations:GeneralRes.Cancel}"
+						IsCancel="True"
+						Style="{StaticResource KcvRec.Button}"
+						/>
+				</StackPanel>
+			</DockPanel>
+		</Border>
+
+		<TabControl Style="{StaticResource Flt.Tabs}">
+			<TabItem Header="{x:Static translations:ShipGroupFilterResources.tabPage1}" Style="{StaticResource Flt.Tab}">
+				<Grid Margin="12 8 12 4">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="*" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+
+					<ContentControl
+						Margin="0"
+						Style="{StaticResource KcvRec.Box}"
+						Tag="{x:Static fork:ForkStrings.FilterConditions}"
+						>
+						<ScrollViewer
+							x:Name="Editor"
+							HorizontalScrollBarVisibility="Disabled"
+							VerticalScrollBarVisibility="Auto"
+							>
+							<DockPanel VerticalAlignment="Top">
+								<DockPanel.Style>
+									<!--  room on the right for the scroll bar, which is drawn over the content  -->
+									<Style TargetType="DockPanel">
+										<Style.Triggers>
+											<DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=Editor}" Value="Visible">
+												<Setter Property="Margin" Value="0 0 14 0" />
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</DockPanel.Style>
+								<kcv:KcvFilterItemsControl
+									Width="{Binding GutterWidth}"
+									Height="{Binding EditorHeight}"
+									VerticalAlignment="Top"
+									DockPanel.Dock="Left"
+									Focusable="False"
+									ItemsSource="{Binding Brackets}"
+									>
+									<kcv:KcvFilterItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<Canvas />
+										</ItemsPanelTemplate>
+									</kcv:KcvFilterItemsControl.ItemsPanel>
+									<kcv:KcvFilterItemsControl.ItemContainerStyle>
+										<Style TargetType="ContentPresenter">
+											<Setter Property="Canvas.Left" Value="{Binding Left}" />
+											<Setter Property="Canvas.Top" Value="{Binding Top}" />
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding Off}" Value="True">
+													<Setter Property="Opacity" Value="0.4" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</kcv:KcvFilterItemsControl.ItemContainerStyle>
+								</kcv:KcvFilterItemsControl>
+								<kcv:KcvFilterItemsControl Focusable="False" ItemsSource="{Binding Lines}">
+									<kcv:KcvFilterItemsControl.ItemContainerStyle>
+										<Style TargetType="ContentPresenter">
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding Dimmed}" Value="True">
+													<Setter Property="Opacity" Value="0.45" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</kcv:KcvFilterItemsControl.ItemContainerStyle>
+								</kcv:KcvFilterItemsControl>
+							</DockPanel>
+						</ScrollViewer>
+					</ContentControl>
+
+					<!--  the whole expression; a click shows it in code and back (a button, so the keyboard reaches it too)  -->
+					<Button
+						Grid.Row="1"
+						Margin="0 6 0 0"
+						AutomationProperties.Name="{Binding ResultText}"
+						Command="{Binding ToggleCodeCommand}"
+						Style="{StaticResource Flt.Result}"
+						>
+						<ScrollViewer MaxHeight="88" VerticalScrollBarVisibility="Auto">
+							<TextBlock
+								FontSize="12.5"
+								LineHeight="19"
+								Text="{Binding ResultText}"
+								TextWrapping="Wrap"
+								/>
+						</ScrollViewer>
+					</Button>
+				</Grid>
+			</TabItem>
+
+			<TabItem Header="{x:Static translations:ShipGroupFilterResources.tabPage2}" Style="{StaticResource Flt.Tab}">
+				<DockPanel Margin="12 8 12 4">
+					<TextBlock
+						Margin="0 2 0 8"
+						DockPanel.Dock="Top"
+						FontSize="12.5"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						LineHeight="20"
+						Text="{x:Static translations:ShipGroupFilterResources.label1}"
+						TextWrapping="Wrap"
+						/>
+					<DockPanel DockPanel.Dock="Top">
+						<StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+							<Button
+								MinWidth="0"
+								Padding="9 2"
+								Command="{Binding OptimizeListCommand}"
+								Content="{x:Static translations:ShipGroupFilterResources.OptimizeConstFilter}"
+								Style="{StaticResource KcvRec.Button}"
+								ToolTip="{x:Static translations:ShipGroupFilterResources.OptimizeConstFilter_ToolTip}"
+								/>
+							<Button
+								MinWidth="0"
+								Padding="9 2"
+								Command="{Binding ConvertListCommand}"
+								Content="{x:Static translations:ShipGroupFilterResources.ConvertToExpression}"
+								Style="{StaticResource KcvRec.Button}"
+								ToolTip="{x:Static translations:ShipGroupFilterResources.ConvertToExpression_ToolTip}"
+								/>
+							<Button
+								MinWidth="0"
+								Padding="9 2"
+								Command="{Binding ClearListCommand}"
+								Content="{x:Static translations:ShipGroupFilterResources.ClearConstFilter}"
+								Style="{StaticResource KcvRec.Button}"
+								ToolTip="{x:Static translations:ShipGroupFilterResources.ClearConstFilter_ToolTip}"
+								/>
+						</StackPanel>
+						<ComboBox
+							Width="200"
+							Height="24"
+							HorizontalAlignment="Left"
+							ItemsSource="{Binding ListNames}"
+							SelectedIndex="{Binding ListIndex}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+					</DockPanel>
+					<Border
+						Margin="0 6 0 0"
+						BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+						BorderThickness="1"
+						>
+						<DockPanel>
+							<Border
+								Height="24"
+								Background="{DynamicResource Kcv.TableHeaderBackground}"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								BorderThickness="0 0 0 1"
+								DockPanel.Dock="Top"
+								TextElement.FontSize="12.5"
+								TextElement.Foreground="{DynamicResource Kcv.SubForeground}"
+								>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="70" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="36" />
+									</Grid.ColumnDefinitions>
+									<TextBlock
+										Margin="5 0"
+										VerticalAlignment="Center"
+										Text="ID"
+										/>
+									<TextBlock
+										Grid.Column="1"
+										Margin="5 0"
+										VerticalAlignment="Center"
+										Text="{x:Static translations:ShipGroupFilterResources.ConstFilterView_Name}"
+										/>
+								</Grid>
+							</Border>
+							<ScrollViewer x:Name="ListBody" VerticalScrollBarVisibility="Auto">
+								<kcv:KcvFilterItemsControl Focusable="False" ItemsSource="{Binding ListRows}">
+									<kcv:KcvFilterItemsControl.Style>
+										<Style TargetType="kcv:KcvFilterItemsControl">
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=ListBody}" Value="Visible">
+													<Setter Property="Margin" Value="0 0 14 0" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</kcv:KcvFilterItemsControl.Style>
+									<kcv:KcvFilterItemsControl.ItemTemplate>
+										<DataTemplate DataType="{x:Type kcv:KcvFilterListRow}">
+											<Border
+												Height="24"
+												BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+												BorderThickness="0 0 0 1"
+												TextElement.FontSize="12.5"
+												>
+												<Grid>
+													<Grid.ColumnDefinitions>
+														<ColumnDefinition Width="70" />
+														<ColumnDefinition Width="*" />
+														<ColumnDefinition Width="36" />
+													</Grid.ColumnDefinitions>
+													<TextBlock
+														Margin="5 0"
+														HorizontalAlignment="Right"
+														VerticalAlignment="Center"
+														Text="{Binding Id}"
+														/>
+													<TextBlock
+														Grid.Column="1"
+														Margin="5 0"
+														VerticalAlignment="Center"
+														Text="{Binding Name}"
+														TextTrimming="CharacterEllipsis"
+														/>
+													<Button
+														Grid.Column="2"
+														HorizontalAlignment="Center"
+														Command="{Binding RemoveCommand}"
+														Content="✕"
+														Style="{StaticResource Flt.Icon}"
+														/>
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</kcv:KcvFilterItemsControl.ItemTemplate>
+								</kcv:KcvFilterItemsControl>
+							</ScrollViewer>
+						</DockPanel>
+					</Border>
+				</DockPanel>
+			</TabItem>
+		</TabControl>
+	</DockPanel>
+</Window>

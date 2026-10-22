@@ -1,0 +1,108 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvUpgradeHelpersView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:helpers="clr-namespace:KCViewer.Window.Tools.EquipmentUpgradePlanner.Helpers"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="Root"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the helper groups of a planned upgrade (a list of EquipmentUpgradeHelpersViewModel as DataContext) in
+		KanColleViewer's style: one line per group, the ships on the left (separated by ·, the ones not owned in
+		Kcv.LackForeground as the viewer's red) and the days on the right. With TodayOnly (the panel's tooltip while its
+		今日 filter is on) only the groups that can help today, as the viewer's tooltip.
+	-->
+	<ItemsControl>
+		<ItemsControl.ItemsSource>
+			<MultiBinding Converter="{StaticResource Kcv.UpgradeHelpersToday}">
+				<Binding />
+				<Binding ElementName="Root" Path="TodayOnly" />
+			</MultiBinding>
+		</ItemsControl.ItemsSource>
+		<ItemsControl.ItemTemplate>
+			<DataTemplate DataType="{x:Type helpers:EquipmentUpgradeHelpersViewModel}">
+				<Border
+					x:Name="Line"
+					Padding="0 3"
+					BorderBrush="{DynamicResource Kcv.Separator}"
+					BorderThickness="0 1 0 0"
+					>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+
+						<ItemsControl
+							Grid.Column="0"
+							Margin="0 0 8 0"
+							VerticalAlignment="Center"
+							ItemsSource="{Binding Helpers}"
+							>
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel Orientation="Horizontal" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="{x:Type helpers:EquipmentUpgradeHelperViewModel}">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock
+											x:Name="Name"
+											FontSize="12"
+											Style="{StaticResource Kcv.Text}"
+											Text="{Binding Helper.NameEN}"
+											/>
+										<TextBlock
+											x:Name="Separator"
+											Margin="5 0"
+											FontSize="12"
+											Foreground="{DynamicResource Kcv.InactiveForeground}"
+											Text="·"
+											/>
+									</StackPanel>
+									<DataTemplate.Triggers>
+										<DataTrigger Value="True">
+											<DataTrigger.Binding>
+												<MultiBinding Converter="{StaticResource Kcv.IsLastItem}">
+													<Binding />
+													<Binding Path="ItemsSource" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+												</MultiBinding>
+											</DataTrigger.Binding>
+											<Setter TargetName="Separator" Property="Visibility" Value="Collapsed" />
+										</DataTrigger>
+										<DataTrigger Binding="{Binding PlayerHasAtleastOne}" Value="False">
+											<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+										</DataTrigger>
+									</DataTemplate.Triggers>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+
+						<ItemsControl
+							Grid.Column="1"
+							VerticalAlignment="Center"
+							ItemTemplate="{StaticResource Kcv.UpgradeDayTemplate}"
+							ItemsSource="{Binding Days}"
+							>
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<StackPanel Orientation="Horizontal" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+						</ItemsControl>
+					</Grid>
+				</Border>
+				<DataTemplate.Triggers>
+					<!--  a line between the groups, none above the first  -->
+					<DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+						<Setter TargetName="Line" Property="BorderThickness" Value="0" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+		</ItemsControl.ItemTemplate>
+	</ItemsControl>
+</UserControl>

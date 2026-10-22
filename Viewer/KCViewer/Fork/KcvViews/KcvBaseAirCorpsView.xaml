@@ -1,0 +1,235 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvBaseAirCorpsView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:baseAirCorps="clr-namespace:KCViewer.Window.Wpf.BaseAirCorps"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="Panel"
+	d:DataContext="{d:DesignInstance Type=baseAirCorps:BaseAirCorpsViewModel}"
+	d:DesignHeight="300"
+	d:DesignWidth="760"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the land base panel in KanColleViewer's style (mockup 5, user's approval 2026-10-02 with one details
+		button). A table like the planned upgrades panel: base, action, fighter power, range, four squadrons. Each area
+		has a header line with its air defense and high altitude totals; the first one also has the button to the land
+		base details window. After the name, small marks: planes short (yellow), fatigued (orange). A squadron: plane
+		icon (its name as tooltip), proficiency as the fleet panels draw it, count (red when short, orange when
+		fatigued); an empty slot is a dash. The viewer's context menu stays.
+	-->
+	<UserControl.Resources>
+		<Style x:Key="Cell" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Margin" Value="7 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style x:Key="HeaderCell" TargetType="Border">
+			<Setter Property="Padding" Value="7 6" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="0 0 1 0" />
+		</Style>
+		<Style x:Key="HeaderText" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+		</Style>
+		<Style x:Key="Mark" TargetType="Rectangle">
+			<Setter Property="Width" Value="10" />
+			<Setter Property="Height" Value="10" />
+			<Setter Property="Margin" Value="4 0 0 0" />
+			<Setter Property="RadiusX" Value="2" />
+			<Setter Property="RadiusY" Value="2" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!--  One squadron cell  -->
+		<DataTemplate x:Key="Squadron" DataType="{x:Type kcv:KcvAirSquadron}">
+			<Grid Margin="7 0" VerticalAlignment="Center">
+				<StackPanel x:Name="Plane" Orientation="Horizontal">
+					<Image
+						Width="20"
+						Height="20"
+						Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+						Style="{StaticResource Kcv.EquipmentIcon}"
+						ToolTip="{Binding Name}"
+						/>
+					<common:AircraftProficiency
+						x:Name="Proficiency"
+						Margin="2 0 1 0"
+						VerticalAlignment="Center"
+						AircraftLevel="{Binding AircraftLevel}"
+						/>
+					<TextBlock FontSize="13" Style="{StaticResource Kcv.Text}" VerticalAlignment="Center">
+						<Run x:Name="Count" Text="{Binding Count, Mode=OneWay}" /><Run Text="{Binding MaxText, Mode=OneWay}" />
+					</TextBlock>
+				</StackPanel>
+				<TextBlock
+					x:Name="Dash"
+					FontSize="13"
+					Foreground="{DynamicResource Kcv.InactiveForeground}"
+					Text="—"
+					ToolTip="{Binding PlaceholderText}"
+					Visibility="Collapsed"
+					/>
+			</Grid>
+			<DataTemplate.Triggers>
+				<DataTrigger Binding="{Binding AircraftLevel}" Value="0">
+					<Setter TargetName="Proficiency" Property="Visibility" Value="Collapsed" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding Tired}" Value="True">
+					<Setter TargetName="Count" Property="Foreground" Value="{x:Static kcv:KcvBrushes.ConditionTired}" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding Short}" Value="True">
+					<Setter TargetName="Count" Property="Foreground" Value="{x:Static kcv:KcvBrushes.DangerMark}" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding Deployed}" Value="False">
+					<Setter TargetName="Plane" Property="Visibility" Value="Collapsed" />
+					<Setter TargetName="Dash" Property="Visibility" Value="Visible" />
+				</DataTrigger>
+			</DataTemplate.Triggers>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<Border Background="Transparent">
+		<!--  the viewer's menu: copy the bases, planes being relocated  -->
+		<Border.ContextMenu>
+			<ContextMenu>
+				<MenuItem Command="{Binding CopyOrganizationCommand}" Header="{Binding FormBaseAirCorps.ContextMenuBaseAirCorps_CopyOrganization}" />
+				<Separator />
+				<MenuItem Command="{Binding DisplayRelocatedEquipmentsCommand}" Header="{Binding FormBaseAirCorps.ContextMenuBaseAirCorps_DisplayRelocatedEquipments}" />
+			</ContextMenu>
+		</Border.ContextMenu>
+
+		<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+			<Grid Margin="8" DataContext="{Binding Model, ElementName=Panel}">
+				<TextBlock
+					Margin="4"
+					FontSize="13"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					Text="{x:Static fork:ForkStrings.KcvAirBaseNone}"
+					Visibility="{Binding HasNone, Converter={StaticResource BooleanToVisibilityConverter}}"
+					/>
+
+				<Border
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="1"
+					Grid.IsSharedSizeScope="True"
+					Visibility="{Binding HasAreas, Converter={StaticResource BooleanToVisibilityConverter}}"
+					>
+					<StackPanel>
+						<!--  Header: base, action, air, range, 1st to 4th squadron  -->
+						<Grid Background="{DynamicResource Kcv.TableHeaderBackground}">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" MinWidth="132" SharedSizeGroup="AirName" />
+								<ColumnDefinition Width="Auto" MinWidth="42" SharedSizeGroup="AirAction" />
+								<ColumnDefinition Width="62" />
+								<ColumnDefinition Width="Auto" MinWidth="58" SharedSizeGroup="AirRange" />
+								<ColumnDefinition Width="*" MinWidth="84" />
+								<ColumnDefinition Width="*" MinWidth="84" />
+								<ColumnDefinition Width="*" MinWidth="84" />
+								<ColumnDefinition Width="*" MinWidth="84" />
+							</Grid.ColumnDefinitions>
+							<Border Grid.Column="0" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{x:Static fork:ForkStrings.KcvAirColumnCorps}" /></Border>
+							<Border Grid.Column="1" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{x:Static fork:ForkStrings.KcvAirColumnAction}" /></Border>
+							<Border Grid.Column="2" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{x:Static fork:ForkStrings.KcvAirColumnPower}" /></Border>
+							<Border Grid.Column="3" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{x:Static fork:ForkStrings.KcvAirColumnDistance}" /></Border>
+							<Border Grid.Column="4" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{Binding Source=1, Converter={x:Static kcv:KcvAirColumnConverter.Instance}}" /></Border>
+							<Border Grid.Column="5" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{Binding Source=2, Converter={x:Static kcv:KcvAirColumnConverter.Instance}}" /></Border>
+							<Border Grid.Column="6" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{Binding Source=3, Converter={x:Static kcv:KcvAirColumnConverter.Instance}}" /></Border>
+							<Border Grid.Column="7" BorderThickness="0" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{Binding Source=4, Converter={x:Static kcv:KcvAirColumnConverter.Instance}}" /></Border>
+						</Grid>
+
+						<ItemsControl ItemsSource="{Binding Areas}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="{x:Type kcv:KcvAirAreaRow}">
+									<StackPanel>
+										<!--  中部海域 (#6)  防空 190 · 対高高度 95  [기지 항공대 상세]  -->
+										<DockPanel Background="{DynamicResource Kcv.HeaderBackground}">
+											<Button
+												x:Name="Detail"
+												Margin="8 2"
+												Padding="10 1"
+												Click="OpenDetail"
+												Content="{x:Static fork:ForkStrings.KcvAirBaseDetail}"
+												DockPanel.Dock="Right"
+												FontSize="12"
+												/>
+											<TextBlock
+												Margin="8 4"
+												VerticalAlignment="Center"
+												FontSize="13"
+												Style="{StaticResource Kcv.Text}"
+												>
+												<Run Text="{Binding Area.Title, Mode=OneWay}" />
+												<Run Text="   " />
+												<Run FontSize="12" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding Area.DefenseText, Mode=OneWay}" />
+											</TextBlock>
+										</DockPanel>
+
+										<ItemsControl ItemsSource="{Binding Area.Corps}">
+											<ItemsControl.ItemTemplate>
+												<DataTemplate DataType="{x:Type kcv:KcvAirCorps}">
+													<Border
+														MinHeight="30"
+														BorderBrush="{DynamicResource Kcv.Separator}"
+														BorderThickness="0 0 0 1"
+														>
+														<Grid>
+															<Grid.ColumnDefinitions>
+																<ColumnDefinition Width="Auto" MinWidth="132" SharedSizeGroup="AirName" />
+																<ColumnDefinition Width="Auto" MinWidth="42" SharedSizeGroup="AirAction" />
+																<ColumnDefinition Width="62" />
+																<ColumnDefinition Width="Auto" MinWidth="58" SharedSizeGroup="AirRange" />
+																<ColumnDefinition Width="*" MinWidth="84" />
+																<ColumnDefinition Width="*" MinWidth="84" />
+																<ColumnDefinition Width="*" MinWidth="84" />
+																<ColumnDefinition Width="*" MinWidth="84" />
+															</Grid.ColumnDefinitions>
+
+															<StackPanel Grid.Column="0" Margin="7 0" Orientation="Horizontal">
+																<TextBlock FontSize="13" Style="{StaticResource Kcv.Text}" Text="{Binding Name}" VerticalAlignment="Center" />
+																<Rectangle Fill="{x:Static kcv:KcvAirBases.SupplyMark}" Style="{StaticResource Mark}" Visibility="{Binding NeedsSupply, Converter={StaticResource BooleanToVisibilityConverter}}" />
+																<Rectangle Fill="{x:Static kcv:KcvAirBases.TiredMark}" Style="{StaticResource Mark}" Visibility="{Binding IsTired, Converter={StaticResource BooleanToVisibilityConverter}}" />
+															</StackPanel>
+															<TextBlock x:Name="Action" Grid.Column="1" Style="{StaticResource Cell}" Text="{Binding ActionText}" />
+															<TextBlock Grid.Column="2" Background="Transparent" Style="{StaticResource Cell}" Text="{Binding Power}" ToolTip="{Binding PowerTip}" />
+															<TextBlock Grid.Column="3" Style="{StaticResource Cell}">
+																<Run Text="{Binding Distance, Mode=OneWay}" /><Run FontSize="10" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding BonusText, Mode=OneWay}" />
+															</TextBlock>
+															<ContentPresenter Grid.Column="4" Content="{Binding Squadrons[0]}" ContentTemplate="{StaticResource Squadron}" />
+															<ContentPresenter Grid.Column="5" Content="{Binding Squadrons[1]}" ContentTemplate="{StaticResource Squadron}" />
+															<ContentPresenter Grid.Column="6" Content="{Binding Squadrons[2]}" ContentTemplate="{StaticResource Squadron}" />
+															<ContentPresenter Grid.Column="7" Content="{Binding Squadrons[3]}" ContentTemplate="{StaticResource Squadron}" />
+														</Grid>
+													</Border>
+													<DataTemplate.Triggers>
+														<!--  a base not on sortie or air defense in the sub colour, as 待機 in the mockup  -->
+														<DataTrigger Binding="{Binding Action}" Value="Standby">
+															<Setter TargetName="Action" Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+														</DataTrigger>
+													</DataTemplate.Triggers>
+												</DataTemplate>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
+									</StackPanel>
+									<DataTemplate.Triggers>
+										<DataTrigger Binding="{Binding First}" Value="False">
+											<Setter TargetName="Detail" Property="Visibility" Value="Collapsed" />
+										</DataTrigger>
+									</DataTemplate.Triggers>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</ScrollViewer>
+	</Border>
+</UserControl>

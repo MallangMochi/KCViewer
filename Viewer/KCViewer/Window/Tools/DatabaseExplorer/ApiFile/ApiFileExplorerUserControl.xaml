@@ -1,0 +1,69 @@
+﻿<UserControl
+	x:Class="KCViewer.Window.Tools.DatabaseExplorer.ApiFile.ApiFilesExplorerUserControl"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:apiFile="clr-namespace:KCViewer.Window.Tools.DatabaseExplorer.ApiFile"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:behaviors="clr-namespace:KCViewer.Behaviors"
+	xmlns:controls="http://schemas.modernwpf.com/2019"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	d:DataContext="{d:DesignInstance apiFile:ApiFileExplorerViewModel}"
+	d:DesignHeight="450"
+	d:DesignWidth="800"
+	mc:Ignorable="d"
+	>
+	<UserControl.Resources>
+		<apiFile:ApiFilesExplorerBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+	</UserControl.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<StackPanel Grid.Row="0" Orientation="Horizontal">
+			<controls:NumberBox
+				Minimum="1"
+				SpinButtonPlacementMode="Inline"
+				Value="{Binding Limit}"
+				/>
+
+			<TextBox Text="{Binding ApiNameFilter}" />
+
+			<Button Command="{Binding SearchCommand}" Content="Search" />
+		</StackPanel>
+
+		<DataGrid
+			Grid.Row="1"
+			AutoGenerateColumns="False"
+			HeadersVisibility="Column"
+			IsReadOnly="True"
+			ItemsSource="{Binding ApiFiles}"
+			>
+			<b:Interaction.Behaviors>
+				<behaviors:MultiSelectionBehavior SelectedItems="{Binding SelectedFiles}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataContext.CopyContentCommand, Source={StaticResource Proxy}}" Header="Copy" />
+					<MenuItem Command="{Binding DataContext.OpenApiLoaderCommand, Source={StaticResource Proxy}}" Header="Open API Loader" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTextColumn Binding="{Binding Id}" Header="Id" />
+				<DataGridTextColumn Binding="{Binding ApiFileType}" Header="ApiFileType" />
+				<DataGridTextColumn Binding="{Binding Name}" Header="Name" />
+				<DataGridTextColumn
+					Width="*"
+					Binding="{Binding Content}"
+					Header="Content"
+					/>
+				<DataGridTextColumn Binding="{Binding TimeStamp, Converter={StaticResource DateTimeDisplayConverter}}" Header="TimeStamp" />
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</UserControl>

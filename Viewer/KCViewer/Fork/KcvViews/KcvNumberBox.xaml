@@ -1,0 +1,99 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvNumberBox"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Height="22"
+	VerticalAlignment="Center"
+	Focusable="False"
+	>
+	<!--
+		Fork: a number box as KanColleViewer's inputs (mockup 20261006-calc-windows-v2): the dark box of the record
+		windows' text box with two small arrows on the right, instead of ModernWpf's number box with its large buttons.
+		Up / Down keys and the mouse wheel step it too.
+	-->
+	<UserControl.Resources>
+		<Style x:Key="Arrow" TargetType="RepeatButton">
+			<Setter Property="Focusable" Value="False" />
+			<Setter Property="Delay" Value="400" />
+			<Setter Property="Interval" Value="60" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="RepeatButton">
+						<Border x:Name="Back" Background="Transparent">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</UserControl.Resources>
+
+	<Border
+		x:Name="Box"
+		Background="{DynamicResource Kcv.ButtonBackground}"
+		BorderBrush="{DynamicResource Kcv.Separator}"
+		BorderThickness="1"
+		SnapsToDevicePixels="True"
+		>
+		<DockPanel>
+			<Grid Width="14" DockPanel.Dock="Right">
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<RepeatButton
+					Grid.Row="0"
+					Click="StepUp"
+					Style="{StaticResource Arrow}"
+					>
+					<Path
+						Width="7"
+						Height="4"
+						Data="M 0,4 L 3.5,0 L 7,4 Z"
+						Fill="{DynamicResource Kcv.SubForeground}"
+						/>
+				</RepeatButton>
+				<RepeatButton
+					Grid.Row="1"
+					Click="StepDown"
+					Style="{StaticResource Arrow}"
+					>
+					<Path
+						Width="7"
+						Height="4"
+						Data="M 0,0 L 7,0 L 3.5,4 Z"
+						Fill="{DynamicResource Kcv.SubForeground}"
+						/>
+				</RepeatButton>
+			</Grid>
+			<TextBox
+				x:Name="Input"
+				MinWidth="0"
+				MinHeight="0"
+				Padding="4 0 2 0"
+				VerticalAlignment="Center"
+				CaretBrush="{DynamicResource Kcv.Foreground}"
+				FontSize="13"
+				Foreground="{DynamicResource Kcv.Foreground}"
+				SelectionBrush="{DynamicResource Kcv.Accent}"
+				TextAlignment="{Binding TextAlignment, RelativeSource={RelativeSource AncestorType=UserControl}}"
+				>
+				<TextBox.Template>
+					<ControlTemplate TargetType="TextBox">
+						<ScrollViewer
+							x:Name="PART_ContentHost"
+							Padding="{TemplateBinding Padding}"
+							VerticalAlignment="Center"
+							Focusable="False"
+							/>
+					</ControlTemplate>
+				</TextBox.Template>
+			</TextBox>
+		</DockPanel>
+	</Border>
+</UserControl>

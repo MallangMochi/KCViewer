@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Browser": {
+      "commandName": "Project"
+    },
+    "WebView2 debug": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost\r\n45467"
+    }
+  }
+}

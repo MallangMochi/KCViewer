@@ -1,0 +1,334 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvDevelopmentRecordWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:development="clr-namespace:KCViewer.Window.Tools.DevelopmentRecordViewer"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding DialogDevelopmentRecordViewer.Title}"
+	Width="650"
+	Height="480"
+	d:DataContext="{d:DesignInstance development:DevelopmentRecordViewerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="development:DevelopmentRecordViewerViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the development record in KanColleViewer's style (mockup v5,
+		viewer-design/mockups/20261004-development-record-v5.html, approved 2026-10-04) with the viewer's view model.
+		Columns 시간·장비 (the game's icon; 「(실패)」 grey)·레시피 (coloured squares and numbers)·함 종류·비서함. With
+		합치기 the merged table 장비·함종 별 횟수 (or 레시피 별 횟수)·횟수 with its rate last ("장비를 맨 앞으로하고 확률표시가
+		들어가는 횟수를 맨 뒤로 함").
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<development:DevelopmentFilterToDisplayConverter x:Key="Filter" />
+			<kcv:KcvDevelopmentIconConverter x:Key="Icon" />
+
+			<DataTemplate x:Key="FilterItem">
+				<TextBlock Text="{Binding Converter={StaticResource Filter}}" />
+			</DataTemplate>
+
+			<!--  the equipment with its icon, a recipe (merged by recipe), or 「(실패)」 in grey  -->
+			<DataTemplate x:Key="Equipment" DataType="{x:Type development:DevelopmentRecordRow}">
+				<Grid Margin="6 0" VerticalAlignment="Center">
+					<StackPanel x:Name="Name" Orientation="Horizontal">
+						<Image
+							x:Name="Icon"
+							Width="18"
+							Height="18"
+							Margin="0 0 4 0"
+							Source="{Binding CellTag1, Converter={StaticResource Icon}}"
+							Style="{StaticResource Kcv.EquipmentIcon}"
+							/>
+						<TextBlock
+							x:Name="Text"
+							VerticalAlignment="Center"
+							FontSize="13"
+							Text="{Binding EquipmentName}"
+							TextTrimming="CharacterEllipsis"
+							/>
+					</StackPanel>
+					<ItemsControl
+						x:Name="Recipe"
+						ItemsSource="{Binding EquipmentName, Converter={StaticResource KcvRec.RecipeParts}}"
+						Style="{StaticResource KcvRec.Recipe}"
+						/>
+				</Grid>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding Source, ElementName=Icon}" Value="{x:Null}">
+						<Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding EquipmentName}" Value="{x:Static translations:DevelopmentRecordViewerResources.NameNotExist}">
+						<Setter TargetName="Text" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding HasItems, ElementName=Recipe}" Value="True">
+						<Setter TargetName="Name" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  검색 조건: 카테고리·장비명·레시피 / 비서함 (함종, 함선)·기간 / 합치기  -->
+		<ContentControl Grid.Row="0" Style="{StaticResource KcvRec.Conditions}">
+			<StackPanel>
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding DialogDevelopmentRecordViewer.Type, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemTemplate="{StaticResource FilterItem}"
+							ItemsSource="{Binding Categories}"
+							SelectedItem="{Binding SelectedCategory}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding DialogDevelopmentRecordViewer.EquipmentName, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemTemplate="{StaticResource FilterItem}"
+							ItemsSource="{Binding Equipment}"
+							SelectedItem="{Binding SelectedEquipment}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding DialogDevelopmentRecordViewer.Recipe, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemTemplate="{StaticResource FilterItem}"
+							ItemsSource="{Binding Recipes}"
+							SelectedItem="{Binding SelectedRecipe}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+					</StackPanel>
+				</WrapPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding DialogDevelopmentRecordViewer.Flagship, StringFormat={}{0}:}" />
+						<ComboBox
+							ItemTemplate="{StaticResource FilterItem}"
+							ItemsSource="{Binding FlagshipTypes}"
+							SelectedItem="{Binding SelectedFlagshipType}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+						<ComboBox
+							Margin="4 1 0 1"
+							ItemTemplate="{StaticResource FilterItem}"
+							ItemsSource="{Binding Flagships}"
+							SelectedItem="{Binding SelectedFlagship}"
+							Style="{StaticResource KcvRec.Combo}"
+							/>
+					</StackPanel>
+					<kcv:KcvRecordPeriod Margin="0 0 14 0" />
+				</WrapPanel>
+
+				<DockPanel Margin="0 2">
+					<StackPanel
+						VerticalAlignment="Bottom"
+						DockPanel.Dock="Right"
+						Orientation="Horizontal"
+						>
+						<Button
+							Command="{Binding ForkSearchCommand}"
+							Content="{x:Static fork:ForkStrings.KcvRecordSearch}"
+							IsEnabled="{Binding ForkCanSearch}"
+							Style="{StaticResource KcvRec.PrimaryButton}"
+							/>
+						<Button
+							Command="{Binding ForkCancelSearchCommand}"
+							Content="{x:Static fork:ForkStrings.KcvRecordCancel}"
+							IsEnabled="{Binding ForkIsSearching}"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+						<Button
+							Click="ResetConditions"
+							Content="{x:Static fork:ForkStrings.KcvRecordReset}"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+					</StackPanel>
+					<CheckBox
+						Margin="0"
+						Content="{Binding DialogDevelopmentRecordViewer.MergeRows}"
+						IsChecked="{Binding MergeRows}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+				</DockPanel>
+			</StackPanel>
+		</ContentControl>
+
+		<DataGrid
+			Grid.Row="1"
+			ItemsSource="{Binding DataGridRawRowsViewModel.Items}"
+			SelectionChanged="ShowSelection"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridRawRowsViewModel}"
+			Visibility="{Binding RawRows, Converter={StaticResource KcvRec.Visible}}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridRawRowsViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridRawRowsViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridRawRowsViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridRawRowsViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridRawRowsViewModel.ClearSortingCommand}" Header="{Binding DataGridRawRowsViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="140"
+					MinWidth="140"
+					Header="{x:Static fork:ForkStrings.KcvRecordTime}"
+					SortMemberPath="DateDisplay"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding DateDisplay, Converter={StaticResource KcvRec.Time}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="150"
+					MinWidth="150"
+					CellTemplate="{StaticResource Equipment}"
+					Header="{x:Static translations:DevelopmentRecordViewerResources.Equipment}"
+					SortMemberPath="CellTag1"
+					/>
+
+				<DataGridTemplateColumn
+					Width="170"
+					MinWidth="170"
+					Header="{x:Static translations:DevelopmentRecordViewerResources.RecordView_Recipe}"
+					SortMemberPath="CellTag3"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<ItemsControl
+								Margin="6 0"
+								ItemsSource="{Binding GetRecipeString, Converter={StaticResource KcvRec.RecipeParts}}"
+								Style="{StaticResource KcvRec.Recipe}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="90"
+					MinWidth="90"
+					Header="{x:Static translations:DevelopmentRecordViewerResources.RecordView_FlagshipType}"
+					SortMemberPath="CellTag4"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding ShipTypeNameEn}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="110"
+					Header="{x:Static translations:DevelopmentRecordViewerResources.RecordView_Flagship}"
+					SortMemberPath="CellTag5"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding FlagshipName}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<DataGrid
+			Grid.Row="1"
+			ItemsSource="{Binding DataGridMergedRowsViewModel.Items}"
+			SelectionChanged="ShowSelection"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridMergedRowsViewModel}"
+			Visibility="{Binding MergeRows, Converter={StaticResource KcvRec.Visible}}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridMergedRowsViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridMergedRowsViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridMergedRowsViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridMergedRowsViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridMergedRowsViewModel.ClearSortingCommand}" Header="{Binding DataGridMergedRowsViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="170"
+					MinWidth="170"
+					CellTemplate="{StaticResource Equipment}"
+					Header="{x:Static translations:DevelopmentRecordViewerResources.Equipment}"
+					SortMemberPath="CellTag1"
+					/>
+
+				<DataGridTemplateColumn
+					x:Name="SummaryColumn"
+					Width="*"
+					MinWidth="170"
+					SortMemberPath="Summary"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Summary}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					MinWidth="120"
+					Header="{x:Static translations:EncycloRes.Tries}"
+					SortMemberPath="Count"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type development:DevelopmentRecordRow}">
+							<ContentControl
+								Content="{Binding CountDisplay}"
+								ContentTemplate="{StaticResource KcvRec.Count}"
+								Focusable="False"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<Border Grid.Row="2" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<TextBlock x:Name="SelectionText" DockPanel.Dock="Right" />
+				<TextBlock x:Name="StatusText" TextTrimming="CharacterEllipsis" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

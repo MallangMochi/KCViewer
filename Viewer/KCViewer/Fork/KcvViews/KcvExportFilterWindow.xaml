@@ -1,0 +1,188 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvExportFilterWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static translations:ExportFilterResources.Title}"
+	Width="460"
+	d:DataContext="{d:DesignInstance kcv:KcvExportFilterViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ResizeMode="NoResize"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the sortie record's 추출 필터 in KanColleViewer's style (KcvContentDialogService, mockup
+		viewer-design/mockups/20261020-csv-export-dialogs-v2.html, approved 2026-10-20 "구현"): 옵션 with the viewer's two
+		checks, 칸 with 「모두」 and a line per map of its cells (dim while 셀 필터를 무시 is on), OK (Enter) and 취소 (Esc,
+		the export stops).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Click="OkButton_Click"
+					Content="OK"
+					IsDefault="True"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Content="{x:Static translations:GeneralRes.Cancel}"
+					IsCancel="True"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<StackPanel Margin="12 6 12 4">
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static translations:GeneralRes.Option}">
+				<WrapPanel Style="{StaticResource Cfg.Row}">
+					<CheckBox Content="{x:Static translations:ExportFilterResources.IgnoreMisses}" IsChecked="{Binding Filter.IgnoreMisses}" />
+					<CheckBox Content="{x:Static translations:ExportFilterResources.IgnoreCellFilters}" IsChecked="{Binding Filter.IgnoreCellFilters}" />
+				</WrapPanel>
+			</ContentControl>
+
+			<!--  the box of the record windows with 「모두」 on its title line  -->
+			<Border
+				Margin="0 0 0 8"
+				Padding="8 3 8 7"
+				BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+				BorderThickness="1"
+				>
+				<DockPanel>
+					<DockPanel Margin="0 0 0 4" DockPanel.Dock="Top">
+						<Button
+							MinWidth="0"
+							Margin="0"
+							Padding="9 1"
+							Command="{Binding ToggleAllCommand}"
+							Content="{x:Static translations:ExportFilterResources.All}"
+							DockPanel.Dock="Right"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+						<TextBlock
+							VerticalAlignment="Center"
+							FontSize="12"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Text="{x:Static fork:ForkStrings.ExportFilterCells}"
+							/>
+					</DockPanel>
+
+					<Border
+						MaxHeight="300"
+						Background="{DynamicResource Kcv.ButtonBackground}"
+						BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+						BorderThickness="1"
+						>
+						<Border.Style>
+							<Style TargetType="Border">
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding Filter.IgnoreCellFilters}" Value="True">
+										<Setter Property="Opacity" Value="0.45" />
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+						</Border.Style>
+						<ItemsControl
+							Focusable="False"
+							ItemsSource="{Binding Maps}"
+							ScrollViewer.CanContentScroll="True"
+							VirtualizingPanel.IsVirtualizing="True"
+							VirtualizingPanel.ScrollUnit="Pixel"
+							>
+							<ItemsControl.Template>
+								<ControlTemplate TargetType="ItemsControl">
+									<ScrollViewer
+										x:Name="Scroll"
+										Padding="8 2 8 0"
+										CanContentScroll="True"
+										Focusable="False"
+										HorizontalScrollBarVisibility="Disabled"
+										VerticalScrollBarVisibility="Auto"
+										>
+										<!--  the last map's line under the box's own border  -->
+										<ItemsPresenter Margin="0 0 0 -1" />
+									</ScrollViewer>
+									<ControlTemplate.Triggers>
+										<!--  room on the right for the scroll bar, which is drawn over the content  -->
+										<Trigger SourceName="Scroll" Property="ComputedVerticalScrollBarVisibility" Value="Visible">
+											<Setter TargetName="Scroll" Property="Padding" Value="8 2 20 0" />
+										</Trigger>
+									</ControlTemplate.Triggers>
+								</ControlTemplate>
+							</ItemsControl.Template>
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<VirtualizingStackPanel />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="{x:Type kcv:KcvExportMap}">
+									<Border
+										Padding="0 2"
+										BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+										BorderThickness="0 0 0 1"
+										>
+										<DockPanel>
+											<TextBlock
+												Width="34"
+												Margin="0 3 0 0"
+												VerticalAlignment="Top"
+												DockPanel.Dock="Left"
+												FontSize="12.5"
+												Foreground="{DynamicResource Kcv.SubForeground}"
+												Text="{Binding Name}"
+												/>
+											<ItemsControl Focusable="False" ItemsSource="{Binding Cells}">
+												<ItemsControl.ItemsPanel>
+													<ItemsPanelTemplate>
+														<WrapPanel />
+													</ItemsPanelTemplate>
+												</ItemsControl.ItemsPanel>
+												<ItemsControl.ItemTemplate>
+													<DataTemplate DataType="{x:Type kcv:KcvExportCell}">
+														<CheckBox
+															Margin="0 1 8 1"
+															Content="{Binding Name}"
+															FontSize="12.5"
+															IsChecked="{Binding IsChecked}"
+															/>
+													</DataTemplate>
+												</ItemsControl.ItemTemplate>
+											</ItemsControl>
+										</DockPanel>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</Border>
+				</DockPanel>
+			</Border>
+		</StackPanel>
+	</DockPanel>
+</Window>

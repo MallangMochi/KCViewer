@@ -1,0 +1,288 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvEquipmentUpgradePlanWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:planner="clr-namespace:KCViewer.Window.Tools.EquipmentUpgradePlanner"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Width="440"
+	MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
+	d:DataContext="{d:DesignInstance planner:EquipmentUpgradePlanItemViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="planner:EquipmentUpgradePlanItemViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the upgrade plan editor in KanColleViewer's style (mockup 20261009-upgrade-plan-windows-v2, approved
+		2026-10-09 "구현") with the viewer's view model: the equipment's icon and name with [장비 바꾸기] (not for a plan
+		under another, as the viewer's), 계획 (개수 값, 목표 as ★+n / ★max / 개수 갱신, 우선순위, 완료), 필요 자재 (확실화,
+		2번 함 with 「(없음)」 until one is chosen, what the conversion gives, the cost) and 보조함 as the planner's cards, then [OK] and [취소]. The title is
+		「계획 추가」 or 「계획 편집」 (user's decision "나눔"). The body scrolls when the window would be taller than the screen.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<Style x:Key="Up.Label" TargetType="TextBlock">
+				<Setter Property="Margin" Value="0 0 12 0" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Click="OnConfirmClick"
+					Content="{Binding EquipmentUpgradePlanItem.Ok}"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Click="OnCancelClick"
+					Content="{Binding EquipmentUpgradePlanItem.Cancel}"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+			<StackPanel Margin="12 6 12 8">
+				<!--  the equipment  -->
+				<DockPanel Margin="0 0 0 10">
+					<Button
+						Command="{Binding OpenEquipmentPickerCommand}"
+						Content="{x:Static fork:ForkStrings.KcvUpgradeChangeEquipment}"
+						DockPanel.Dock="Right"
+						IsEnabled="{Binding AllowToChangeEquipment, Mode=OneWay}"
+						Style="{StaticResource KcvRec.Button}"
+						/>
+					<Image
+						Width="32"
+						Height="32"
+						Margin="0 0 10 0"
+						VerticalAlignment="Center"
+						Style="{StaticResource Kcv.EquipmentIcon}"
+						>
+						<Image.Source>
+							<MultiBinding Converter="{StaticResource Kcv.UpgradePlanIcon}">
+								<Binding Path="EquipmentName" />
+								<Binding />
+							</MultiBinding>
+						</Image.Source>
+					</Image>
+					<TextBlock
+						VerticalAlignment="Center"
+						FontSize="16"
+						Text="{Binding EquipmentName}"
+						TextTrimming="CharacterEllipsis"
+						ToolTip="{Binding EquipmentName}"
+						/>
+				</DockPanel>
+
+				<!--  계획  -->
+				<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.KcvUpgradePlanBox}">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="28" />
+							<RowDefinition Height="28" />
+							<RowDefinition Height="28" />
+							<RowDefinition Height="28" />
+						</Grid.RowDefinitions>
+
+						<TextBlock
+							Grid.Row="0"
+							Style="{StaticResource Up.Label}"
+							Text="{Binding EquipmentUpgradePlanItem.UpgradeLevel}"
+							/>
+						<TextBlock
+							Grid.Row="0"
+							Grid.Column="1"
+							VerticalAlignment="Center"
+							>
+							<TextBlock.Text>
+								<MultiBinding Converter="{StaticResource Kcv.UpgradeCurrentLevel}">
+									<Binding Path="CurrentLevelDisplay" />
+									<Binding />
+								</MultiBinding>
+							</TextBlock.Text>
+							<!--  in its improvement colour as the planner's cards, 미할당 dimmed  -->
+							<TextBlock.Style>
+								<Style TargetType="TextBlock">
+									<Setter Property="Foreground">
+										<Setter.Value>
+											<MultiBinding Converter="{StaticResource Kcv.UpgradeCurrentLevel}" ConverterParameter="Brush">
+												<Binding Path="CurrentLevelDisplay" />
+												<Binding />
+											</MultiBinding>
+										</Setter.Value>
+									</Setter>
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding Equipment}" Value="{x:Null}">
+											<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+										</DataTrigger>
+										<DataTrigger Binding="{Binding Equipment.MasterID}" Value="0">
+											<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</TextBlock.Style>
+						</TextBlock>
+
+						<TextBlock
+							Grid.Row="1"
+							Style="{StaticResource Up.Label}"
+							Text="{Binding EquipmentUpgradePlanItem.Goal}"
+							/>
+						<ComboBox
+							Grid.Row="1"
+							Grid.Column="1"
+							MinWidth="110"
+							HorizontalAlignment="Left"
+							IsEnabled="{Binding AllowToChangeDesiredUpgradeLevel, Mode=OneWay}"
+							ItemsSource="{Binding PossibleUpgradeLevels}"
+							SelectedItem="{Binding DesiredUpgradeLevel}"
+							Style="{StaticResource Cfg.Combo}"
+							>
+							<ComboBox.ItemTemplate>
+								<!--  each level in its improvement colour as the planner's cards, 개수 갱신 in the text colour  -->
+								<DataTemplate>
+									<TextBlock Text="{Binding Converter={StaticResource Kcv.UpgradeLevel}}">
+										<TextBlock.Style>
+											<Style TargetType="TextBlock">
+												<Setter Property="Foreground" Value="{Binding Converter={StaticResource Kcv.UpgradeLevel}, ConverterParameter=Brush}" />
+												<Style.Triggers>
+													<DataTrigger Binding="{Binding}" Value="Conversion">
+														<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+													</DataTrigger>
+												</Style.Triggers>
+											</Style>
+										</TextBlock.Style>
+									</TextBlock>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+
+						<TextBlock
+							Grid.Row="2"
+							Style="{StaticResource Up.Label}"
+							Text="{Binding EquipmentUpgradePlanItem.Priority}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="2"
+							Grid.Column="1"
+							Width="56"
+							HorizontalAlignment="Left"
+							TextAlignment="Right"
+							Value="{Binding Priority}"
+							/>
+
+						<TextBlock
+							Grid.Row="3"
+							Style="{StaticResource Up.Label}"
+							Text="{Binding EquipmentUpgradePlanItem.IsFinished}"
+							/>
+						<CheckBox
+							Grid.Row="3"
+							Grid.Column="1"
+							HorizontalAlignment="Left"
+							IsChecked="{Binding Finished}"
+							/>
+					</Grid>
+				</ContentControl>
+
+				<!--  필요 자재  -->
+				<ContentControl Style="{StaticResource Cfg.Box}" Tag="{Binding EquipmentUpgradePlanItem.Cost}">
+					<StackPanel>
+						<WrapPanel Style="{StaticResource Cfg.Row}">
+							<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{Binding EquipmentUpgradePlanItem.UseSliderFromLevel}" />
+							<ComboBox
+								MinWidth="80"
+								ItemsSource="{Binding PossibleSliderLevels}"
+								SelectedItem="{Binding SliderLevel}"
+								Style="{StaticResource Cfg.Combo}"
+								>
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</WrapPanel>
+						<WrapPanel Style="{StaticResource Cfg.Row}">
+							<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{Binding EquipmentUpgradePlanItem.Helper}" />
+							<!--  「(없음)」 while no ship is chosen, as the mockup (the viewer's box is empty then)  -->
+							<Grid>
+								<ComboBox
+									x:Name="HelperBox"
+									MinWidth="150"
+									DisplayMemberPath="NameEN"
+									ItemsSource="{Binding PossibleHelpers}"
+									SelectedItem="{Binding SelectedHelper}"
+									Style="{StaticResource Cfg.Combo}"
+									/>
+								<TextBlock
+									Margin="8 0 0 0"
+									VerticalAlignment="Center"
+									FontSize="13"
+									IsHitTestVisible="False"
+									Text="{x:Static fork:ForkStrings.None}"
+									>
+									<TextBlock.Style>
+										<Style TargetType="TextBlock">
+											<Setter Property="Visibility" Value="Collapsed" />
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding SelectedItem, ElementName=HelperBox}" Value="{x:Null}">
+													<Setter Property="Visibility" Value="Visible" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</TextBlock.Style>
+								</TextBlock>
+							</Grid>
+						</WrapPanel>
+						<TextBlock
+							Margin="0 2 0 0"
+							FontSize="12"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Visibility="{Binding EquipmentAfterConversionVisible}"
+							>
+							<Run Text="{Binding EquipmentUpgradePlanItem.ConvertTo, Mode=OneWay}" />
+							<Run Text="{Binding EquipmentAfterConversionDisplay, Mode=OneWay}" />
+						</TextBlock>
+						<kcv:KcvUpgradeCostView Margin="0 4 0 0" DataContext="{Binding Cost}" />
+					</StackPanel>
+				</ContentControl>
+
+				<!--  보조함, as the planner's cards  -->
+				<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.KcvUpgradeHelpers}">
+					<kcv:KcvUpgradeHelpersView DataContext="{Binding HelperViewModels}" />
+				</ContentControl>
+			</StackPanel>
+		</ScrollViewer>
+	</DockPanel>
+</common:WindowBase>

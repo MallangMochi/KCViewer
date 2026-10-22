@@ -1,0 +1,293 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetOverviewView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:core="clr-namespace:KCViewer.Core.Types;assembly=KCViewer.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fleetOverview="clr-namespace:KCViewer.Window.Wpf.FleetOverview"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	d:DataContext="{d:DesignInstance Type=fleetOverview:FleetOverviewViewModel}"
+	d:DesignHeight="200"
+	d:DesignWidth="800"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the fleet overview as cards in KanColleViewer's design (mockup v9, user decisions 2026-10-01). While the
+		fleets are combined, a card with the kind of combined fleet comes first (air power, line of sight that cycles Cn
+		on a click, transport TP). Each fleet is one line: its first state in the state colour (an expedition by its
+		name) and the first timer with the viewer's icon; the details are in the tooltip. The anchorage repair and home
+		port supply timers share one card without a header. The cards sit side by side or one under another, chosen
+		from the context menu (FleetOverviewViewModel.Fork.cs), which also turns each timer on or off (the viewer's
+		own settings, user request 2026-10-05).
+	-->
+	<UserControl.Resources>
+		<!--  A card: 232 wide side by side, the whole width one under another  -->
+		<Style x:Key="Card" TargetType="Border">
+			<Setter Property="Width" Value="232" />
+			<Setter Property="Margin" Value="0 0 8 8" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Background" Value="Transparent" />
+			<Style.Triggers>
+				<DataTrigger Binding="{Binding DataContext.ForkVertical, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True">
+					<Setter Property="Width" Value="NaN" />
+					<Setter Property="Margin" Value="0 0 8 6" />
+				</DataTrigger>
+			</Style.Triggers>
+		</Style>
+
+		<Style x:Key="Header" TargetType="StackPanel">
+			<Setter Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="Orientation" Value="Horizontal" />
+		</Style>
+
+		<Style x:Key="HeaderText" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+			<Setter Property="Padding" Value="0 4" />
+			<Setter Property="FontSize" Value="13" />
+		</Style>
+
+		<Style x:Key="Mark" TargetType="Rectangle">
+			<Setter Property="Width" Value="10" />
+			<Setter Property="Height" Value="10" />
+			<Setter Property="Margin" Value="8 0 6 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<Style x:Key="SmallIcon" BasedOn="{StaticResource Kcv.EquipmentIcon}" TargetType="Image">
+			<Setter Property="Width" Value="16" />
+			<Setter Property="Height" Value="16" />
+			<Setter Property="Margin" Value="0 0 4 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!--  A fleet: the first state on the state colour, the first timer on the right  -->
+		<DataTemplate DataType="{x:Type kcv:KcvFleetCardViewModel}">
+			<Border Style="{StaticResource Card}" ToolTip="{Binding ToolTip}">
+				<StackPanel>
+					<StackPanel Style="{StaticResource Header}" ToolTip="{Binding NameToolTip}">
+						<Rectangle Fill="{Binding State, Converter={StaticResource Kcv.FleetStateBrush}, ConverterParameter=Mark}" Style="{StaticResource Mark}" />
+						<TextBlock Style="{StaticResource HeaderText}" Text="{Binding Name}" />
+					</StackPanel>
+					<Border
+						MinHeight="22"
+						Margin="10 8 10 10"
+						Background="{Binding State, Converter={StaticResource Kcv.FleetStateBrush}}"
+						>
+						<DockPanel Margin="6 0" VerticalAlignment="Center">
+							<StackPanel
+								Margin="8 0 0 0"
+								DockPanel.Dock="Right"
+								Orientation="Horizontal"
+								Visibility="{Binding HasTime, Converter={StaticResource BooleanToVisibilityConverter}}"
+								>
+								<common:IconContentIcon
+									Margin="0 0 4 0"
+									VerticalAlignment="Center"
+									Type="{Binding TimeIcon}"
+									/>
+								<TextBlock
+									VerticalAlignment="Center"
+									FontSize="12"
+									Foreground="White"
+									Text="{Binding TimeText}"
+									/>
+							</StackPanel>
+							<TextBlock
+								Margin="0 2"
+								VerticalAlignment="Center"
+								FontSize="12"
+								Foreground="White"
+								Text="{Binding MainText}"
+								TextTrimming="CharacterEllipsis"
+								/>
+						</DockPanel>
+					</Border>
+				</StackPanel>
+			</Border>
+		</DataTemplate>
+
+		<!--  The combined fleet: its kind, air power, line of sight (click: Cn 1, 4, 3, 2) and transport TP (the green drum of 洋上補給)  -->
+		<DataTemplate DataType="{x:Type kcv:KcvCombinedCardViewModel}">
+			<Border Style="{StaticResource Card}" ToolTip="{Binding ToolTip}">
+				<StackPanel>
+					<StackPanel Style="{StaticResource Header}">
+						<Rectangle Fill="{Binding State, Converter={StaticResource Kcv.FleetStateBrush}, ConverterParameter=Mark}" Style="{StaticResource Mark}" />
+						<TextBlock Style="{StaticResource HeaderText}" Text="{Binding Title}" />
+					</StackPanel>
+					<DockPanel MinHeight="22" Margin="10 8 10 10">
+						<StackPanel
+							Margin="8 0 0 0"
+							VerticalAlignment="Center"
+							DockPanel.Dock="Right"
+							Orientation="Horizontal"
+							>
+							<Image Source="{Binding Source={x:Static core:EquipmentIconType.Supplies}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource SmallIcon}" />
+							<TextBlock
+								VerticalAlignment="Center"
+								FontSize="12"
+								Text="{Binding TpText}"
+								/>
+						</StackPanel>
+						<StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+							<Image Source="{Binding Source={x:Static core:EquipmentIconType.CarrierBasedFighter}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource SmallIcon}" />
+							<TextBlock
+								Margin="0 0 10 0"
+								VerticalAlignment="Center"
+								FontSize="12"
+								Text="{Binding AirText}"
+								/>
+							<Image Source="{Binding Source={x:Static core:EquipmentIconType.CarrierBasedRecon}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource SmallIcon}" />
+							<TextBlock
+								VerticalAlignment="Center"
+								Background="Transparent"
+								Cursor="Hand"
+								FontSize="12"
+								Text="{Binding LosText}"
+								>
+								<TextBlock.InputBindings>
+									<MouseBinding Command="{Binding CycleCnCommand}" MouseAction="LeftClick" />
+								</TextBlock.InputBindings>
+							</TextBlock>
+						</StackPanel>
+					</DockPanel>
+				</StackPanel>
+			</Border>
+		</DataTemplate>
+
+		<!--  One timer (the viewer's anchorage repair or home port supply item): icon and elapsed time, its tooltip  -->
+		<DataTemplate x:Key="TimerItem" DataType="{x:Type fleetOverview:FleetOverviewItemViewModel}">
+			<StackPanel
+				VerticalAlignment="Center"
+				Background="Transparent"
+				Orientation="Horizontal"
+				ToolTip="{Binding ToolTip}"
+				Visibility="{Binding Visible, Converter={StaticResource BooleanToVisibilityConverter}}"
+				>
+				<common:IconContentIcon
+					Margin="0 0 6 0"
+					VerticalAlignment="Center"
+					Type="{Binding Icon}"
+					/>
+				<TextBlock
+					VerticalAlignment="Center"
+					FontSize="13"
+					Text="{Binding Text}"
+					/>
+			</StackPanel>
+		</DataTemplate>
+
+		<!--
+			The two timers on one card without a header. Side by side (user decision): two lines, the first where the
+			other cards have their header line and the second where they have their state line, so the card lines up
+			with them. One under another: both on one line.
+		-->
+		<DataTemplate DataType="{x:Type kcv:KcvTimerCardViewModel}">
+			<Border Style="{StaticResource Card}">
+				<Grid>
+					<StackPanel x:Name="TwoLines">
+						<!--  As high as a header line: the same text style  -->
+						<Grid Margin="10 0">
+							<TextBlock Style="{StaticResource HeaderText}" Text=" " />
+							<ContentControl
+								Content="{Binding Repair}"
+								ContentTemplate="{StaticResource TimerItem}"
+								Focusable="False"
+								/>
+						</Grid>
+						<!--  As placed as a state line  -->
+						<Grid MinHeight="22" Margin="10 8 10 10">
+							<ContentControl
+								VerticalAlignment="Center"
+								Content="{Binding Supply}"
+								ContentTemplate="{StaticResource TimerItem}"
+								Focusable="False"
+								/>
+						</Grid>
+					</StackPanel>
+					<StackPanel
+						x:Name="OneLine"
+						Margin="10 8"
+						Orientation="Horizontal"
+						Visibility="Collapsed"
+						>
+						<!--  Collapsed with its timer, so the other one does not keep the gap  -->
+						<ContentControl
+							Margin="0 0 18 0"
+							Content="{Binding Repair}"
+							ContentTemplate="{StaticResource TimerItem}"
+							Focusable="False"
+							Visibility="{Binding Repair.Visible, Converter={StaticResource BooleanToVisibilityConverter}}"
+							/>
+						<ContentControl
+							Content="{Binding Supply}"
+							ContentTemplate="{StaticResource TimerItem}"
+							Focusable="False"
+							/>
+					</StackPanel>
+				</Grid>
+			</Border>
+			<DataTemplate.Triggers>
+				<DataTrigger Binding="{Binding DataContext.ForkVertical, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="True">
+					<Setter TargetName="TwoLines" Property="Visibility" Value="Collapsed" />
+					<Setter TargetName="OneLine" Property="Visibility" Value="Visible" />
+				</DataTrigger>
+			</DataTemplate.Triggers>
+		</DataTemplate>
+
+		<ItemsPanelTemplate x:Key="SideBySide">
+			<WrapPanel Orientation="Horizontal" />
+		</ItemsPanelTemplate>
+		<ItemsPanelTemplate x:Key="OneUnderAnother">
+			<StackPanel Orientation="Vertical" />
+		</ItemsPanelTemplate>
+	</UserControl.Resources>
+
+	<Border Background="Transparent">
+		<Border.ContextMenu>
+			<ContextMenu>
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvHorizontalLayout}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkLayoutHorizontal, Mode=TwoWay}"
+					/>
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvVerticalLayout}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkLayoutVertical, Mode=TwoWay}"
+					/>
+				<Separator />
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvAnchorageRepairTimer}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkShowAnchorageRepairTimer, Mode=TwoWay}"
+					/>
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvHomePortSupplyTimer}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkShowHomePortSupplyTimer, Mode=TwoWay}"
+					/>
+			</ContextMenu>
+		</Border.ContextMenu>
+
+		<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+			<ItemsControl Margin="10 8 2 4" ItemsSource="{Binding ForkCards}">
+				<ItemsControl.Style>
+					<Style TargetType="ItemsControl">
+						<Setter Property="ItemsPanel" Value="{StaticResource SideBySide}" />
+						<Style.Triggers>
+							<DataTrigger Binding="{Binding ForkVertical}" Value="True">
+								<Setter Property="ItemsPanel" Value="{StaticResource OneUnderAnother}" />
+							</DataTrigger>
+						</Style.Triggers>
+					</Style>
+				</ItemsControl.Style>
+			</ItemsControl>
+		</ScrollViewer>
+	</Border>
+</UserControl>

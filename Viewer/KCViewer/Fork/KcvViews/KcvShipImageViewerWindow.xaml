@@ -1,0 +1,337 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvShipImageViewerWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="920"
+	Height="720"
+	MinWidth="480"
+	MinHeight="360"
+	d:DataContext="{d:DesignInstance kcv:KcvShipImageViewerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvShipImageViewerViewModel"
+	AllowDrop="True"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship album's 이미지 뷰어 in KanColleViewer's style (KcvShipAlbumTools, mockup
+		viewer-design/mockups/20261017-album-ship-tools-v2.html, approved 2026-10-18 "구현"): the viewer's menus (with
+		「바둑판 배경」 added, off at first), the pictures listed on the left by ship and costume ship, the picture on a dark
+		panel, and below the number, ship, kind and file with −·zoom·+·맞춤. ←/→ or the list switch pictures, ↑/↓ and the
+		wheel zoom, dragging moves the picture; files can be opened or dropped, and 「@」 is the viewer's message window.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<CollectionViewSource x:Key="Pictures" Source="{Binding Items}">
+				<CollectionViewSource.GroupDescriptions>
+					<PropertyGroupDescription PropertyName="Group" />
+				</CollectionViewSource.GroupDescriptions>
+			</CollectionViewSource>
+
+			<!--  the status bar's small buttons: −, +, and 맞춤 lit while it is on  -->
+			<Style
+				x:Key="Small"
+				BasedOn="{StaticResource KcvRec.Button}"
+				TargetType="Button"
+				>
+				<Setter Property="MinWidth" Value="22" />
+				<Setter Property="Height" Value="20" />
+				<Setter Property="Padding" Value="5 0" />
+				<Setter Property="Margin" Value="4 0 0 0" />
+				<Setter Property="FontSize" Value="11" />
+			</Style>
+			<Style x:Key="SmallToggle" TargetType="ToggleButton">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.ButtonForeground}" />
+				<Setter Property="Background" Value="{DynamicResource Kcv.ButtonBackground}" />
+				<Setter Property="BorderBrush" Value="{DynamicResource Kcv.ButtonBorder}" />
+				<Setter Property="MinWidth" Value="22" />
+				<Setter Property="Height" Value="20" />
+				<Setter Property="Padding" Value="6 0" />
+				<Setter Property="Margin" Value="4 0 0 0" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="SnapsToDevicePixels" Value="True" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ToggleButton">
+							<Border
+								x:Name="Back"
+								Background="{TemplateBinding Background}"
+								BorderBrush="{TemplateBinding BorderBrush}"
+								BorderThickness="1"
+								>
+								<ContentPresenter
+									Margin="{TemplateBinding Padding}"
+									HorizontalAlignment="Center"
+									VerticalAlignment="Center"
+									/>
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.ButtonHover}" />
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.AccentHighlight}" />
+									<Setter Property="Foreground" Value="White" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  a picture of the list: lit with the accent line on the left while selected  -->
+			<Style x:Key="Picture" TargetType="ListBoxItem">
+				<Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ListBoxItem">
+							<Border
+								x:Name="Back"
+								Height="34"
+								Padding="5 0 10 0"
+								Background="Transparent"
+								BorderBrush="Transparent"
+								BorderThickness="3 0 0 0"
+								>
+								<ContentPresenter VerticalAlignment="Center" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+								</Trigger>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+									<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.AccentHighlight}" />
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Menu x:Name="TopMenu" DockPanel.Dock="Top">
+			<MenuItem Header="{x:Static kcv:KcvShipImageViewerWindow.FileHeader}">
+				<MenuItem
+					Click="OpenFiles"
+					Header="{x:Static kcv:KcvShipImageViewerWindow.OpenHeader}"
+					InputGestureText="Ctrl+O"
+					/>
+				<MenuItem
+					Click="CopyToClipboard"
+					Header="{x:Static kcv:KcvShipImageViewerWindow.CopyHeader}"
+					InputGestureText="Ctrl+C"
+					/>
+			</MenuItem>
+			<MenuItem Header="{x:Static kcv:KcvShipImageViewerWindow.ViewHeader}">
+				<MenuItem Header="{x:Static kcv:KcvShipImageViewerWindow.InterpolationHeader}">
+					<MenuItem
+						x:Name="SharpMenu"
+						Click="DrawSharp"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.SharpHeader}"
+						IsCheckable="True"
+						IsChecked="True"
+						/>
+					<MenuItem
+						x:Name="SmoothMenu"
+						Click="DrawSmooth"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.SmoothHeader}"
+						IsCheckable="True"
+						/>
+				</MenuItem>
+				<MenuItem Header="{x:Static kcv:KcvShipImageViewerWindow.ZoomHeader}">
+					<MenuItem
+						Click="ZoomIn"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.ZoomInHeader}"
+						InputGestureText="Ctrl+="
+						/>
+					<MenuItem
+						Click="ZoomOut"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.ZoomOutHeader}"
+						InputGestureText="Ctrl+-"
+						/>
+					<MenuItem
+						Click="Zoom100"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.Zoom100Header}"
+						InputGestureText="Ctrl+0"
+						/>
+					<MenuItem
+						x:Name="FitMenu"
+						Click="ToggleFit"
+						Header="{x:Static kcv:KcvShipImageViewerWindow.FitHeader}"
+						IsCheckable="True"
+						/>
+				</MenuItem>
+				<Separator />
+				<MenuItem
+					x:Name="CheckerMenu"
+					Click="ToggleChecker"
+					Header="{x:Static fork:ForkStrings.ImageViewerChecker}"
+					IsCheckable="True"
+					/>
+			</MenuItem>
+		</Menu>
+
+		<Border
+			Height="26"
+			Padding="10 0"
+			Background="{DynamicResource Kcv.StatusBackground}"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<DockPanel>
+				<StackPanel
+					VerticalAlignment="Center"
+					DockPanel.Dock="Right"
+					Orientation="Horizontal"
+					>
+					<Button
+						Click="ZoomOut"
+						Content="−"
+						Style="{StaticResource Small}"
+						/>
+					<TextBlock
+						x:Name="ZoomText"
+						MinWidth="44"
+						Margin="4 0 0 0"
+						VerticalAlignment="Center"
+						FontSize="12"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						TextAlignment="Center"
+						/>
+					<Button
+						Click="ZoomIn"
+						Content="+"
+						Style="{StaticResource Small}"
+						/>
+					<ToggleButton
+						x:Name="FitButton"
+						Checked="FitButtonChanged"
+						Unchecked="FitButtonChanged"
+						Content="{x:Static fork:ForkStrings.ImageViewerFit}"
+						Style="{StaticResource SmallToggle}"
+						/>
+					<TextBlock
+						Margin="12 0 0 0"
+						VerticalAlignment="Center"
+						FontSize="11"
+						Foreground="{DynamicResource Kcv.InactiveForeground}"
+						Text="{x:Static fork:ForkStrings.ImageViewerHint}"
+						/>
+				</StackPanel>
+				<TextBlock
+					VerticalAlignment="Center"
+					FontSize="12"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					Text="{Binding StatusText}"
+					TextTrimming="CharacterEllipsis"
+					/>
+			</DockPanel>
+		</Border>
+
+		<Border
+			Width="214"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 0 1 0"
+			DockPanel.Dock="Left"
+			>
+			<ListBox
+				x:Name="List"
+				Padding="0 4"
+				Background="Transparent"
+				BorderThickness="0"
+				FocusVisualStyle="{x:Null}"
+				ItemContainerStyle="{StaticResource Picture}"
+				ItemsSource="{Binding Source={StaticResource Pictures}}"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+				SelectedItem="{Binding Selected}"
+				SelectionChanged="ScrollToSelected"
+				>
+				<ListBox.GroupStyle>
+					<GroupStyle>
+						<!--  the header over its pictures, without the theme's line under it  -->
+						<GroupStyle.ContainerStyle>
+							<Style TargetType="GroupItem">
+								<Setter Property="Template">
+									<Setter.Value>
+										<ControlTemplate TargetType="GroupItem">
+											<StackPanel>
+												<ContentPresenter />
+												<ItemsPresenter />
+											</StackPanel>
+										</ControlTemplate>
+									</Setter.Value>
+								</Setter>
+							</Style>
+						</GroupStyle.ContainerStyle>
+						<GroupStyle.HeaderTemplate>
+							<DataTemplate>
+								<TextBlock
+									Margin="10 6 10 3"
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding Name}"
+									/>
+							</DataTemplate>
+						</GroupStyle.HeaderTemplate>
+					</GroupStyle>
+				</ListBox.GroupStyle>
+				<ListBox.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvShipImageItem}">
+						<StackPanel Orientation="Horizontal">
+							<Border
+								Width="52"
+								Height="30"
+								Background="{DynamicResource Kcv.TableHeaderBackground}"
+								>
+								<Image
+									RenderOptions.BitmapScalingMode="HighQuality"
+									Source="{Binding Thumbnail}"
+									Stretch="Uniform"
+									/>
+							</Border>
+							<TextBlock
+								Margin="8 0 0 0"
+								VerticalAlignment="Center"
+								FontSize="12.5"
+								>
+								<Run Text="{Binding Kind, Mode=OneWay}" /><Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding DamagedText, Mode=OneWay}"
+									/>
+							</TextBlock>
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</Border>
+
+		<Border Background="{DynamicResource Kcv.TableHeaderBackground}">
+			<kcv:KcvShipImageStage x:Name="Stage" ClipToBounds="True" />
+		</Border>
+	</DockPanel>
+</common:WindowBase>

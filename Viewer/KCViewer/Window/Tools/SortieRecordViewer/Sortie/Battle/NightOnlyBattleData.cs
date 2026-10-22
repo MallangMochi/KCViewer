@@ -1,0 +1,15 @@
+﻿using KCViewer.KancolleApi.Types.Interfaces;
+using KCViewer.Window.Tools.SortieRecordViewer.Sortie.Battle.Phase;
+
+namespace KCViewer.Window.Tools.SortieRecordViewer.Sortie.Battle;
+
+public abstract class NightOnlyBattleData : NightBattleData
+{
+	protected PhaseSupport? NightSupport { get; }
+
+	protected NightOnlyBattleData(PhaseFactory phaseFactory, BattleFleets fleets, INightBattleApiResponse battle)
+		: base(phaseFactory, fleets, battle)
+	{
+		NightSupport = PhaseFactory.Support(battle.ApiNSupportFlag, battle.ApiNSupportInfo, true);
+	}
+}

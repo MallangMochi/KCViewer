@@ -1,0 +1,424 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetDetailWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:core="clr-namespace:KCViewer.Core.Types;assembly=KCViewer.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="1020"
+	Height="640"
+	d:DataContext="{d:DesignInstance kcv:KcvFleetDetailViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvFleetDetailViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: KanColleViewer's 艦隊詳細 (viewer-design/kcv-reference/05-fleet-detail.webp). Left: the fleets (the selected
+		one in the accent colour), the fleet's numbers and its state with the readiness list. Right: one row per ship
+		(type and name, Lv / Next, condition and HP with the ship's state under them, fuel and ammo, equipment).
+		While fleets 1 and 2 are combined, 「연합함대 · 수상 부대」 above the fleets: both fleets' numbers and readiness, and
+		their ships with a line before fleet 2 (mockup 20261009-combined-fleet-detail-v1).
+	-->
+	<Window.Resources>
+		<Style x:Key="Box" TargetType="Border">
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Margin" Value="0 0 0 6" />
+		</Style>
+		<Style x:Key="Sub" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="11" />
+		</Style>
+
+		<!--  a fleet of the list: flat, the selected one filled with the accent  -->
+		<Style x:Key="FleetButton" TargetType="Button">
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="Height" Value="32" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border x:Name="Back" Background="{TemplateBinding Background}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!--  30 / 31 with a gauge under it  -->
+		<Style x:Key="Gauge" BasedOn="{StaticResource Kcv.Gauge}" TargetType="ProgressBar">
+			<Setter Property="Width" Value="60" />
+			<Setter Property="Height" Value="5" />
+			<Setter Property="HorizontalAlignment" Value="Left" />
+		</Style>
+	</Window.Resources>
+
+	<Grid Margin="10 8 10 10">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="246" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<!--  Left: fleets, numbers, state  -->
+		<StackPanel Grid.Column="0" Margin="0 0 8 0">
+			<Border Style="{StaticResource Box}">
+				<ItemsControl ItemsSource="{Binding Fleets}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvFleetTab}">
+							<Button
+								x:Name="Fleet"
+								Command="{Binding DataContext.SelectFleetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+								CommandParameter="{Binding Id}"
+								Content="{Binding Name}"
+								Style="{StaticResource FleetButton}"
+								/>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsSelected}" Value="True">
+									<Setter TargetName="Fleet" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Fleet" Property="Foreground" Value="White" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Border>
+
+			<Border Padding="0 8" Style="{StaticResource Box}">
+				<StackPanel>
+					<StackPanel.Resources>
+						<Style BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+							<Setter Property="FontSize" Value="13" />
+							<Setter Property="Margin" Value="0 2" />
+							<Setter Property="HorizontalAlignment" Value="Center" />
+						</Style>
+					</StackPanel.Resources>
+					<TextBlock>
+						<Run Text="{x:Static fork:ForkStrings.KcvTotalLevel}" /><Run Text=": " /><Run FontSize="15" Text="{Binding TotalLevel, Mode=OneWay}" />
+					</TextBlock>
+					<TextBlock>
+						<Run Text="{x:Static fork:ForkStrings.KcvAverageLevel}" /><Run Text=": " /><Run FontSize="15" Text="{Binding AverageLevel, Mode=OneWay}" />
+					</TextBlock>
+					<TextBlock>
+						<Run Text="{x:Static fork:ForkStrings.KcvLos}" /><Run Text=": " /><Run FontSize="15" Text="{Binding Los, Mode=OneWay}" />
+					</TextBlock>
+					<TextBlock>
+						<Run Text="{x:Static fork:ForkStrings.KcvFighterPowerMin}" /><Run Text=": " /><Run FontSize="15" Text="{Binding FighterPowerMin, Mode=OneWay}" />
+					</TextBlock>
+					<TextBlock>
+						<Run Text="{x:Static fork:ForkStrings.KcvFighterPowerMax}" /><Run Text=": " /><Run FontSize="15" Text="{Binding FighterPowerMax, Mode=OneWay}" />
+					</TextBlock>
+					<TextBlock Margin="0 4 0 0" FontSize="15" Text="{Binding SpeedText}" />
+				</StackPanel>
+			</Border>
+
+			<!--  艦隊は出撃中です！ and the readiness list  -->
+			<Border MinHeight="34" Background="{Binding StateBrush}">
+				<TextBlock
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center"
+					FontSize="14"
+					Foreground="White"
+					Text="{Binding StateText}"
+					/>
+			</Border>
+			<ItemsControl Margin="0 3 0 0" ItemsSource="{Binding Checks}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvFleetCheck}">
+						<Border
+							x:Name="Line"
+							MinHeight="27"
+							Margin="0 0 0 3"
+							Padding="8 0"
+							Background="{DynamicResource Kcv.HeaderBackground}"
+							>
+							<TextBlock
+								x:Name="CheckText"
+								VerticalAlignment="Center"
+								FontSize="12"
+								Style="{StaticResource Kcv.Text}"
+								Text="{Binding Text}"
+								TextTrimming="CharacterEllipsis"
+								/>
+						</Border>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding Ok}" Value="False">
+								<Setter TargetName="Line" Property="Background" Value="{x:Static kcv:KcvBrushes.DangerBar}" />
+								<Setter TargetName="CheckText" Property="Foreground" Value="White" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+
+		<!--  Right: the ships  -->
+		<Border Grid.Column="1" Style="{StaticResource Box}" Margin="0">
+			<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+				<ItemsControl ItemsSource="{Binding Ships}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvDetailShip}">
+							<Border
+								Padding="12 8"
+								Background="Transparent"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								>
+								<Border.Style>
+									<Style TargetType="Border">
+										<Setter Property="BorderThickness" Value="0 0 0 1" />
+										<Style.Triggers>
+											<!--  the combined fleet: a line between fleet 1 and fleet 2  -->
+											<DataTrigger Binding="{Binding FleetBreak}" Value="True">
+												<Setter Property="Margin" Value="0 4 0 0" />
+												<Setter Property="BorderThickness" Value="0 2 0 1" />
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</Border.Style>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="116" />
+										<ColumnDefinition Width="86" />
+										<ColumnDefinition Width="170" />
+										<ColumnDefinition Width="104" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+
+									<!--  駆逐艦 / 大潮改  -->
+									<StackPanel Grid.Column="0" VerticalAlignment="Center">
+										<TextBlock FontSize="12" Style="{StaticResource Kcv.SubText}" Text="{Binding TypeName}" />
+										<TextBlock
+											FontSize="17"
+											Style="{StaticResource Kcv.Text}"
+											Text="{Binding Name}"
+											TextTrimming="CharacterEllipsis"
+											/>
+									</StackPanel>
+
+									<!--  Lv. 42 / Next: 1519  -->
+									<StackPanel Grid.Column="1" VerticalAlignment="Center">
+										<TextBlock Style="{StaticResource Kcv.Text}">
+											<Run FontSize="11" Foreground="{DynamicResource Kcv.SubForeground}" Text="Lv." />
+											<Run FontSize="16" Text="{Binding Level, Mode=OneWay}" />
+										</TextBlock>
+										<TextBlock Style="{StaticResource Sub}">
+											<Run Text="Next:" />
+											<Run Text="{Binding ExpNext, Mode=OneWay}" />
+										</TextBlock>
+									</StackPanel>
+
+									<!--  ■ 65 Condition | HP: 30 / 31, then the state box  -->
+									<StackPanel Grid.Column="2" Margin="0 0 12 0" VerticalAlignment="Center">
+										<Grid>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="62" />
+												<ColumnDefinition Width="*" />
+											</Grid.ColumnDefinitions>
+											<StackPanel Grid.Column="0">
+												<StackPanel Orientation="Horizontal">
+													<Rectangle
+														Width="10"
+														Height="10"
+														Margin="0 0 5 0"
+														Fill="{Binding Condition, Converter={StaticResource Kcv.ConditionBrush}}"
+														Stroke="{DynamicResource Kcv.MarkBorder}"
+														StrokeThickness="1"
+														/>
+													<TextBlock FontSize="14" Style="{StaticResource Kcv.Text}" Text="{Binding Condition}" />
+												</StackPanel>
+												<TextBlock Margin="0 -2 0 0" Style="{StaticResource Sub}" Text="Condition" />
+											</StackPanel>
+											<StackPanel Grid.Column="1">
+												<TextBlock Style="{StaticResource Kcv.Text}">
+													<Run FontSize="11" Foreground="{DynamicResource Kcv.SubForeground}" Text="HP:" />
+													<Run FontSize="14" Text="{Binding Hp, Mode=OneWay}" />
+													<Run FontSize="11" Foreground="{DynamicResource Kcv.SubForeground}" Text="/" />
+													<Run FontSize="11" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding HpMax, Mode=OneWay}" />
+												</TextBlock>
+												<ProgressBar
+													Width="88"
+													Margin="0 2 0 0"
+													Maximum="{Binding HpMax}"
+													Style="{StaticResource Gauge}"
+													Value="{Binding Hp, Mode=OneWay}"
+													>
+													<ProgressBar.Foreground>
+														<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+															<Binding Path="Hp" />
+															<Binding Path="HpMax" />
+														</MultiBinding>
+													</ProgressBar.Foreground>
+												</ProgressBar>
+											</StackPanel>
+										</Grid>
+										<Grid Margin="0 6 0 0">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="Auto" />
+												<ColumnDefinition Width="*" />
+											</Grid.ColumnDefinitions>
+											<Image
+												x:Name="DamageControl"
+												Grid.Column="0"
+												Width="24"
+												Height="24"
+												Margin="0 0 4 0"
+												Source="{Binding Source={x:Static core:EquipmentIconType.DamageControl}, Converter={StaticResource Kcv.GameIcon}}"
+												Style="{StaticResource Kcv.EquipmentIcon}"
+												Visibility="{Binding HasDamageControl, Converter={StaticResource BooleanToVisibilityConverter}}"
+												/>
+											<Border
+												Grid.Column="1"
+												MinHeight="24"
+												Background="{DynamicResource Kcv.TableHeaderBackground}"
+												>
+												<TextBlock
+													HorizontalAlignment="Center"
+													VerticalAlignment="Center"
+													FontSize="12"
+													Style="{StaticResource Kcv.Text}"
+													Text="{Binding HealthText}"
+													/>
+											</Border>
+										</Grid>
+									</StackPanel>
+
+									<!--  fuel and ammo  -->
+									<StackPanel Grid.Column="3" VerticalAlignment="Center">
+										<Grid Margin="0 0 0 6">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="24" />
+												<ColumnDefinition Width="*" />
+											</Grid.ColumnDefinitions>
+											<Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource Resource.Fuel}" />
+											<StackPanel Grid.Column="1">
+												<TextBlock Style="{StaticResource Kcv.Text}">
+													<Run FontSize="13" Text="{Binding Fuel, Mode=OneWay}" />
+													<Run FontSize="10" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding FuelMax, Mode=OneWay, StringFormat=/ {0}}" />
+												</TextBlock>
+												<ProgressBar Maximum="{Binding FuelMax}" Style="{StaticResource Gauge}" Value="{Binding Fuel, Mode=OneWay}">
+													<ProgressBar.Foreground>
+														<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+															<Binding Path="Fuel" />
+															<Binding Path="FuelMax" />
+														</MultiBinding>
+													</ProgressBar.Foreground>
+												</ProgressBar>
+											</StackPanel>
+										</Grid>
+										<Grid>
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="24" />
+												<ColumnDefinition Width="*" />
+											</Grid.ColumnDefinitions>
+											<Image Grid.Column="0" Width="18" Height="18" Source="{StaticResource Resource.Ammo}" />
+											<StackPanel Grid.Column="1">
+												<TextBlock Style="{StaticResource Kcv.Text}">
+													<Run FontSize="13" Text="{Binding Ammo, Mode=OneWay}" />
+													<Run FontSize="10" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding AmmoMax, Mode=OneWay, StringFormat=/ {0}}" />
+												</TextBlock>
+												<ProgressBar Maximum="{Binding AmmoMax}" Style="{StaticResource Gauge}" Value="{Binding Ammo, Mode=OneWay}">
+													<ProgressBar.Foreground>
+														<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+															<Binding Path="Ammo" />
+															<Binding Path="AmmoMax" />
+														</MultiBinding>
+													</ProgressBar.Foreground>
+												</ProgressBar>
+											</StackPanel>
+										</Grid>
+									</StackPanel>
+
+									<!--  equipment: [03 / 03] icon name ★+9 (熟練度 7)  -->
+									<ItemsControl
+										Grid.Column="4"
+										VerticalAlignment="Center"
+										Grid.IsSharedSizeScope="True"
+										ItemsSource="{Binding Slots}"
+										>
+										<ItemsControl.ItemTemplate>
+											<DataTemplate DataType="{x:Type kcv:KcvDetailSlot}">
+												<Grid>
+													<Grid.RowDefinitions>
+														<RowDefinition Height="Auto" />
+														<RowDefinition Height="Auto" />
+													</Grid.RowDefinitions>
+													<Grid.ColumnDefinitions>
+														<ColumnDefinition Width="Auto" MinWidth="64" SharedSizeGroup="KcvAircraft" />
+														<ColumnDefinition Width="Auto" />
+														<ColumnDefinition Width="*" />
+													</Grid.ColumnDefinitions>
+													<!--  the reinforcement slot's equipment under a line from its icon on (mockup 20261010-ex-slot-separator-v1)  -->
+													<Rectangle
+														x:Name="ExLine"
+														Grid.Row="0"
+														Grid.Column="1"
+														Grid.ColumnSpan="2"
+														Height="1"
+														Margin="0 2"
+														Fill="{DynamicResource Kcv.Separator}"
+														Visibility="Collapsed"
+														/>
+													<TextBlock
+														Grid.Row="1"
+														Grid.Column="0"
+														Margin="0 0 6 0"
+														HorizontalAlignment="Right"
+														VerticalAlignment="Center"
+														FontSize="11"
+														Style="{StaticResource Kcv.SubText}"
+														Text="{Binding AircraftText}"
+														/>
+													<Image
+														Grid.Row="1"
+														Grid.Column="1"
+														Width="20"
+														Height="20"
+														Margin="0 0 4 0"
+														Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+														Style="{StaticResource Kcv.EquipmentIcon}"
+														/>
+													<TextBlock
+														Grid.Row="1"
+														Grid.Column="2"
+														VerticalAlignment="Center"
+														FontSize="12"
+														Style="{StaticResource Kcv.Text}"
+														TextTrimming="CharacterEllipsis"
+														>
+														<Run Text="{Binding Name, Mode=OneWay}" />
+														<Run Foreground="{x:Static kcv:KcvBrushes.StarImproved}" Text="{Binding LevelText, Mode=OneWay}" />
+														<Run Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding ProficiencyText, Mode=OneWay}" />
+													</TextBlock>
+												</Grid>
+												<DataTemplate.Triggers>
+													<DataTrigger Binding="{Binding IsExpansion}" Value="True">
+														<Setter TargetName="ExLine" Property="Visibility" Value="Visible" />
+													</DataTrigger>
+												</DataTemplate.Triggers>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</Grid>
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</ScrollViewer>
+		</Border>
+	</Grid>
+</common:WindowBase>

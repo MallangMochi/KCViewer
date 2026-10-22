@@ -1,0 +1,267 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvSenkaViewerWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:senka="clr-namespace:KCViewer.Window.Tools.SenkaViewer"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding SenkaViewer.Title}"
+	Width="800"
+	Height="450"
+	d:DataContext="{d:DesignInstance senka:SenkaViewerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="senka:SenkaViewerViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the senka viewer in KanColleViewer's style (mockup v4, viewer-design/mockups/20261004-senka-viewer-v4.html,
+		approved 2026-10-04) with the viewer's view model. The totals (selected rows, else all) as four cards; one row per
+		session (02:00, 14:00, 22:00 at the end of a month) with its end time, the whole session in the time's tooltip and
+		「진행 중」 on the session that has not ended; 0 in grey. The viewer's three bugs are fixed in its view model
+		(SenkaViewerViewModel.Fork.cs and its Fork marks).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvSenkaIntervalConverter x:Key="Interval" />
+			<kcv:KcvSenkaInProgressConverter x:Key="InProgress" />
+
+			<Style x:Key="Card" TargetType="Border">
+				<Setter Property="Margin" Value="0 0 6 0" />
+				<Setter Property="Padding" Value="8 4" />
+				<Setter Property="Background" Value="{DynamicResource Kcv.StatusBackground}" />
+				<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+				<Setter Property="BorderThickness" Value="1" />
+			</Style>
+			<Style x:Key="CardLabel" BasedOn="{StaticResource KcvRec.Sub}" TargetType="TextBlock">
+				<Setter Property="FontSize" Value="12" />
+			</Style>
+			<Style x:Key="CardValue" TargetType="TextBlock">
+				<Setter Property="FontSize" Value="18" />
+				<Setter Property="FontWeight" Value="SemiBold" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			</Style>
+
+			<!--  +8.19, 0 in grey  -->
+			<Style x:Key="Gain" BasedOn="{StaticResource KcvRec.Text}" TargetType="TextBlock">
+				<Style.Triggers>
+					<DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="0">
+						<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+					</DataTrigger>
+				</Style.Triggers>
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  검색 조건: 기간 (date and time)  -->
+		<ContentControl Grid.Row="0" Style="{StaticResource KcvRec.Conditions}">
+			<!--  the buttons go to the next line when they do not fit beside the period (mockup v6)  -->
+			<kcv:KcvTrailingPanel>
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<kcv:KcvRecordPeriod Margin="0 0 14 0" />
+				</WrapPanel>
+				<StackPanel Orientation="Horizontal">
+					<Button
+						Command="{Binding SearchCommand}"
+						Content="{x:Static fork:ForkStrings.KcvRecordSearch}"
+						Style="{StaticResource KcvRec.PrimaryButton}"
+						/>
+					<Button
+						Command="{Binding SearchCancelCommand}"
+						Content="{x:Static fork:ForkStrings.KcvRecordCancel}"
+						Style="{StaticResource KcvRec.Button}"
+						/>
+					<Button
+						Click="ResetConditions"
+						Content="{x:Static fork:ForkStrings.KcvRecordReset}"
+						Style="{StaticResource KcvRec.Button}"
+						/>
+				</StackPanel>
+			</kcv:KcvTrailingPanel>
+		</ContentControl>
+
+		<!--  the four totals  -->
+		<UniformGrid
+			Grid.Row="1"
+			Margin="8 0 2 0"
+			Columns="4"
+			>
+			<Border Style="{StaticResource Card}">
+				<StackPanel>
+					<TextBlock Style="{StaticResource CardLabel}" Text="{x:Static translations:SenkaViewerResources.Senka}" />
+					<TextBlock Style="{StaticResource CardValue}" Text="{Binding ForkTotalSenka, Converter={StaticResource KcvRec.Number}}" />
+				</StackPanel>
+			</Border>
+			<Border Style="{StaticResource Card}">
+				<StackPanel>
+					<TextBlock Style="{StaticResource CardLabel}" Text="{x:Static translations:SenkaViewerResources.NormalSenka}" />
+					<TextBlock Style="{StaticResource CardValue}" Text="{Binding ForkTotalNormalSenka, Converter={StaticResource KcvRec.Number}}" />
+				</StackPanel>
+			</Border>
+			<Border Style="{StaticResource Card}">
+				<StackPanel>
+					<TextBlock Style="{StaticResource CardLabel}" Text="{x:Static translations:SenkaViewerResources.ExtraOperationSenka}" />
+					<TextBlock Style="{StaticResource CardValue}" Text="{Binding ForkTotalExtraOperationSenka, Converter={StaticResource KcvRec.Number}}" />
+				</StackPanel>
+			</Border>
+			<Border Style="{StaticResource Card}">
+				<StackPanel>
+					<TextBlock Style="{StaticResource CardLabel}" Text="{x:Static translations:SenkaViewerResources.QuestSenka}" />
+					<TextBlock Style="{StaticResource CardValue}" Text="{Binding ForkTotalQuestSenka, Converter={StaticResource KcvRec.Number}}" />
+				</StackPanel>
+			</Border>
+		</UniformGrid>
+		<TextBlock
+			x:Name="TotalsNote"
+			Grid.Row="2"
+			Margin="8 3 8 5"
+			Style="{StaticResource KcvRec.Sub}"
+			/>
+
+		<DataGrid
+			Grid.Row="3"
+			ItemsSource="{Binding DataGridViewModel.Items}"
+			SelectionChanged="ShowSelection"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridViewModel}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridViewModel.ClearSortingCommand}" Header="{Binding DataGridViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<!--  as wide as the time and the 「진행 중」 tag of the running session ("3번", 2026-10-05; 200 before)  -->
+				<DataGridTemplateColumn
+					x:Name="TimeColumn"
+					Width="180"
+					MinWidth="180"
+					Header="{x:Static fork:ForkStrings.KcvRecordTime}"
+					SortMemberPath="End"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type senka:SenkaRecord}">
+							<StackPanel
+								Background="Transparent"
+								Orientation="Horizontal"
+								ToolTip="{Binding Converter={StaticResource Interval}}"
+								>
+								<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding End, Converter={StaticResource KcvRec.Time}}" />
+								<Grid x:Name="InProgress" VerticalAlignment="Center" Visibility="Collapsed">
+									<Rectangle
+										Fill="{DynamicResource Kcv.Accent}"
+										Opacity="0.45"
+										RadiusX="2"
+										RadiusY="2"
+										/>
+									<TextBlock
+										Margin="4 0"
+										FontSize="10"
+										Foreground="{DynamicResource Kcv.Foreground}"
+										Text="{x:Static fork:ForkStrings.KcvSenkaInProgress}"
+										/>
+								</Grid>
+							</StackPanel>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Converter={StaticResource InProgress}}" Value="True">
+									<Setter TargetName="InProgress" Property="Visibility" Value="Visible" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="90"
+					Header="{x:Static translations:SenkaViewerResources.Senka}"
+					SortMemberPath="TotalSenkaGains"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type senka:SenkaRecord}">
+							<TextBlock Style="{StaticResource Gain}" Text="{Binding TotalSenkaGains, Converter={StaticResource KcvRec.Signed}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="90"
+					Header="{x:Static translations:SenkaViewerResources.NormalSenka}"
+					SortMemberPath="EstimatedHqExpSenkaGains"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type senka:SenkaRecord}">
+							<TextBlock
+								Style="{StaticResource Gain}"
+								Text="{Binding EstimatedHqExpSenkaGains, Converter={StaticResource KcvRec.Signed}}"
+								ToolTip="{Binding HqExpSenkaGainsToolTip}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="90"
+					Header="{x:Static translations:SenkaViewerResources.ExtraOperationSenka}"
+					SortMemberPath="ExtraOperationSenkaGains"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type senka:SenkaRecord}">
+							<TextBlock Style="{StaticResource Gain}" Text="{Binding ExtraOperationSenkaGains, Converter={StaticResource KcvRec.Signed}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="90"
+					Header="{x:Static translations:SenkaViewerResources.QuestSenka}"
+					SortMemberPath="QuestSenkaGains"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type senka:SenkaRecord}">
+							<TextBlock Style="{StaticResource Gain}" Text="{Binding QuestSenkaGains, Converter={StaticResource KcvRec.Signed}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<Border Grid.Row="4" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<TextBlock x:Name="SessionsText" DockPanel.Dock="Right" />
+				<TextBlock Text="{Binding StatusBarText}" TextTrimming="CharacterEllipsis" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

@@ -1,0 +1,236 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetPresetView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fleetPreset="clr-namespace:KCViewer.Window.Wpf.FleetPreset"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="Panel"
+	d:DataContext="{d:DesignInstance Type=fleetPreset:FleetPresetViewModel}"
+	d:DesignHeight="300"
+	d:DesignWidth="760"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the fleet preset panel in KanColleViewer's style (remaining panels mockup 1, user's approval 2026-10-02).
+		A table like the land base panel: name, lowest condition (the fleet panels' square), then the ships with their
+		level. The tooltip of a ship has the viewer's text with equipment icons. The seventh place shows only when a
+		preset has seven ships; an empty preset slot shows four dashes as in the viewer. The viewer's panel has no menu.
+	-->
+	<UserControl.Resources>
+		<Style x:Key="HeaderCell" TargetType="Border">
+			<Setter Property="Padding" Value="7 6" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="0 0 1 0" />
+		</Style>
+		<Style x:Key="HeaderText" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+		</Style>
+
+		<!--  One ship place  -->
+		<DataTemplate x:Key="Cell" DataType="{x:Type kcv:KcvPresetCell}">
+			<Grid Margin="7 0" VerticalAlignment="Center">
+				<StackPanel x:Name="Ship" Background="Transparent">
+					<TextBlock
+						MaxWidth="{Binding Ship.NameMaxWidth}"
+						FontSize="13"
+						Style="{StaticResource Kcv.Text}"
+						Text="{Binding Ship.Name}"
+						TextTrimming="CharacterEllipsis"
+						/>
+					<TextBlock FontSize="11" Style="{StaticResource Kcv.SubText}" Text="{Binding Ship.LevelText}" />
+					<StackPanel.ToolTip>
+						<ToolTip>
+							<StackPanel>
+								<TextBlock Text="{Binding Ship.Header}" />
+								<ItemsControl Margin="0 6 0 0" ItemsSource="{Binding Ship.Equipment}">
+									<ItemsControl.ItemTemplate>
+										<DataTemplate DataType="{x:Type kcv:KcvPresetEquipment}">
+											<StackPanel>
+												<!--  the reinforcement slot's equipment under a line (mockup 20261010-ex-slot-separator-v1)  -->
+												<Rectangle
+													x:Name="ExLine"
+													Height="1"
+													Margin="0 3"
+													Fill="{DynamicResource Kcv.Separator}"
+													Visibility="Collapsed"
+													/>
+												<StackPanel Margin="0 1" Orientation="Horizontal">
+													<Image
+														Width="16"
+														Height="16"
+														Margin="0 0 4 0"
+														Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+														Style="{StaticResource Kcv.EquipmentIcon}"
+														/>
+													<TextBlock VerticalAlignment="Center" Text="{Binding Text}" />
+												</StackPanel>
+											</StackPanel>
+											<DataTemplate.Triggers>
+												<DataTrigger Binding="{Binding IsExpansion}" Value="True">
+													<Setter TargetName="ExLine" Property="Visibility" Value="Visible" />
+												</DataTrigger>
+											</DataTemplate.Triggers>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</StackPanel>
+						</ToolTip>
+					</StackPanel.ToolTip>
+				</StackPanel>
+				<TextBlock
+					x:Name="Dash"
+					FontSize="13"
+					Foreground="{DynamicResource Kcv.InactiveForeground}"
+					Text="-"
+					Visibility="Collapsed"
+					/>
+			</Grid>
+			<DataTemplate.Triggers>
+				<DataTrigger Binding="{Binding Ship}" Value="{x:Null}">
+					<Setter TargetName="Ship" Property="Visibility" Value="Collapsed" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding Dash}" Value="True">
+					<Setter TargetName="Dash" Property="Visibility" Value="Visible" />
+				</DataTrigger>
+			</DataTemplate.Triggers>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+		<Grid Margin="8" DataContext="{Binding Model, ElementName=Panel}">
+			<TextBlock
+				Margin="4"
+				FontSize="13"
+				Foreground="{DynamicResource Kcv.SubForeground}"
+				Text="{x:Static fork:ForkStrings.KcvPresetNone}"
+				Visibility="{Binding HasNone, Converter={StaticResource BooleanToVisibilityConverter}}"
+				/>
+
+			<Border
+				HorizontalAlignment="Left"
+				VerticalAlignment="Top"
+				BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+				BorderThickness="1"
+				Grid.IsSharedSizeScope="True"
+				Visibility="{Binding HasRows, Converter={StaticResource BooleanToVisibilityConverter}}"
+				>
+				<StackPanel>
+					<!--  Header: name, lowest condition, 1 to 6 (7)  -->
+					<Grid Background="{DynamicResource Kcv.TableHeaderBackground}">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" MinWidth="82" SharedSizeGroup="PresetName" />
+							<ColumnDefinition Width="Auto" MinWidth="64" SharedSizeGroup="PresetCondition" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip1" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip2" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip3" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip4" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip5" />
+							<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip6" />
+							<ColumnDefinition Width="Auto" SharedSizeGroup="PresetShip7" />
+						</Grid.ColumnDefinitions>
+						<Border Grid.Column="0" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{x:Static fork:ForkStrings.KcvPresetColumnName}" /></Border>
+						<Border Grid.Column="1" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="{Binding DataContext.FormFleetPreset.LowestCondition, ElementName=Panel}" /></Border>
+						<Border Grid.Column="2" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="1" /></Border>
+						<Border Grid.Column="3" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="2" /></Border>
+						<Border Grid.Column="4" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="3" /></Border>
+						<Border Grid.Column="5" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="4" /></Border>
+						<Border Grid.Column="6" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="5" /></Border>
+						<Border Grid.Column="7" Style="{StaticResource HeaderCell}"><TextBlock Style="{StaticResource HeaderText}" Text="6" /></Border>
+						<Border
+							Grid.Column="8"
+							MinWidth="92"
+							BorderThickness="0"
+							Style="{StaticResource HeaderCell}"
+							Visibility="{Binding ShowSeventh, Converter={StaticResource BooleanToVisibilityConverter}}"
+							>
+							<TextBlock Style="{StaticResource HeaderText}" Text="7" />
+						</Border>
+					</Grid>
+
+					<ItemsControl ItemsSource="{Binding Rows}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type kcv:KcvPresetRow}">
+								<Border
+									MinHeight="38"
+									BorderBrush="{DynamicResource Kcv.Separator}"
+									BorderThickness="0 0 0 1"
+									>
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="Auto" MinWidth="82" SharedSizeGroup="PresetName" />
+											<ColumnDefinition Width="Auto" MinWidth="64" SharedSizeGroup="PresetCondition" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip1" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip2" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip3" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip4" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip5" />
+											<ColumnDefinition Width="Auto" MinWidth="92" SharedSizeGroup="PresetShip6" />
+											<ColumnDefinition Width="Auto" SharedSizeGroup="PresetShip7" />
+										</Grid.ColumnDefinitions>
+
+										<TextBlock
+											x:Name="Name"
+											Grid.Column="0"
+											Margin="7 0"
+											VerticalAlignment="Center"
+											FontSize="13"
+											Style="{StaticResource Kcv.Text}"
+											Text="{Binding Name}"
+											/>
+										<StackPanel
+											x:Name="Condition"
+											Grid.Column="1"
+											Margin="7 0"
+											VerticalAlignment="Center"
+											Background="Transparent"
+											Orientation="Horizontal"
+											ToolTip="{Binding ConditionTip}"
+											>
+											<Rectangle
+												Width="11"
+												Height="11"
+												Margin="0 1 5 0"
+												VerticalAlignment="Center"
+												Fill="{Binding LowestCondition, Converter={StaticResource Kcv.ConditionBrush}}"
+												Stroke="{DynamicResource Kcv.MarkBorder}"
+												StrokeThickness="1"
+												/>
+											<TextBlock FontSize="13" Style="{StaticResource Kcv.Text}" Text="{Binding LowestCondition}" />
+										</StackPanel>
+										<ContentPresenter Grid.Column="2" Content="{Binding Cells[0]}" ContentTemplate="{StaticResource Cell}" />
+										<ContentPresenter Grid.Column="3" Content="{Binding Cells[1]}" ContentTemplate="{StaticResource Cell}" />
+										<ContentPresenter Grid.Column="4" Content="{Binding Cells[2]}" ContentTemplate="{StaticResource Cell}" />
+										<ContentPresenter Grid.Column="5" Content="{Binding Cells[3]}" ContentTemplate="{StaticResource Cell}" />
+										<ContentPresenter Grid.Column="6" Content="{Binding Cells[4]}" ContentTemplate="{StaticResource Cell}" />
+										<ContentPresenter Grid.Column="7" Content="{Binding Cells[5]}" ContentTemplate="{StaticResource Cell}" />
+										<!--  a ContentPresenter's own bindings see its content, so the row's flag is on a border around it  -->
+										<Border
+											Grid.Column="8"
+											MinWidth="92"
+											Visibility="{Binding ShowSeventh, Converter={StaticResource BooleanToVisibilityConverter}}"
+											>
+											<ContentPresenter Content="{Binding Cells[6]}" ContentTemplate="{StaticResource Cell}" />
+										</Border>
+									</Grid>
+								</Border>
+								<DataTemplate.Triggers>
+									<DataTrigger Binding="{Binding Empty}" Value="True">
+										<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+										<Setter TargetName="Condition" Property="Visibility" Value="Collapsed" />
+									</DataTrigger>
+								</DataTemplate.Triggers>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</StackPanel>
+			</Border>
+		</Grid>
+	</ScrollViewer>
+</UserControl>

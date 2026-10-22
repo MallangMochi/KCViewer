@@ -1,0 +1,162 @@
+﻿<common:WindowBase
+	x:Class="KCViewer.Window.Dialog.QuestTrackerManager.QuestTrackerManagerWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:questTrackerManager="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager"
+	xmlns:system="clr-namespace:System;assembly=System.Runtime"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:viewModels="clr-namespace:KCViewer.Window.Dialog.QuestTrackerManager.ViewModels"
+	x:Name="QuestTrackerManagerView"
+	Title="{Binding Translation.Title}"
+	Width="800"
+	Height="450"
+	d:DataContext="{d:DesignInstance questTrackerManager:QuestTrackerManagerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="questTrackerManager:QuestTrackerManagerViewModel"
+	mc:Ignorable="d"
+	>
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<!--
+				<ResourceDictionary Source="Views/Styles.xaml" />
+				-->
+				<ResourceDictionary Source="Views/CommonTemplates.xaml" />
+				<ResourceDictionary Source="Views/TaskTemplates.xaml" />
+				<ResourceDictionary Source="Views/ConditionTemplates.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<questTrackerManager:QuestTrackerManagerBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+
+			<Style BasedOn="{StaticResource DefaultMenuItemStyle}" TargetType="MenuItem">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+			</Style>
+			<Style BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="Margin" Value="2" />
+			</Style>
+			<Style BasedOn="{StaticResource DefaultCheckBoxStyle}" TargetType="CheckBox">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Margin" Value="4 0" />
+			</Style>
+			<Style BasedOn="{StaticResource DefaultComboBoxStyle}" TargetType="ComboBox">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Margin" Value="4" />
+			</Style>
+			<Style BasedOn="{StaticResource DefaultTextBoxStyle}" TargetType="{x:Type TextBox}">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Margin" Value="4" />
+			</Style>
+			<Style TargetType="{x:Type ui:NumberBox}">
+				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
+				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Margin" Value="4" />
+			</Style>
+
+			<DataTemplate x:Key="TrackerTemplate" DataType="{x:Type viewModels:TrackerViewModel}">
+				<DataTemplate.Resources>
+					<ResourceDictionary Source="Views/Styles.xaml" />
+				</DataTemplate.Resources>
+
+				<StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<Button
+							Command="{Binding DataContext.RemoveTrackerCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ItemsControl}}}"
+							CommandParameter="{Binding}"
+							Content="ｘ"
+							/>
+						<Button Command="{Binding CopyTrackerCommand}" Content="{Binding ViewModel.Translation.Copy, ElementName=QuestTrackerManagerView}" />
+						<CheckBox Content="{Binding ViewModel.Translation.ShowDetails, ElementName=QuestTrackerManagerView}" IsChecked="{Binding ShowDetails}" />
+						<TextBlock Text="{Binding Model.Quest.Display}" />
+
+						<ItemsControl ItemTemplate="{StaticResource ShortTaskDisplayTemplate}" ItemsSource="{Binding Tasks}">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<StackPanel Orientation="Horizontal" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+						</ItemsControl>
+					</StackPanel>
+
+					<StackPanel Visibility="{Binding ShowDetails, Converter={StaticResource BooleanToVisibilityConverter}}">
+						<TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+
+						<StackPanel Orientation="Horizontal">
+							<Button Command="{Binding AddTaskCommand}" Content="＋" />
+
+							<ComboBox
+								ItemTemplate="{StaticResource EnumDisplayerTemplate}"
+								ItemsSource="{Binding TaskTypes}"
+								SelectedItem="{Binding TaskTypeType}"
+								/>
+						</StackPanel>
+
+						<ItemsControl ItemTemplateSelector="{StaticResource TaskTemplateSelector}" ItemsSource="{Binding Tasks}" />
+
+						<ContentControl Content="{Binding GroupConditions}" ContentTemplate="{StaticResource GroupConditionTemplate}" />
+					</StackPanel>
+					<Separator />
+				</StackPanel>
+			</DataTemplate>
+
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Border Style="{StaticResource BorderSpacing}">
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition />
+			</Grid.RowDefinitions>
+
+			<Menu Grid.Row="0">
+				<MenuItem Header="{Binding Translation.File}">
+					<MenuItem Command="{Binding CopyTrackersToClipboardCommand}" Header="{Binding Translation.CopyTrackersToClipboard}" />
+					<MenuItem Command="{Binding LoadTrackerFromClipboardCommand}" Header="{Binding Translation.Load}" />
+				</MenuItem>
+				<MenuItem Header="Debug" Visibility="{Binding DebugEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+					<MenuItem Command="{Binding CopyAllTrackersToClipboardCommand}" Header="Copy all trackers" />
+				</MenuItem>
+			</Menu>
+
+			<StackPanel Grid.Row="1">
+				<StackPanel Orientation="Horizontal">
+					<Button Command="{Binding AddTrackerCommand}" Content="＋" />
+					<ComboBox ItemsSource="{Binding Quests}" SelectedItem="{Binding Quest}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Display}" />
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+				</StackPanel>
+
+				<TextBlock Text="{Binding Quest.Description}" />
+				<Separator />
+			</StackPanel>
+
+			<ScrollViewer Grid.Row="2">
+				<ItemsControl ItemTemplate="{StaticResource TrackerTemplate}" ItemsSource="{Binding Trackers}" />
+			</ScrollViewer>
+		</Grid>
+	</Border>
+</common:WindowBase>

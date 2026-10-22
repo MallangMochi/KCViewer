@@ -1,0 +1,68 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvUpgradeDaysView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:helpers="clr-namespace:KCViewer.Window.Tools.EquipmentUpgradePlanner.Helpers"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	d:DataContext="{d:DesignInstance helpers:EquipmentUpgradeDaysViewModel}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the helpers of a planned upgrade in compact mode (EquipmentUpgradeDaysViewModel) in KanColleViewer's
+		style: one line of days, in the accent colour when any helper can do it that day. A day's tooltip lists that
+		day's helpers under its title (금요일 보조함), the ones not owned in Kcv.LackForeground, as the viewer's.
+	-->
+	<ItemsControl ItemsSource="{Binding Days}">
+		<ItemsControl.ItemsPanel>
+			<ItemsPanelTemplate>
+				<StackPanel Orientation="Horizontal" />
+			</ItemsPanelTemplate>
+		</ItemsControl.ItemsPanel>
+		<ItemsControl.ItemTemplate>
+			<DataTemplate DataType="{x:Type helpers:EquipmentUpgradeDayViewModel}">
+				<ContentControl
+					Background="Transparent"
+					Content="{Binding}"
+					ContentTemplate="{StaticResource Kcv.UpgradeDayTemplate}"
+					Focusable="False"
+					>
+					<ContentControl.Style>
+						<Style TargetType="ContentControl">
+							<Setter Property="ToolTip">
+								<Setter.Value>
+									<ToolTip>
+										<StackPanel>
+											<TextBlock
+												Margin="0 0 0 3"
+												Foreground="{DynamicResource Kcv.SubForeground}"
+												Text="{Binding DayValue, Converter={StaticResource Kcv.UpgradeDayText}, ConverterParameter=Helpers}"
+												/>
+											<ItemsControl ItemsSource="{Binding Helpers}">
+												<ItemsControl.ItemTemplate>
+													<DataTemplate DataType="{x:Type helpers:EquipmentUpgradeHelperViewModel}">
+														<TextBlock x:Name="Name" Text="{Binding Helper.NameEN}" />
+														<DataTemplate.Triggers>
+															<DataTrigger Binding="{Binding PlayerHasAtleastOne}" Value="False">
+																<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+															</DataTrigger>
+														</DataTemplate.Triggers>
+													</DataTemplate>
+												</ItemsControl.ItemTemplate>
+											</ItemsControl>
+										</StackPanel>
+									</ToolTip>
+								</Setter.Value>
+							</Setter>
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding Helpers.Count}" Value="0">
+									<Setter Property="ToolTip" Value="{x:Null}" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</ContentControl.Style>
+				</ContentControl>
+			</DataTemplate>
+		</ItemsControl.ItemTemplate>
+	</ItemsControl>
+</UserControl>

@@ -1,0 +1,19 @@
+﻿using KCViewer.KancolleApi.Types.Interfaces;
+
+namespace KCViewer.KancolleApi.Types.ApiReqSortie.LdAirbattle;
+
+public class ApiReqSortieLdAirbattleRequest : IBattleApiRequest
+{
+	[JsonPropertyName("api_formation")]
+	public string ApiFormation { get; set; } = "";
+
+	[JsonPropertyName("api_recovery_type")]
+	public string ApiRecoveryType { get; set; } = "";
+
+	[JsonPropertyName("api_verno")]
+	public string ApiVerno { get; set; } = "";
+
+	/// <inheritdoc />
+	[JsonPropertyName("api_smoke_flag")]
+	public string? ApiSmokeFlag { get; set; }
+}

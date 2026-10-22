@@ -1,0 +1,185 @@
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:converters="clr-namespace:KCViewer.Converters"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	>
+	<!--
+		Fork: what the pages of the settings window in KanColleViewer's style share (KcvConfigurationPages.xaml,
+		KcvConfigurationNotifyPages.xaml, KcvConfigDataPage): the record windows' controls, boxes, labels without the
+		viewer's colons, rows that wrap, notes in grey and warnings in orange.
+	-->
+	<ResourceDictionary.MergedDictionaries>
+		<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+	</ResourceDictionary.MergedDictionaries>
+
+	<kcv:KcvConfigLabelConverter x:Key="Cfg.Label" />
+	<kcv:KcvRadioConverter x:Key="Cfg.Radio" />
+	<kcv:KcvNotifyPartConverter x:Key="Cfg.Part" />
+	<kcv:KcvCollapsedWhenTrueConverter x:Key="Cfg.Collapsed" />
+	<converters:EnumDisplayConverter x:Key="Cfg.EnumDisplay" />
+	<converters:FontFamilyDisplayConverter x:Key="Cfg.FontDisplay" />
+
+	<Style
+		x:Key="Cfg.Box"
+		BasedOn="{StaticResource KcvRec.Box}"
+		TargetType="ContentControl"
+		>
+		<Setter Property="Margin" Value="0 0 0 8" />
+	</Style>
+	<Style x:Key="Cfg.Row" TargetType="WrapPanel">
+		<Setter Property="Orientation" Value="Horizontal" />
+		<Setter Property="Margin" Value="0 2" />
+	</Style>
+	<Style
+		x:Key="Cfg.Lbl"
+		BasedOn="{StaticResource KcvRec.Label}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Margin" Value="0 0 8 0" />
+	</Style>
+	<!--  a label after other controls on the same row  -->
+	<Style
+		x:Key="Cfg.Lbl2"
+		BasedOn="{StaticResource Cfg.Lbl}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Margin" Value="10 0 8 0" />
+	</Style>
+	<Style
+		x:Key="Cfg.Unit"
+		BasedOn="{StaticResource Cfg.Lbl}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Margin" Value="5 0 0 0" />
+	</Style>
+	<Style x:Key="Cfg.Note" TargetType="TextBlock">
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="Margin" Value="0 3" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="TextWrapping" Value="Wrap" />
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+	</Style>
+	<Style
+		x:Key="Cfg.Warn"
+		BasedOn="{StaticResource Cfg.Note}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.InProgressBadgeForeground}" />
+	</Style>
+	<Style
+		x:Key="Cfg.Field"
+		BasedOn="{StaticResource KcvRec.TextBox}"
+		TargetType="TextBox"
+		>
+		<Setter Property="Margin" Value="0 1" />
+		<Setter Property="Height" Value="24" />
+	</Style>
+	<Style
+		x:Key="Cfg.Browse"
+		BasedOn="{StaticResource KcvRec.Button}"
+		TargetType="Button"
+		>
+		<Setter Property="MinWidth" Value="0" />
+		<Setter Property="Padding" Value="9 2" />
+		<Setter Property="Margin" Value="4 0 0 0" />
+		<Setter Property="Content" Value="..." />
+	</Style>
+	<Style
+		x:Key="Cfg.Button"
+		BasedOn="{StaticResource KcvRec.Button}"
+		TargetType="Button"
+		>
+		<Setter Property="Margin" Value="8 0 0 0" />
+	</Style>
+	<Style
+		x:Key="Cfg.Combo"
+		BasedOn="{StaticResource KcvRec.Combo}"
+		TargetType="ComboBox"
+		>
+		<Setter Property="Margin" Value="0 1" />
+		<Setter Property="MinWidth" Value="100" />
+	</Style>
+	<Style x:Key="Cfg.Num" TargetType="kcv:KcvNumberBox">
+		<Setter Property="Width" Value="68" />
+		<Setter Property="Margin" Value="0 1 4 1" />
+	</Style>
+	<DataTemplate x:Key="Cfg.EnumItem">
+		<TextBlock Text="{Binding Converter={StaticResource Cfg.EnumDisplay}}" />
+	</DataTemplate>
+
+	<!--  a check in a list of checks: the list wraps to fewer columns in a narrow window  -->
+	<Style
+		x:Key="Cfg.Cell"
+		BasedOn="{StaticResource {x:Type CheckBox}}"
+		TargetType="CheckBox"
+		>
+		<Setter Property="MinWidth" Value="270" />
+		<Setter Property="Margin" Value="0 1 12 1" />
+	</Style>
+	<Style BasedOn="{StaticResource {x:Type CheckBox}}" TargetType="CheckBox">
+		<Setter Property="MinWidth" Value="0" />
+		<Setter Property="Margin" Value="0 1 18 1" />
+	</Style>
+	<Style BasedOn="{StaticResource {x:Type RadioButton}}" TargetType="RadioButton">
+		<Setter Property="MinWidth" Value="0" />
+		<Setter Property="Margin" Value="0 1 14 1" />
+	</Style>
+
+	<!--
+		The viewer's check box of a flag list (사령부's items, a notification's 닫기), without the app's negative margin
+		that drew its rows over each other
+	-->
+	<DataTemplate DataType="{x:Type common:CheckBoxEnumViewModel}">
+		<CheckBox
+			MinWidth="170"
+			Content="{Binding Value, Converter={StaticResource Cfg.EnumDisplay}}"
+			IsChecked="{Binding IsChecked}"
+			/>
+	</DataTemplate>
+
+	<ItemsPanelTemplate x:Key="Cfg.Wrap">
+		<WrapPanel Orientation="Horizontal" />
+	</ItemsPanelTemplate>
+
+	<!--
+		The tables of the pages (BGM's scenes, 기본 설정's 알람마다), drawn as the mockup's: the header's cells with a line
+		on their right and bottom, each row with a line under it. Not the record windows' DataGrid, which keeps a scroll
+		bar's width empty beside its header although the page scrolls instead.
+	-->
+	<Style x:Key="Cfg.TableHead" TargetType="Grid">
+		<Setter Property="Background" Value="{DynamicResource Kcv.TableHeaderBackground}" />
+		<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+		<Setter Property="TextElement.FontSize" Value="12" />
+	</Style>
+	<Style x:Key="Cfg.HeadCell" TargetType="Border">
+		<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+		<Setter Property="BorderThickness" Value="0 0 1 1" />
+		<Setter Property="Padding" Value="8 4" />
+	</Style>
+	<Style x:Key="Cfg.TableRow" TargetType="Border">
+		<Setter Property="MinHeight" Value="26" />
+		<Setter Property="BorderBrush" Value="{DynamicResource Kcv.Separator}" />
+		<Setter Property="BorderThickness" Value="0 0 0 1" />
+		<Setter Property="TextElement.FontSize" Value="12" />
+	</Style>
+	<Style x:Key="Cfg.CellText" TargetType="TextBlock">
+		<Setter Property="Margin" Value="8 0" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+	<!--  a part in 알람마다: 「기본」 (Tag false) dimmed, so the notification's own parts (「개별」) stand out  -->
+	<Style
+		x:Key="Cfg.PartText"
+		BasedOn="{StaticResource Cfg.CellText}"
+		TargetType="TextBlock"
+		>
+		<Style.Triggers>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+			</DataTrigger>
+		</Style.Triggers>
+	</Style>
+
+</ResourceDictionary>

@@ -1,0 +1,253 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Input;
+using KCViewer.Core.Services.Data;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.Data;
+using KCViewer.Utility;
+using KCViewer.Utility.Data;
+using KCViewer.ViewModels.Translations;
+
+namespace KCViewer.Window.Wpf.Fleet.ViewModels;
+
+public partial class FleetStatusViewModel : ObservableObject
+{
+	public FormFleetTranslationViewModel FormFleet { get; }
+	public ITransportGaugeService TransportGaugeService { get; }
+
+	public FleetItemControlViewModel Name { get; } = new();
+	public FleetStateViewModel State { get; } = new();
+	public FleetItemControlViewModel AirSuperiority { get; } = new();
+	public FleetItemControlViewModel SearchingAbility { get; } = new();
+	public FleetItemControlViewModel AntiAirPower { get; } = new();
+	public FleetItemControlViewModel Speed { get; } = new();
+
+	private int FleetId { get; }
+	public int BranchWeight { get; private set; } = 1;
+
+	public List<TotalRate> NightRecons { get; private set; } = new();
+	public List<TotalRate> Flares { get; private set; } = new();
+	public List<TotalRate> SmokeGeneratorRates { get; private set; } = [];
+
+	public FleetStatusViewModel(int fleetId)
+	{
+		FormFleet = Ioc.Default.GetRequiredService<FormFleetTranslationViewModel>();
+		TransportGaugeService = Ioc.Default.GetRequiredService<ITransportGaugeService>();
+
+		FleetId = fleetId;
+
+		ConfigurationChanged();
+	}
+
+	[RelayCommand]
+	private void IncreaseBranchWeight()
+	{
+		BranchWeight--;
+		if (BranchWeight <= 0)
+		{
+			BranchWeight = 4;
+		}
+
+		Update(KCDatabase.Instance.Fleet[FleetId]);
+	}
+
+	public void Update(IFleetData fleet)
+	{
+		if (fleet.Members is null) return;
+		if (fleet.MembersInstance is null) return;
+
+		List<IShipData> members = [.. fleet.MembersInstance.OfType<IShipData>()];
+
+		int speed = members.Select(s => s.Speed).DefaultIfEmpty(20).Min();
+
+		Name.Text = fleet.Name;
+		Name.ToolTip = GetFleetNameToolTip(fleet, members, speed);
+
+		NightRecons = fleet.NightRecons().TotalRate();
+		Flares = fleet.Flares().TotalRate();
+		SmokeGeneratorRates = fleet.GetSmokeTriggerRates().TotalRate();
+
+		State.UpdateFleetState(fleet);
+
+
+		//制空戦力計算
+		{
+			int airSuperiority = fleet.GetAirSuperiority();
+			bool includeLevel = Utility.Configuration.Config.FormFleet.AirSuperiorityMethod == 1;
+			AirSuperiority.Text = fleet.GetAirSuperiorityString();
+			AirSuperiority.ToolTip = string.Format(GeneralRes.ASTooltip,
+				(int)(airSuperiority / 3.0),
+				(int)(airSuperiority / 1.5),
+				Math.Max((int)(airSuperiority * 1.5 - 1), 0),
+				Math.Max((int)(airSuperiority * 3.0 - 1), 0),
+				includeLevel ? FormFleet.WithoutProficiency : FormFleet.WithProficiency,
+				includeLevel ? Calculator.GetAirSuperiorityIgnoreLevel(fleet) : Calculator.GetAirSuperiority(fleet));
+		}
+
+
+		//索敵能力計算
+		SearchingAbility.Text = fleet.GetSearchingAbilityString(BranchWeight);
+		{
+			StringBuilder sb = new();
+			double probStart = fleet.GetContactProbability();
+			Dictionary<int, double> probSelect = fleet.GetContactSelectionProbability();
+
+			sb.AppendFormat(FormFleet.FleetLosToolTip,
+				BranchWeight,
+				probStart,
+				probStart * 0.6);
+
+			if (probSelect.Count > 0)
+			{
+				sb.AppendLine(FormFleet.ContactSelection);
+
+				foreach ((int accuracy, double probability) in probSelect.OrderBy(p => p.Key))
+				{
+					sb.AppendFormat(FormFleet.ContactProbability + "\r\n", accuracy, probability);
+				}
+			}
+
+			Dictionary<DetectionType, double> detectionProbabilities = fleet.GetDetectionProbabilities();
+
+			if (detectionProbabilities.Count > 0)
+			{
+				sb.AppendLine();
+				sb.AppendLine($"{FleetResources.SearchingPhase}：");
+
+				foreach ((DetectionType detectionType, double probability) in detectionProbabilities)
+				{
+					sb.AppendLine($"・{Constants.GetSearchingResult(detectionType)}：{probability:P0}");
+				}
+			}
+
+			SearchingAbility.ToolTip = sb.ToString();
+		}
+
+		// 対空能力計算
+		{
+			StringBuilder sb = new();
+			double lineahead = Calculator.GetAdjustedFleetAAValue(fleet, 1);
+
+			AntiAirPower.Text = lineahead.ToString("0.0");
+
+			sb.AppendFormat(GeneralRes.AntiAirPower,
+				lineahead,
+				Calculator.GetAdjustedFleetAAValue(fleet, 2),
+				Calculator.GetAdjustedFleetAAValue(fleet, 3));
+
+			AntiAirPower.ToolTip = sb.ToString();
+		}
+
+		Speed.Text = Constants.GetSpeed(speed);
+		Speed.ToolTip = string.Join("\r\n", members.Select(s => $"{s.Name}：{Constants.GetSpeed(s.Speed)}"));
+	}
+
+	private string GetFleetNameToolTip(IFleetData fleet, List<IShipData> members, int speed)
+	{
+		int levelSum = members.Sum(s => s.Level);
+		double levelAverage = (double)levelSum / Math.Max(fleet.Members?.Count(id => id != -1) ?? 0, 1);
+
+		int fueltotal = members.Sum(s => Math.Max((int)Math.Floor(s.FuelMax * (s.IsMarried ? 0.85 : 1.00)), 1));
+		int ammototal = members.Sum(s => Math.Max((int)Math.Floor(s.AmmoMax * (s.IsMarried ? 0.85 : 1.00)), 1));
+
+		int fuelunit = members.Sum(s => Math.Max((int)Math.Floor(s.FuelMax * 0.2 * (s.IsMarried ? 0.85 : 1.00)), 1));
+		int ammounit = members.Sum(s => Math.Max((int)Math.Floor(s.AmmoMax * 0.2 * (s.IsMarried ? 0.85 : 1.00)), 1));
+
+		int jetSteelConsumption = members
+			.SelectMany(s => s.AllSlotInstanceMaster.Zip(s.Aircraft, (eq, s) => (Equipment: eq, Aircraft: s)))
+			.Sum(t => t.Equipment.JetSteelCost(t.Aircraft));
+
+		string supporttype = fleet.SupportType switch
+		{
+			SupportType.None => FleetResources.SupportTypeNone,
+			SupportType.Aerial => FleetResources.SupportTypeAerial,
+			SupportType.Shelling => FleetResources.SupportTypeShelling,
+			SupportType.Torpedo => FleetResources.SupportTypeTorpedo,
+			SupportType.AntiSubmarine => FleetResources.SupportTypeAntiSubmarine,
+			_ => FleetResources.SupportTypeNone,
+		};
+
+		double expeditionBonus = Calculator.GetExpeditionBonus(fleet);
+		int tp = TpGauge.Normal.GetTp([fleet]);
+
+		bool hasZeroSlotAircraft = members.Any(s => s.HasZeroSlotAircraft());
+
+		// 各艦ごとの ドラム缶 or 大発系 を搭載している個数
+		IEnumerable<int> transport = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.CategoryType == EquipmentTypes.TransportContainer));
+		IEnumerable<int> landing = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.CategoryType is EquipmentTypes.LandingCraft or EquipmentTypes.SpecialAmphibiousTank));
+		IEnumerable<int> radar = members.Select(s => s.AllSlotInstanceMaster.Count(eq => eq?.IsSurfaceRadar == true));
+
+		StringBuilder sb = new();
+
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Level, levelSum, levelAverage);
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Speed, Constants.GetSpeed(speed));
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Support, supporttype);
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Stats,
+			members.Sum(s => s.FirepowerTotal),
+			members.Sum(s => s.ExpeditionFirepowerTotal),
+			members.Sum(s => s.TorpedoTotal),
+			members.Sum(s => s.AATotal),
+			members.Sum(s => s.ExpeditionAATotal),
+			members.Sum(s => s.ASWTotal),
+			members.Sum(s => s.ExpeditionASWTotal),
+			members.Sum(s => s.LOSTotal),
+			members.Sum(s => s.ExpeditionLOSTotal)
+			);
+
+		if (hasZeroSlotAircraft)
+		{
+			sb.AppendLine(DataRes.ZeroSlotAircraftWarning);
+		}
+
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Drum, transport.Sum(), transport.Count(i => i > 0));
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Daihatsu, landing.Sum(), landing.Count(i => i > 0), expeditionBonus);
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Tp, tp, (int)(tp * 0.7));
+
+		if (GetTankTpTooltip(fleet) is string s && !string.IsNullOrEmpty(s))
+		{
+			sb.AppendLine(s);
+		}
+
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_SurfaceRadar, radar.Sum(), radar.Count(i => i > 0));
+		sb.AppendFormatLine(FleetResources.FleetNameToolTip_Consumption, fueltotal, ammototal);
+		sb.AppendFormat(FleetResources.FleetNameToolTip_ConsumptionPerBattle, fuelunit, ammounit);
+
+		if (jetSteelConsumption > 0)
+		{
+			sb.AppendLine();
+			sb.AppendFormat(FleetResources.FleetNameToolTip_JetConsumption, jetSteelConsumption);
+		}
+
+		return sb.ToString();
+	}
+
+	private string GetTankTpTooltip(IFleetData fleet)
+	{
+		if (Configuration.Config.FormFleet.DisplayOnlyCurrentEventTankTp)
+		{
+			return TransportGaugeService.GetCurrentEventLandingOperationToolTip([fleet]);
+		}
+
+		List<TpGauge> gauges = Configuration.Config.FormFleet.TankTpGaugesToDisplay
+			.Where(g => g.ShouldDisplay)
+			.Select(g => g.TpGauge)
+			.ToList();
+
+		return TransportGaugeService.GetEventLandingOperationToolTip([fleet], gauges, true);
+	}
+
+	public void Refresh()
+	{
+		State.RefreshFleetState();
+	}
+
+	public void ConfigurationChanged()
+	{
+		State.RefreshFleetState();
+	}
+}

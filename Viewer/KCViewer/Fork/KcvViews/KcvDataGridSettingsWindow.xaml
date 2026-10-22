@@ -1,0 +1,98 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvDataGridSettingsWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:grid="clr-namespace:KCViewer.Dialogs.DataGridSettings"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:shipGroup="clr-namespace:KCViewer.Avalonia.ShipGroup;assembly=KCViewer.Avalonia"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static shipGroup:ShipGroupResources.DataGridSettings}"
+	Width="372"
+	d:DataContext="{d:DesignInstance grid:DataGridSettingsViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship group's 데이터 그리드 설정 in KanColleViewer's style (KcvTableDialogs, mockup
+		20261017-table-dialogs-v2): 높이 with number boxes for the header's and the rows' height (10 to 50 px, the viewer's
+		sliders' range), shown in the table at once; OK keeps them, 취소 and closing put them back (the viewer's view model).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<Style
+				x:Key="Name"
+				BasedOn="{StaticResource Cfg.Lbl}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="MinWidth" Value="78" />
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Command="{Binding OkCommand}"
+					Content="OK"
+					IsDefault="True"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Command="{Binding CancelCommand}"
+					Content="{x:Static translations:GeneralRes.Cancel}"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<StackPanel Margin="12 6 12 4">
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.GridSettingsHeights}">
+				<StackPanel>
+					<WrapPanel Style="{StaticResource Cfg.Row}">
+						<TextBlock Style="{StaticResource Name}" Text="{x:Static fork:ForkStrings.GridSettingsHeader}" />
+						<kcv:KcvNumberBox
+							Maximum="50"
+							Minimum="10"
+							Style="{StaticResource Cfg.Num}"
+							Value="{Binding Settings.ColumnHeaderHeight}"
+							/>
+						<TextBlock Style="{StaticResource Cfg.Unit}" Text="px" />
+					</WrapPanel>
+					<WrapPanel Style="{StaticResource Cfg.Row}">
+						<TextBlock Style="{StaticResource Name}" Text="{x:Static fork:ForkStrings.GridSettingsRow}" />
+						<kcv:KcvNumberBox
+							Maximum="50"
+							Minimum="10"
+							Style="{StaticResource Cfg.Num}"
+							Value="{Binding Settings.RowHeight}"
+							/>
+						<TextBlock Style="{StaticResource Cfg.Unit}" Text="px" />
+					</WrapPanel>
+					<TextBlock Style="{StaticResource Cfg.Note}" Text="{x:Static fork:ForkStrings.GridSettingsNote}" />
+				</StackPanel>
+			</ContentControl>
+		</StackPanel>
+	</DockPanel>
+</Window>

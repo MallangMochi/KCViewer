@@ -1,0 +1,420 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetImageSettingsView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:colorPicker="clr-namespace:ColorPickerLib.Controls;assembly=ColorPickerLib"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fleetImage="clr-namespace:KCViewer.Window.Tools.FleetImageGenerator"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	d:DataContext="{d:DesignInstance fleetImage:FleetImageGeneratorViewModel}"
+	d:DesignHeight="520"
+	d:DesignWidth="600"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the settings of 편성 이미지 출력 in KanColleViewer's style (mockup 20261007-fleet-image-v2), in its settings
+		window and, with 「설정을 창에 펼치기」, above the preview. The viewer's three tabs: 기본 (the boxes 이미지 · 저장 ·
+		그 밖), 폰트 (폰트 크기), 테마 (a box whose head is the check 커스텀 테마; the rows under it are dimmed while it is
+		off and can still be set, as the viewer's). Labels without the viewer's colons. 함대 열 표시 수 has its own label
+		(the viewer's settings show 「장비명 최대 폭」 there; left as it is, "제독업무 창에서만 바르게 함").
+	-->
+	<UserControl.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvFleetImageStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--  a label in the first column of a box's grid, shared across the boxes of a tab  -->
+			<Style
+				x:Key="RowLabel"
+				BasedOn="{StaticResource KcvRec.FirstLabel}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="Margin" Value="0 0 10 0" />
+			</Style>
+
+			<Style
+				x:Key="Field"
+				BasedOn="{StaticResource KcvRec.TextBox}"
+				TargetType="TextBox"
+				>
+				<Setter Property="Margin" Value="0 2" />
+			</Style>
+
+			<Style
+				x:Key="Browse"
+				BasedOn="{StaticResource KcvRec.Button}"
+				TargetType="Button"
+				>
+				<Setter Property="MinWidth" Value="0" />
+				<Setter Property="Padding" Value="9 2" />
+				<Setter Property="Margin" Value="4 0 0 0" />
+				<Setter Property="Content" Value="..." />
+			</Style>
+
+			<Style x:Key="Size" TargetType="kcv:KcvNumberBox">
+				<Setter Property="Width" Value="64" />
+				<Setter Property="Margin" Value="0 2" />
+				<Setter Property="HorizontalAlignment" Value="Left" />
+				<Setter Property="Minimum" Value="6" />
+			</Style>
+		</ResourceDictionary>
+	</UserControl.Resources>
+
+	<DockPanel>
+		<StackPanel
+			Margin="2 0 0 0"
+			DockPanel.Dock="Top"
+			Orientation="Horizontal"
+			>
+			<RadioButton
+				x:Name="BasicTab"
+				Content="{Binding DialogFleetImageGenerator.Basic}"
+				IsChecked="True"
+				Style="{StaticResource KcvFi.Tab}"
+				/>
+			<RadioButton
+				x:Name="FontTab"
+				Content="{Binding DialogFleetImageGenerator.Font}"
+				Style="{StaticResource KcvFi.Tab}"
+				/>
+			<RadioButton
+				x:Name="ThemeTab"
+				Content="{Binding DialogFleetImageGenerator.Theme}"
+				Style="{StaticResource KcvFi.Tab}"
+				/>
+		</StackPanel>
+
+		<!--  The scroll bar is drawn over the content (ModernWpf), so the boxes keep its width free on their right  -->
+		<ScrollViewer
+			Padding="0 0 10 0"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto"
+			>
+			<Grid>
+				<!--  기본  -->
+				<StackPanel Grid.IsSharedSizeScope="True" Visibility="{Binding IsChecked, ElementName=BasicTab, Converter={StaticResource KcvRec.Visible}}">
+					<ContentControl Style="{StaticResource KcvRec.Box}" Tag="{x:Static fork:ForkStrings.KcvFleetImageImage}">
+						<StackPanel>
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+									<ColumnDefinition Width="*" MaxWidth="460" />
+								</Grid.ColumnDefinitions>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+
+								<TextBlock Style="{StaticResource RowLabel}" Text="{Binding DialogFleetImageGenerator.FleetTitle, Converter={StaticResource KcvFi.LabelText}}" />
+								<TextBox
+									Grid.Column="1"
+									Style="{StaticResource Field}"
+									Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+									/>
+
+								<TextBlock
+									Grid.Row="1"
+									Margin="0 6 10 0"
+									VerticalAlignment="Top"
+									Style="{StaticResource RowLabel}"
+									Text="{Binding DialogFleetImageGenerator.Comment, Converter={StaticResource KcvFi.LabelText}}"
+									/>
+								<TextBox
+									Grid.Row="1"
+									Grid.Column="1"
+									Height="46"
+									VerticalContentAlignment="Top"
+									AcceptsReturn="True"
+									HorizontalScrollBarVisibility="Auto"
+									Style="{StaticResource Field}"
+									Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}"
+									VerticalScrollBarVisibility="Auto"
+									/>
+							</Grid>
+
+							<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.UseAlbumStatusName}"
+									IsChecked="{Binding UseAlbumStatusName}"
+									Style="{StaticResource KcvRec.Check}"
+									/>
+							</WrapPanel>
+
+							<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+								<StackPanel Style="{StaticResource KcvRec.Pair}">
+									<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding DialogFleetImageGenerator.MaxEquipmentNameWidth}" />
+									<kcv:KcvNumberBox
+										Width="72"
+										Minimum="60"
+										Value="{Binding MaxEquipmentNameWidth}"
+										/>
+								</StackPanel>
+								<StackPanel Style="{StaticResource KcvRec.Pair}" ToolTip="{Binding DialogFleetImageGenerator.HorizontalFleetCountToolTip}">
+									<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding DialogFleetImageGenerator.FleetColumn, Converter={StaticResource KcvFi.LabelText}}" />
+									<kcv:KcvNumberBox
+										Width="56"
+										Minimum="1"
+										Value="{Binding DesiredFleetColumns}"
+										/>
+								</StackPanel>
+							</WrapPanel>
+						</StackPanel>
+					</ContentControl>
+
+					<ContentControl Style="{StaticResource KcvRec.Box}" Tag="{x:Static fork:ForkStrings.KcvFleetImageSave}">
+						<StackPanel>
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+									<ColumnDefinition Width="*" MaxWidth="460" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+
+								<TextBlock Style="{StaticResource RowLabel}" Text="{Binding DialogFleetImageGenerator.GroupOutputPath, Converter={StaticResource KcvFi.LabelText}}" />
+								<TextBox
+									Grid.Column="1"
+									Style="{StaticResource Field}"
+									Text="{Binding ImageSaveLocation}"
+									/>
+								<Button
+									Grid.Column="2"
+									Command="{Binding SelectImageSaveFolderCommand}"
+									Style="{StaticResource Browse}"
+									ToolTip="{Binding DialogFleetImageGenerator.SearchOutputPathToolTip}"
+									/>
+							</Grid>
+
+							<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.OpenImageAfterOutput}"
+									IsChecked="{Binding OpenImageAfterOutput}"
+									Style="{StaticResource KcvRec.Check}"
+									ToolTip="{Binding DialogFleetImageGenerator.OpenImageAfterOutputToolTip}"
+									/>
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.SynchronizeTitleAndFileName}"
+									IsChecked="{Binding SynchronizeTitleAndFileName}"
+									Style="{StaticResource KcvRec.Check}"
+									ToolTip="{Binding DialogFleetImageGenerator.SynchronizeTitleAndFileNameToolTip}"
+									/>
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.DisableOverwritePrompt}"
+									IsChecked="{Binding DisableOverwritePrompt}"
+									Style="{StaticResource KcvRec.Check}"
+									ToolTip="{Binding DialogFleetImageGenerator.DisableOverwritePromptToolTip}"
+									/>
+							</WrapPanel>
+						</StackPanel>
+					</ContentControl>
+
+					<ContentControl Style="{StaticResource KcvRec.Box}" Tag="{x:Static fork:ForkStrings.KcvFleetImageOther}">
+						<StackPanel>
+							<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.DownloadMissingShipImage}"
+									IsChecked="{Binding DownloadMissingShipImage}"
+									Style="{StaticResource KcvRec.Check}"
+									/>
+							</WrapPanel>
+							<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+								<CheckBox
+									Content="{Binding DialogFleetImageGenerator.QuickConfigurationAccess}"
+									IsChecked="{Binding QuickConfigAccess}"
+									Style="{StaticResource KcvRec.Check}"
+									ToolTip="{Binding DialogFleetImageGenerator.QuickConfigurationAccessToolTip}"
+									/>
+							</WrapPanel>
+						</StackPanel>
+					</ContentControl>
+				</StackPanel>
+
+				<!--  폰트  -->
+				<ContentControl
+					VerticalAlignment="Top"
+					Style="{StaticResource KcvRec.Box}"
+					Tag="{x:Static fork:ForkStrings.KcvFleetImageFontSizes}"
+					Visibility="{Binding IsChecked, ElementName=FontTab, Converter={StaticResource KcvRec.Visible}}"
+					>
+					<Grid HorizontalAlignment="Left">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+
+						<TextBlock Style="{StaticResource RowLabel}" Text="{Binding DialogFleetImageGenerator.FontTitle, Converter={StaticResource KcvFi.LabelText}}" />
+						<kcv:KcvNumberBox
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding TitleFontSize}"
+							/>
+						<TextBlock
+							Grid.Row="1"
+							Style="{StaticResource RowLabel}"
+							Text="{Binding DialogFleetImageGenerator.FontLarge, Converter={StaticResource KcvFi.LabelText}}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="1"
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding LargeTextFontSize}"
+							/>
+						<TextBlock
+							Grid.Row="2"
+							Style="{StaticResource RowLabel}"
+							Text="{Binding DialogFleetImageGenerator.FontMedium, Converter={StaticResource KcvFi.LabelText}}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="2"
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding MediumTextFontSize}"
+							/>
+						<TextBlock
+							Grid.Row="3"
+							Style="{StaticResource RowLabel}"
+							Text="{Binding DialogFleetImageGenerator.FontSmall, Converter={StaticResource KcvFi.LabelText}}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="3"
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding SmallTextFontSize}"
+							/>
+						<TextBlock
+							Grid.Row="4"
+							Style="{StaticResource RowLabel}"
+							Text="{Binding DialogFleetImageGenerator.DigitMedium, Converter={StaticResource KcvFi.LabelText}}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="4"
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding MediumDigitFontSize}"
+							/>
+						<TextBlock
+							Grid.Row="5"
+							Style="{StaticResource RowLabel}"
+							Text="{Binding DialogFleetImageGenerator.DigitSmall, Converter={StaticResource KcvFi.LabelText}}"
+							/>
+						<kcv:KcvNumberBox
+							Grid.Row="5"
+							Grid.Column="1"
+							Style="{StaticResource Size}"
+							Value="{Binding SmallDigitFontSize}"
+							/>
+					</Grid>
+				</ContentControl>
+
+				<!--  테마: the box's head is the check  -->
+				<Border
+					Margin="8 6 8 6"
+					Padding="8 3 8 5"
+					VerticalAlignment="Top"
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="1"
+					Visibility="{Binding IsChecked, ElementName=ThemeTab, Converter={StaticResource KcvRec.Visible}}"
+					>
+					<DockPanel>
+						<CheckBox
+							Margin="0 0 0 3"
+							HorizontalAlignment="Left"
+							Content="{Binding DialogFleetImageGenerator.CustomTheme}"
+							DockPanel.Dock="Top"
+							IsChecked="{Binding UseCustomTheme}"
+							Style="{StaticResource KcvRec.Check}"
+							/>
+						<Grid>
+							<Grid.Style>
+								<Style TargetType="Grid">
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding UseCustomTheme}" Value="False">
+											<Setter Property="Opacity" Value="0.45" />
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</Grid.Style>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="*" MaxWidth="400" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+
+							<TextBlock Style="{StaticResource RowLabel}" Text="{x:Static fork:ForkStrings.KcvFleetImageForeColor}" />
+							<colorPicker:ColorPicker
+								Grid.Column="1"
+								Margin="0 2"
+								HorizontalAlignment="Left"
+								ColorMode="ColorCanvas"
+								DisplayColorAndName="True"
+								SelectedColor="{Binding ForegroundColor}"
+								>
+								<colorPicker:ColorPicker.Resources>
+									<SolidColorBrush x:Key="PopupBackgroundBrush" Color="{DynamicResource SystemAltHighColor}" />
+								</colorPicker:ColorPicker.Resources>
+							</colorPicker:ColorPicker>
+
+							<TextBlock
+								Grid.Row="1"
+								Style="{StaticResource RowLabel}"
+								Text="{x:Static fork:ForkStrings.KcvFleetImageBackColor}"
+								/>
+							<colorPicker:ColorPicker
+								Grid.Row="1"
+								Grid.Column="1"
+								Margin="0 2"
+								HorizontalAlignment="Left"
+								ColorMode="ColorCanvas"
+								DisplayColorAndName="True"
+								SelectedColor="{Binding BackgroundColor}"
+								>
+								<colorPicker:ColorPicker.Resources>
+									<SolidColorBrush x:Key="PopupBackgroundBrush" Color="{DynamicResource SystemAltHighColor}" />
+								</colorPicker:ColorPicker.Resources>
+							</colorPicker:ColorPicker>
+
+							<TextBlock
+								Grid.Row="2"
+								Style="{StaticResource RowLabel}"
+								Text="{x:Static translations:FleetImageGeneratorResources.BackgroundImage}"
+								/>
+							<TextBox
+								Grid.Row="2"
+								Grid.Column="1"
+								Style="{StaticResource Field}"
+								Text="{Binding BackgroundImagePath}"
+								ToolTip="{Binding DialogFleetImageGenerator.BackgroundImagePathToolTip}"
+								/>
+							<Button
+								Grid.Row="2"
+								Grid.Column="2"
+								Command="{Binding SelectBackgroundImageCommand}"
+								Style="{StaticResource Browse}"
+								ToolTip="{Binding DialogFleetImageGenerator.SearchBackgroundImagePathToolTip}"
+								/>
+						</Grid>
+					</DockPanel>
+				</Border>
+			</Grid>
+		</ScrollViewer>
+	</DockPanel>
+</UserControl>

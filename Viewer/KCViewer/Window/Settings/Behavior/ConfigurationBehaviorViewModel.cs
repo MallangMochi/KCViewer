@@ -1,0 +1,149 @@
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Input;
+using KCViewer.Avalonia.Dialogs.ShipSelector;
+using KCViewer.Core.Types;
+using KCViewer.Data;
+using KCViewer.Data.DiscordRPC;
+using KCViewer.Utility;
+using KCViewer.ViewModels;
+
+namespace KCViewer.Window.Settings.Behavior;
+
+public partial class ConfigurationBehaviorViewModel : ConfigurationViewModelBase
+{
+	public ConfigurationBehaviorTranslationViewModel Translation { get; }
+
+	private Configuration.ConfigurationData.ConfigControl Config { get; }
+
+	public int ConditionBorder { get; set; }
+
+	public RecordAutoSaving RecordAutoSaving { get; set; }
+
+	public bool UseSystemVolume { get; set; }
+
+	public EngagementType PowerEngagementForm { get; set; }
+
+	public bool ShowSallyAreaAlertDialog { get; set; }
+
+	public bool ShowExpeditionAlertDialog { get; set; }
+
+	public bool EnableDiscordRPC { get; set; }
+
+	public string DiscordRPCMessage { get; set; }
+
+	public bool DiscordRPCShowFCM { get; set; }
+
+	public string DiscordRPCApplicationId { get; set; }
+
+	public Uri UpdateRepoURL { get; set; }
+
+	public RpcIconKind RpcIconKind { get; set; }
+
+	private IShipDataMaster? ShipUsedForRpcIcon { get; set; }
+	
+	private ShipSelectorFactory ShipSelectorFactory { get; }
+	private ShipSelectorViewModel ShipSelectorViewModel => ShipSelectorFactory.ConfigurationBehavior;
+
+	public string SelectedShipName => ShipUsedForRpcIcon switch
+	{
+		{ } => ShipUsedForRpcIcon.NameEN,
+		_ => Translation.Control_DiscordRpc_NoShip,
+	};
+
+	public ConfigurationBehaviorViewModel(Configuration.ConfigurationData.ConfigControl config)
+	{
+		Translation = Ioc.Default.GetRequiredService<ConfigurationBehaviorTranslationViewModel>();
+		ShipSelectorFactory = Ioc.Default.GetRequiredService<ShipSelectorFactory>();
+		
+		Config = config;
+		Load(config);
+	}
+
+	[MemberNotNull(nameof(DiscordRPCMessage))]
+	[MemberNotNull(nameof(DiscordRPCApplicationId))]
+	[MemberNotNull(nameof(UpdateRepoURL))]
+	private void Load(Configuration.ConfigurationData.ConfigControl config)
+	{
+		ConditionBorder = config.ConditionBorder;
+		RecordAutoSaving = (RecordAutoSaving)config.RecordAutoSaving;
+		UseSystemVolume = config.UseSystemVolume;
+		PowerEngagementForm = (EngagementType)config.PowerEngagementForm;
+		ShowSallyAreaAlertDialog = config.ShowSallyAreaAlertDialog;
+		ShowExpeditionAlertDialog = config.ShowExpeditionAlertDialog;
+		EnableDiscordRPC = config.EnableDiscordRPC;
+		DiscordRPCMessage = config.DiscordRPCMessage;
+		DiscordRPCShowFCM = config.DiscordRPCShowFCM;
+		DiscordRPCApplicationId = config.DiscordRPCApplicationId;
+		UpdateRepoURL = config.UpdateRepoURL;
+		ShipUsedForRpcIcon = config.ShipUsedForRpcIcon switch
+		{
+			ShipId id => KCDatabase.Instance.MasterShips[(int)id],
+			_ => null,
+		};
+		RpcIconKind = config.RpcIconKind;
+	}
+
+	public override void Save()
+	{
+		Config.ConditionBorder = ConditionBorder;
+		Config.RecordAutoSaving = (int)RecordAutoSaving;
+		Config.UseSystemVolume = UseSystemVolume;
+		Config.PowerEngagementForm = (int)PowerEngagementForm;
+		Config.ShowSallyAreaAlertDialog = ShowSallyAreaAlertDialog;
+		Config.ShowExpeditionAlertDialog = ShowExpeditionAlertDialog;
+		Config.EnableDiscordRPC = EnableDiscordRPC;
+		Config.DiscordRPCMessage = DiscordRPCMessage;
+		Config.DiscordRPCShowFCM = DiscordRPCShowFCM;
+		Config.DiscordRPCApplicationId = DiscordRPCApplicationId;
+		Config.UpdateRepoURL = UpdateRepoURL;
+		Config.RpcIconKind = RpcIconKind;
+		Config.ShipUsedForRpcIcon = ShipUsedForRpcIcon?.ShipId;
+
+		ForkSave();
+	}
+
+	[RelayCommand]
+	private void SetRecordAutoSaving(RecordAutoSaving? recordAutoSaving)
+	{
+		if (recordAutoSaving is not { } autoSaving) return;
+
+		RecordAutoSaving = autoSaving;
+	}
+
+	[RelayCommand]
+	private void SetPowerEngagementForm(EngagementType? engagementType)
+	{
+		if (engagementType is not { } engagement) return;
+
+		PowerEngagementForm = engagement;
+	}
+
+	[RelayCommand]
+	private async Task ForceUpdate()
+	{
+		await SoftwareUpdater.CheckUpdateAsync();
+	}
+
+	[RelayCommand]
+	private void SelectRpcIconKind(RpcIconKind? kind)
+	{
+		if (kind is not { } kindNotNull) return;
+
+		RpcIconKind = kindNotNull;
+	}
+
+	[RelayCommand]
+	private void OpenShipPicker()
+	{
+		RpcIconKind = RpcIconKind.Ship;
+
+		ShipSelectorViewModel.ShowDialog();
+
+		if (ShipSelectorViewModel.SelectedShip is null) return;
+
+		ShipUsedForRpcIcon = ShipSelectorViewModel.SelectedShip.MasterShip;
+	}
+}

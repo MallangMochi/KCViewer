@@ -1,0 +1,274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AskClose" xml:space="preserve">
+    <value> を終了しますか？</value>
+  </data>
+  <data name="AskForUpdate" xml:space="preserve">
+    <value>新しいバージョンがリリースされています！ : {0}\
+更新内容 : 
+{1}
+ダウンロードページを開きますか？
+(キャンセルすると以降表示しません)</value>
+  </data>
+  <data name="AskLoad" xml:space="preserve">
+    <value>セーブしていないレコードが失われる可能性があります。
+ロードしますか？</value>
+  </data>
+  <data name="AskLogin" xml:space="preserve">
+    <value>ログインページへ移動します。
+よろしいですか？</value>
+  </data>
+  <data name="AskNavText" xml:space="preserve">
+    <value>移動先の URL を入力してください。</value>
+  </data>
+  <data name="AskNavTitle" xml:space="preserve">
+    <value>移動先の入力</value>
+  </data>
+  <data name="Browser" xml:space="preserve">
+    <value>ブラウザ</value>
+  </data>
+  <data name="BrowserClosedWithoutWarning" xml:space="preserve">
+    <value>ブラウザプロセスが予期せず終了しました。</value>
+  </data>
+  <data name="BrowserCloseError" xml:space="preserve">
+    <value>ブラウザの終了中にエラーが発生しました。</value>
+  </data>
+  <data name="BrowserThrewError" xml:space="preserve">
+    <value>ブラウザプロセス間で通信エラーが発生しました。</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="ClosingComplete" xml:space="preserve">
+    <value>終了処理が完了しました。</value>
+  </data>
+  <data name="DevelopedBy" xml:space="preserve">
+    <value>開発</value>
+  </data>
+  <data name="FailedBrowserStart" xml:space="preserve">
+    <value>ブラウザプロセスの起動に失敗しました。</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>ヘルプ</value>
+  </data>
+  <data name="InitLayout" xml:space="preserve">
+    <value>レイアウトが初期化されました。
+「表示」メニューからお好みのウィンドウを追加してください。</value>
+  </data>
+  <data name="IsClosing" xml:space="preserve">
+    <value> を終了しています…</value>
+  </data>
+  <data name="LayoutLoaded" xml:space="preserve">
+    <value>{0}からウィンドウ レイアウトを復元しました。</value>
+  </data>
+  <data name="LayoutSaved" xml:space="preserve">
+    <value>{0}へウィンドウ レイアウトを保存しました。</value>
+  </data>
+  <data name="NewVersionFound" xml:space="preserve">
+    <value>新しいバージョンがリリースされています！ :</value>
+  </data>
+  <data name="NoEquipData" xml:space="preserve">
+    <value>装備データが読み込まれていません。</value>
+  </data>
+  <data name="NoLayoutFound" xml:space="preserve">
+    <value>ウィンドウ レイアウト ファイルは存在しません。</value>
+  </data>
+  <data name="NoShipData" xml:space="preserve">
+    <value>艦船データが読み込まれていません。</value>
+  </data>
+  <data name="OpenLayout" xml:space="preserve">
+    <value>レイアウト ファイルを開く</value>
+  </data>
+  <data name="OriginalSite" xml:space="preserve">
+    <value>配布元(不具合報告・連絡はこちらへ)</value>
+  </data>
+  <data name="SoftwareName" xml:space="preserve">
+    <value>KCViewer</value>
+  </data>
+  <data name="StartupComplete" xml:space="preserve">
+    <value>起動処理が完了しました。</value>
+  </data>
+  <data name="TranslatedSite" xml:space="preserve">
+    <value>翻訳版元</value>
+  </data>
+  <data name="TranslatedVer" xml:space="preserve">
+    <value>翻訳版</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>アップデート情報</value>
+  </data>
+  <data name="UpdateConnectionFailed" xml:space="preserve">
+    <value>アップデート情報の処理に失敗しました。</value>
+  </data>
+  <data name="VersionTitle" xml:space="preserve">
+    <value>バージョン</value>
+  </data>
+  <data name="ZoomCurrent" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="FirstTimeDialog" xml:space="preserve">
+    <value>{0} をご利用いただきありがとうございます。
+設定や使用方法については「ヘルプ」→「オンラインヘルプ」を参照してください。
+ご使用の前に必ずご一読ください。</value>
+  </data>
+  <data name="FirstTimeTitle" xml:space="preserve">
+    <value>初回起動メッセージ</value>
+  </data>
+  <data name="FailedNewRecords" xml:space="preserve">
+    <value>バージョンアップに伴うレコードのコンバートに失敗しました。</value>
+  </data>
+  <data name="FailedRecordDialog" xml:space="preserve">
+    <value>コンバートに失敗しました。
+{0}
+起動処理を続行しますか？
+(データが破壊される可能性があります)
+</value>
+  </data>
+  <data name="NewRecordFormat" xml:space="preserve">
+    <value>バージョンアップが検出されました。
+古いレコードファイルを新しいフォーマットにコンバートします。
+(元のファイルは Record_Backup フォルダに残されます。)
+よろしいですか？
+(コンバートせずに続行した場合、読み込めなくなる可能性があります。)</value>
+  </data>
+  <data name="NewRecordTitle" xml:space="preserve">
+    <value>バージョンアップに伴う確認(～1.4.6)</value>
+  </data>
+  <data name="FailedToDelete" xml:space="preserve">
+    <value>削除に失敗しました。</value>
+  </data>
+  <data name="GroupUpgradeFailed" xml:space="preserve">
+    <value>バージョンアップに伴うグループデータの削除に失敗しました。</value>
+  </data>
+  <data name="NewGroupFormat" xml:space="preserve">
+    <value>バージョンアップが検出されました。
+艦船グループデータの互換性がなくなったため、当該データを初期化します。
+(古いファイルは Settings_Backup フォルダに退避されます。)
+よろしいですか？
+(初期化せずに続行した場合、エラーが発生します。)</value>
+  </data>
+  <data name="NewGroupFormatTitle" xml:space="preserve">
+    <value>バージョンアップに伴う確認(～1.5.0)</value>
+  </data>
+  <data name="MultiInstanceNotification" xml:space="preserve">
+    <value>既に起動しています。多重起動はできません。
+誤検出の場合は、コマンドラインから -m オプションを付けて起動してください。</value>
+  </data>
+</root>

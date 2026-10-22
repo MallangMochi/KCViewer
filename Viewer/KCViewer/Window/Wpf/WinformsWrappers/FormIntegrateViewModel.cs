@@ -1,0 +1,53 @@
+﻿using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
+using KCViewer.Resource;
+using KCViewer.ViewModels;
+using KCViewer.Window.Integrate;
+using KCViewer.Window.Wpf.WinformsHost;
+
+namespace KCViewer.Window.Wpf.WinformsWrappers;
+
+public class FormIntegrateViewModel : WinformsHostViewModel
+{
+	private FormMainViewModel Parent { get; }
+	private FormIntegrate Integrate { get; }
+	public override string ContentId => Integrate.PersistString;
+
+	public FormIntegrateViewModel(FormIntegrate integrate, FormMainViewModel parent)
+		: base("Integrate", "Integrate", IconContent.FormJson)
+	{
+		Parent = parent;
+		Integrate = integrate;
+
+		Title = integrate.WindowData.CurrentTitle;
+		integrate.TopLevel = false;
+		WinformsControl = integrate;
+
+		WindowsFormsHost.Child = WinformsControl;
+
+		integrate.PropertyChanged += (sender, args) =>
+		{
+			if (args.PropertyName is not nameof(FormIntegrate.Icon)) return;
+
+			IconSource = Imaging.CreateBitmapSourceFromHIcon(
+				Integrate.Icon.Handle,
+				Int32Rect.Empty,
+				BitmapSizeOptions.FromWidthAndHeight(16, 16));
+		};
+
+		integrate.PropertyChanged += (sender, args) =>
+		{
+			if (args.PropertyName is not nameof(FormIntegrate.Text)) return;
+
+			Title = Integrate.Text;
+		};
+	}
+
+	public void RaiseContentIdChanged() => OnPropertyChanged(nameof(ContentId));
+
+	protected override void Close()
+	{
+		Parent.CloseIntegrate(this);
+	}
+}

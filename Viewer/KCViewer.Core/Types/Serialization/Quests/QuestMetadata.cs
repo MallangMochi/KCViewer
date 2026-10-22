@@ -1,0 +1,17 @@
+﻿using System;
+using System.Text.Json.Serialization;
+using KCViewer.Core.Types.Quests;
+
+namespace KCViewer.Core.Types.Serialization.Quests;
+
+public record QuestMetadata
+{
+	[JsonPropertyName("id")]
+	public required int ApiId { get; set; }
+
+	[JsonPropertyName("endTime")]
+	public DateTime? EndTime { get; set; }
+
+	[JsonPropertyName("resetType")]
+	public QuestResetType? QuestProgressResetType { get; set; }
+}

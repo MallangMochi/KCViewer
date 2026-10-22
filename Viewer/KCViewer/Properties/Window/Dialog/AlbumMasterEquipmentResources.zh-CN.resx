@@ -1,0 +1,246 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="StripMenu_File" xml:space="preserve">
+    <value>文件(&amp;F)</value>
+  </data>
+  <data name="StripMenu_File_OutputCSVUser" xml:space="preserve">
+    <value>导出CSV(浏览用)(&amp;U)...</value>
+  </data>
+  <data name="StripMenu_File_OutputCSVData" xml:space="preserve">
+    <value>导出CSV(数据用)(&amp;D)...</value>
+  </data>
+  <data name="StripMenu_Edit" xml:space="preserve">
+    <value>编辑(&amp;E)</value>
+  </data>
+  <data name="StripMenu_Edit_CopyEquipmentName" xml:space="preserve">
+    <value>复制装备名(&amp;N)</value>
+  </data>
+  <data name="StripMenu_Edit_CopyEquipmentData" xml:space="preserve">
+    <value>复制装备数据(&amp;D)</value>
+  </data>
+  <data name="StripMenu_Edit_GoogleEquipmentName" xml:space="preserve">
+    <value>在DuckDuckGo检索装备名(&amp;G)</value>
+  </data>
+  <data name="StripMenu_View" xml:space="preserve">
+    <value>显示(&amp;V)</value>
+  </data>
+  <data name="StripMenu_View_ShowAppearingArea" xml:space="preserve">
+    <value>初始装备舰・开发公式检索(&amp;S)</value>
+  </data>
+  <data name="EquipmentView_Type" xml:space="preserve">
+    <value>装备种类</value>
+  </data>
+  <data name="EquipmentView_Name" xml:space="preserve">
+    <value>装备名称</value>
+  </data>
+  <data name="TitleAircraftCost" xml:space="preserve">
+    <value>配置消耗</value>
+  </data>
+  <data name="TitleAircraftDistance" xml:space="preserve">
+    <value>作战行动半径</value>
+  </data>
+  <data name="InitialEquipmentShip" xml:space="preserve">
+    <value>初始装备舰：</value>
+  </data>
+  <data name="LibraryId" xml:space="preserve">
+    <value>图鉴编号:</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>[5inch连装炮]
+某个国家最广泛使用的驱逐舰主炮的双联装版本。
+大型舰上也将其作为防空炮进行装备。
+如今已普及为深海驱逐舰的主力武器装备。</value>
+  </data>
+  <data name="EquipmentType" xml:space="preserve">
+    <value>旋翼机</value>
+  </data>
+  <data name="EquipmentName" xml:space="preserve">
+    <value>试制FaT式样九五式酸素鱼雷改</value>
+  </data>
+  <data name="TitleSpeed" xml:space="preserve">
+    <value>速度</value>
+  </data>
+  <data name="TitleLOS" xml:space="preserve">
+    <value>索敌</value>
+  </data>
+  <data name="TitleAA" xml:space="preserve">
+    <value>对空</value>
+  </data>
+  <data name="TitleASW" xml:space="preserve">
+    <value>对潜</value>
+  </data>
+  <data name="SaveCSVDialog" xml:space="preserve">
+    <value>导出CSV</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>装备图鉴</value>
+  </data>
+  <data name="RightClickToCopy" xml:space="preserve">
+    <value>(右键点击复制)</value>
+  </data>
+  <data name="AntiBomber" xml:space="preserve">
+    <value>对爆</value>
+  </data>
+  <data name="Interception" xml:space="preserve">
+    <value>迎击</value>
+  </data>
+  <data name="Equippable" xml:space="preserve">
+    <value>可以装备</value>
+  </data>
+  <data name="Excluding" xml:space="preserve">
+    <value>除外</value>
+  </data>
+  <data name="ExpansionSlot" xml:space="preserve">
+    <value>增设栏位</value>
+  </data>
+  <data name="DialogTitleError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="FailedToExportCsv" xml:space="preserve">
+    <value>装备图鉴 CSV文件导出失败。</value>
+  </data>
+  <data name="Recipe" xml:space="preserve">
+    <value>开发</value>
+  </data>
+  <data name="FailedToFindShipOrRecipe" xml:space="preserve">
+    <value>{0} 的初始装备舰・开发公式不明。</value>
+  </data>
+  <data name="ShipOrRecipeCaption" xml:space="preserve">
+    <value>获取途径显示</value>
+  </data>
+  <data name="FailedToSearchOnWeb" xml:space="preserve">
+    <value>该舰船名在 DuckDuckGo 检索失败。</value>
+  </data>
+  <data name="UpgradeCost" xml:space="preserve">
+    <value>改修所需资材</value>
+  </data>
+  <data name="EquipmentUpgrades" xml:space="preserve">
+    <value>改修所需资材</value>
+  </data>
+  <data name="Owned" xml:space="preserve">
+    <value>持有</value>
+  </data>
+  <data name="Helpers" xml:space="preserve">
+    <value>二号舰</value>
+  </data>
+  <data name="RequiredItems" xml:space="preserve">
+    <value>消耗装备</value>
+  </data>
+</root>

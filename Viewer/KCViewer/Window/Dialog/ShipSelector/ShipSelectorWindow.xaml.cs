@@ -1,0 +1,37 @@
+﻿using System;
+using Avalonia.Win32.Interoperability;
+using KCViewer.Avalonia.Dialogs.ShipSelector;
+
+namespace KCViewer.Window.Dialog.ShipSelector;
+
+public partial class ShipSelectorWindow
+{
+	public WpfAvaloniaHost WpfAvaloniaHost { get; }
+
+	public ShipSelectorWindow(ShipSelectorViewModel viewModel) : base(viewModel)
+	{
+		WpfAvaloniaHost = new()
+		{
+			Content = new ShipSelectorView
+			{
+				DataContext = viewModel,
+			},
+		};
+
+		InitializeComponent();
+
+		ViewModel.RequestClose += ViewModel_PropertyChanged;
+
+		Closing += ShipPicker_Closing;
+	}
+
+	private void ShipPicker_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+	{
+		ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+	}
+
+	private void ViewModel_PropertyChanged(object? sender, EventArgs e)
+	{
+		Close();
+	}
+}

@@ -1,0 +1,36 @@
+﻿using System.Windows;
+using System.Windows.Controls;
+using KCViewer.Window.Dialog.QuestTrackerManager.ViewModels.Tasks;
+
+namespace KCViewer.Window.Dialog.QuestTrackerManager.Views;
+
+public class TaskTemplateSelector : DataTemplateSelector
+{
+	public DataTemplate? BossKill { get; set; }
+	public DataTemplate? Expedition { get; set; }
+	public DataTemplate? BattleNodeId { get; set; }
+	public DataTemplate? EquipmentScrap { get; set; }
+	public DataTemplate? EquipmentCategoryScrap { get; set; }
+	public DataTemplate? EquipmentCardTypeScrap { get; set; }
+	public DataTemplate? EquipmentIconTypeScrap { get; set; }
+	public DataTemplate? NodeReach { get; set; }
+	public DataTemplate? MapFirstClear { get; set; }
+	public DataTemplate? Exercise { get; set; }
+	public DataTemplate? Unknown { get; set; }
+
+	public override DataTemplate? SelectTemplate(object item, DependencyObject container) => item switch
+	{
+		BossKillTaskViewModel => BossKill,
+		ExpeditionTaskViewModel => Expedition,
+		BattleNodeIdTaskViewModel => BattleNodeId,
+		EquipmentScrapTaskViewModel => EquipmentScrap,
+		EquipmentCategoryScrapTaskViewModel => EquipmentCategoryScrap,
+		EquipmentCardTypeScrapTaskViewModel => EquipmentCardTypeScrap,
+		EquipmentIconTypeScrapTaskViewModel => EquipmentIconTypeScrap,
+		NodeReachTaskViewModel => NodeReach,
+		MapFirstClearTaskViewModel => MapFirstClear,
+		ExerciseTaskViewModel => Exercise,
+
+		_ => Unknown
+	};
+}

@@ -1,0 +1,387 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvEquipmentSelectorWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:equipmentFilter="clr-namespace:KCViewer.Avalonia.Controls.EquipmentFilter;assembly=KCViewer.Avalonia"
+	xmlns:equipmentSelector="clr-namespace:KCViewer.Avalonia.Dialogs.EquipmentSelector;assembly=KCViewer.Avalonia"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static equipmentSelector:EquipmentSelectorResources.EquipmentPicker}"
+	Width="720"
+	Height="560"
+	MinWidth="520"
+	MinHeight="360"
+	d:DataContext="{d:DesignInstance kcv:KcvEquipmentSelectorViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvEquipmentSelectorViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the viewer's equipment selector in KanColleViewer's style (mockup 20261009-upgrade-plan-windows-v2, approved
+		2026-10-09 "구현"), the ship selector's frame: 검색 조건 (분류 with 전체 선택 and the equipment list's game
+		categories with their icons, 장비명; folded, 「적용 중: …」), the table (icon, 장비명, 개수, 숙련, 화력, 뇌장, 대공, ID),
+		the status bar. A row or Enter picks and closes.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--  the header without the record tables' column menu, a little narrower so a sorted column's arrow fits  -->
+			<Style
+				x:Key="Header"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ContextMenu" Value="{x:Null}" />
+				<Setter Property="Padding" Value="4 5" />
+			</Style>
+
+			<Style
+				x:Key="Row"
+				BasedOn="{StaticResource KcvRec.Row}"
+				TargetType="DataGridRow"
+				>
+				<Setter Property="Cursor" Value="Hand" />
+				<EventSetter Event="PreviewMouseLeftButtonUp" Handler="PickRow" />
+			</Style>
+
+			<!--  a category: the record windows' check box (accent when on) before its icon and name, as the mockup  -->
+			<Style x:Key="Category" TargetType="CheckBox">
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+				<Setter Property="FontSize" Value="13" />
+				<Setter Property="MinHeight" Value="23" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="SnapsToDevicePixels" Value="True" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="CheckBox">
+							<StackPanel Background="Transparent" Orientation="Horizontal">
+								<Border
+									x:Name="Box"
+									Width="13"
+									Height="13"
+									Margin="0 0 5 0"
+									VerticalAlignment="Center"
+									Background="{DynamicResource Kcv.ButtonBackground}"
+									BorderBrush="{DynamicResource Kcv.Separator}"
+									BorderThickness="1"
+									CornerRadius="2"
+									>
+									<Path
+										x:Name="Mark"
+										Margin="1"
+										Data="M 1.5,5.5 L 4.2,8.2 L 9,2.5"
+										Stroke="White"
+										StrokeThickness="1.6"
+										Visibility="Collapsed"
+										/>
+								</Border>
+								<ContentPresenter VerticalAlignment="Center" />
+							</StackPanel>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter TargetName="Mark" Property="Visibility" Value="Visible" />
+									<Setter TargetName="Box" Property="Background" Value="{DynamicResource Kcv.Accent}" />
+									<Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource Kcv.Accent}" />
+								</Trigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<!--  「접기 ▴」 / 「펼치기 ▾」 as the record windows' conditions box, bound here so 적용 중 shows while folded  -->
+			<Style x:Key="Fold" TargetType="ToggleButton">
+				<Setter Property="HorizontalAlignment" Value="Right" />
+				<Setter Property="Cursor" Value="Hand" />
+				<Setter Property="Focusable" Value="False" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ToggleButton">
+							<TextBlock
+								x:Name="Label"
+								Background="Transparent"
+								FontSize="11"
+								Foreground="{DynamicResource Kcv.InactiveForeground}"
+								Text="{x:Static fork:ForkStrings.KcvRecordFold}"
+								/>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsChecked" Value="False">
+									<Setter TargetName="Label" Property="Text" Value="{x:Static fork:ForkStrings.KcvRecordUnfold}" />
+								</Trigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+
+			<Style
+				x:Key="Number"
+				BasedOn="{StaticResource KcvRec.Text}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="HorizontalAlignment" Value="Right" />
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  검색 조건  -->
+		<Border
+			Grid.Row="0"
+			Margin="8 6 8 6"
+			Padding="8 3 8 5"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="1"
+			>
+			<StackPanel>
+				<Grid>
+					<TextBlock
+						FontSize="12"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						Text="{x:Static fork:ForkStrings.KcvRecordConditions}"
+						/>
+					<ToggleButton IsChecked="{Binding ConditionsOpen}" Style="{StaticResource Fold}" />
+				</Grid>
+				<TextBlock
+					Margin="0 2 0 0"
+					FontSize="12"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					Text="{Binding AppliedText}"
+					Visibility="{Binding ShowApplied, Converter={StaticResource KcvRec.Visible}}"
+					/>
+
+				<StackPanel Margin="0 3 0 0" Visibility="{Binding ConditionsOpen, Converter={StaticResource KcvRec.Visible}}">
+					<!--  분류: 전체 선택 and the game's categories of the given equipment, as the equipment list's  -->
+					<DockPanel Margin="0 1">
+						<TextBlock
+							VerticalAlignment="Top"
+							DockPanel.Dock="Left"
+							Style="{StaticResource KcvRec.FirstLabel}"
+							Text="{x:Static fork:ForkStrings.KcvSelectorCategory}"
+							/>
+						<StackPanel>
+							<CheckBox
+								Margin="0 0 0 3"
+								HorizontalAlignment="Left"
+								Content="{x:Static fork:ForkStrings.KcvSelectAll}"
+								IsChecked="{Binding AllCategories}"
+								Style="{StaticResource KcvRec.Check}"
+								/>
+							<ItemsControl Focusable="False" ItemsSource="{Binding Filter.Categories}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<WrapPanel Orientation="Horizontal" />
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+								<ItemsControl.ItemTemplate>
+									<DataTemplate DataType="{x:Type kcv:KcvEquipmentCategoryFilter}">
+										<CheckBox
+											Width="126"
+											IsChecked="{Binding IsChecked}"
+											Style="{StaticResource Category}"
+											ToolTip="{Binding Name}"
+											>
+											<StackPanel Orientation="Horizontal">
+												<Image
+													Width="20"
+													Height="20"
+													Margin="0 0 4 0"
+													Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+													Style="{StaticResource Kcv.EquipmentIcon}"
+													/>
+												<TextBlock
+													MaxWidth="80"
+													VerticalAlignment="Center"
+													Text="{Binding Name}"
+													TextTrimming="CharacterEllipsis"
+													/>
+											</StackPanel>
+										</CheckBox>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</StackPanel>
+					</DockPanel>
+
+					<!--  장비명  -->
+					<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+						<StackPanel Style="{StaticResource KcvRec.Pair}">
+							<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding Source={x:Static equipmentFilter:EquipmentFilterResources.Name}, StringFormat={}{0}:}" />
+							<TextBox
+								x:Name="NameBox"
+								Width="200"
+								Style="{StaticResource KcvRec.TextBox}"
+								Tag="{x:Static fork:ForkStrings.KcvPickerNameHint}"
+								Text="{Binding Filter.NameFilter, UpdateSourceTrigger=PropertyChanged}"
+								/>
+						</StackPanel>
+					</WrapPanel>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+
+		<DataGrid
+			x:Name="Table"
+			Grid.Row="1"
+			ColumnHeaderStyle="{StaticResource Header}"
+			ItemsSource="{Binding View}"
+			PreviewKeyDown="PickSelected"
+			RowStyle="{StaticResource Row}"
+			SelectionMode="Single"
+			Style="{StaticResource KcvRec.Grid}"
+			>
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="34"
+					MinWidth="34"
+					CanUserSort="False"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<Image
+								Width="20"
+								Height="20"
+								Margin="6 0 0 0"
+								HorizontalAlignment="Left"
+								Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+								Style="{StaticResource Kcv.EquipmentIcon}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="160"
+					Header="{x:Static equipmentFilter:EquipmentFilterResources.Name}"
+					SortMemberPath="Name"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Name}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="62"
+					MinWidth="62"
+					Header="{x:Static equipmentFilter:EquipmentFilterResources.Level}"
+					SortMemberPath="Level"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock
+								Foreground="{x:Static kcv:KcvBrushes.StarImproved}"
+								Style="{StaticResource Number}"
+								Text="{Binding LevelText}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="{x:Static fork:ForkStrings.KcvSelectorProficiency}"
+					SortMemberPath="Proficiency"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding ProficiencyText}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="{x:Static equipmentFilter:EquipmentFilterResources.Firepower}"
+					SortMemberPath="Firepower"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding Firepower}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="{x:Static equipmentFilter:EquipmentFilterResources.Torpedo}"
+					SortMemberPath="Torpedo"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding Torpedo}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="{x:Static equipmentFilter:EquipmentFilterResources.AntiAir}"
+					SortMemberPath="AntiAir"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock Style="{StaticResource Number}" Text="{Binding AntiAir}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					MinWidth="50"
+					Header="ID"
+					SortMemberPath="Id"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSelectorEquipment}">
+							<TextBlock
+								Foreground="{DynamicResource Kcv.InactiveForeground}"
+								Style="{StaticResource Number}"
+								Text="{Binding Id}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<Border Grid.Row="2" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<TextBlock DockPanel.Dock="Right" Text="{x:Static fork:ForkStrings.KcvSelectorEquipmentRowHint}" />
+				<TextBlock Text="{Binding CountText}" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

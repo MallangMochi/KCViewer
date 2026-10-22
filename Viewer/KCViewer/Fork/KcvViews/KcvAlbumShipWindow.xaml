@@ -1,0 +1,1125 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvAlbumShipWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:ship="clr-namespace:KCViewer.Window.Tools.DialogAlbumMasterShip"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="850"
+	Height="630"
+	MinWidth="780"
+	MinHeight="480"
+	d:DataContext="{d:DesignInstance ship:DialogAlbumMasterShipViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="ship:DialogAlbumMasterShipViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship album in KanColleViewer's style (mockup v5, viewer-design/mockups/20261005-album-v5.html, approved
+		2026-10-05 "구현 진행해") with the viewer's view model. Left: 「검색 조건」 with 「함명:」 (name or reading, as the
+		viewer) over the table ID·함종·함명; right: the details in cards (the name, stats with the 「Lv.」 box, equipment,
+		construction·scrap·modernization, remodel, the album text). The viewer's menus, tooltips and right clicks stay.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvAlbumStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--  a right click on a row opens that ship in a new album window, as the viewer  -->
+			<Style
+				x:Key="Row"
+				BasedOn="{StaticResource KcvAlbum.Row}"
+				TargetType="DataGridRow"
+				>
+				<EventSetter Event="MouseRightButtonUp" Handler="OpenRowInNewWindow" />
+			</Style>
+
+			<!--  an equipment type of the ship type's tooltip  -->
+			<DataTemplate DataType="{x:Type ship:EquippableType}">
+				<StackPanel Margin="0 1" Orientation="Horizontal">
+					<Image
+						Width="16"
+						Height="16"
+						Margin="0 0 4 0"
+						Source="{Binding IconType, Converter={StaticResource Kcv.GameIcon}}"
+						Style="{StaticResource Kcv.EquipmentIcon}"
+						/>
+					<TextBlock VerticalAlignment="Center" Text="{Binding Name}" />
+				</StackPanel>
+			</DataTemplate>
+
+			<!--  a stat row: the viewer's icon, the name, base and max (the level column is set per row)  -->
+			<Style x:Key="StatIcon" TargetType="Image">
+				<Setter Property="Width" Value="16" />
+				<Setter Property="Height" Value="16" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+			</Style>
+			<Style
+				x:Key="StatName"
+				BasedOn="{StaticResource KcvAlbum.Value}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="Margin" Value="4 1 6 1" />
+			</Style>
+
+			<!--  a resource: its coloured square and the number  -->
+			<DataTemplate x:Key="RemodelItem" DataType="{x:Type ship:RemodelItem}">
+				<StackPanel Margin="0 0 6 0" Orientation="Horizontal">
+					<common:IconContentIcon
+						Width="14"
+						Height="14"
+						Margin="0 0 2 0"
+						Type="{Binding Icon}"
+						/>
+					<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding Count}" />
+				</StackPanel>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid x:Name="Root">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<Menu Grid.Row="0">
+			<MenuItem Header="{Binding DialogAlbumMasterShip.StripMenu_File}">
+				<MenuItem Command="{Binding StripMenu_File_OutputCSVUser_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_OutputCSVUser}" />
+				<MenuItem Command="{Binding StripMenu_File_OutputCSVData_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_OutputCSVData}" />
+				<Separator />
+				<MenuItem Command="{Binding StripMenu_File_MergeDefaultRecord_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_MergeDefaultRecord}" />
+			</MenuItem>
+			<MenuItem Header="{Binding DialogAlbumMasterShip.StripMenu_Edit}">
+				<MenuItem Command="{Binding StripMenu_Edit_EditParameter_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_EditParameter}" />
+				<Separator />
+				<MenuItem Command="{Binding StripMenu_Edit_CopyShipName_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_CopyShipName}" />
+				<MenuItem Command="{Binding StripMenu_Edit_CopyShipData_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_CopyShipData}" />
+				<Separator />
+				<MenuItem Command="{Binding StripMenu_Edit_GoogleShipName_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_GoogleShipName}" />
+				<Separator />
+				<MenuItem Command="{Binding StripMenu_Edit_CopySpecialEquipmentTable_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_CopySpecialEquipmentTable}" />
+			</MenuItem>
+			<MenuItem Header="{Binding DialogAlbumMasterShip.StripMenu_View}">
+				<MenuItem Command="{Binding StripMenu_View_ShowAppearingArea_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_View_ShowAppearingArea}" />
+				<MenuItem Command="{Binding StripMenu_View_ShowShipGraphicViewer_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_View_ShowShipGraphicViewer}" />
+			</MenuItem>
+		</Menu>
+
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="300" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+
+			<!--  the search and the table  -->
+			<DockPanel Grid.Column="0">
+				<Border
+					BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+					BorderThickness="0 1 1 0"
+					DockPanel.Dock="Top"
+					>
+					<ContentControl Style="{StaticResource KcvAlbum.SearchBox}">
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Style="{StaticResource KcvRec.FirstLabel}">
+								<Run Text="{x:Static fork:ForkStrings.KcvAlbumShipName}" /><Run Text=":" />
+							</TextBlock>
+							<TextBox
+								Width="200"
+								Style="{StaticResource KcvRec.TextBox}"
+								Tag="{x:Static fork:ForkStrings.KcvPickerNameHint}"
+								Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}"
+								/>
+						</StackPanel>
+					</ContentControl>
+				</Border>
+
+				<Border BorderBrush="{DynamicResource Kcv.HeaderBackground}" BorderThickness="0 0 1 0">
+					<DataGrid
+						x:Name="Table"
+						ItemsSource="{Binding DataGridViewModel.Items, IsAsync=True, NotifyOnTargetUpdated=True}"
+						RowStyle="{StaticResource Row}"
+						SelectedItem="{Binding SelectedShip}"
+						Style="{StaticResource KcvAlbum.Grid}"
+						Tag="{Binding DataGridViewModel}"
+						TargetUpdated="TableUpdated"
+						VirtualizingStackPanel.IsVirtualizing="True"
+						VirtualizingStackPanel.VirtualizationMode="Recycling"
+						>
+						<b:Interaction.Behaviors>
+							<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridViewModel.SortDescriptions}" />
+						</b:Interaction.Behaviors>
+
+						<DataGrid.ContextMenu>
+							<ContextMenu>
+								<MenuItem Command="{Binding DataGridViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridViewModel.DataGrid.OpenColumnSelector}" />
+								<MenuItem Command="{Binding DataGridViewModel.ClearSortingCommand}" Header="{Binding DataGridViewModel.DataGrid.ClearSorting}" />
+							</ContextMenu>
+						</DataGrid.ContextMenu>
+
+						<DataGrid.Columns>
+							<DataGridTemplateColumn
+								Width="52"
+								MinWidth="52"
+								Header="ID"
+								SortMemberPath="Ship.ID"
+								>
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate DataType="{x:Type ship:ShipDataRecord}">
+										<TextBlock Style="{StaticResource KcvAlbum.CellGrey}" Text="{Binding Ship.ID}" />
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
+
+							<DataGridTemplateColumn
+								Width="96"
+								MinWidth="96"
+								Header="{x:Static fork:ForkStrings.KcvColumnType}"
+								SortMemberPath="Ship.ShipTypeName"
+								>
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate DataType="{x:Type ship:ShipDataRecord}">
+										<TextBlock Style="{StaticResource KcvAlbum.CellText}" Text="{Binding Ship.ShipTypeName}" />
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
+
+							<DataGridTemplateColumn
+								Width="*"
+								Header="{x:Static fork:ForkStrings.KcvAlbumShipName}"
+								SortMemberPath="Ship.NameWithClass"
+								>
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate DataType="{x:Type ship:ShipDataRecord}">
+										<TextBlock Style="{StaticResource KcvAlbum.CellText}" Text="{Binding Ship.NameWithClass}" />
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
+						</DataGrid.Columns>
+					</DataGrid>
+				</Border>
+			</DockPanel>
+
+			<!--  the details of the chosen ship  -->
+			<ScrollViewer
+				Grid.Column="1"
+				BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+				BorderThickness="0 1 0 0"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto"
+				>
+				<StackPanel
+					Margin="10 8 22 0"
+					DataContext="{Binding SelectedShip}"
+					Visibility="{Binding DataContext.DetailsVisible, ElementName=Root, Converter={StaticResource KcvRec.Visible}}"
+					>
+					<!--  the name, the ship type (equippable types in its tooltip), the numbers and the banner  -->
+					<Border Style="{StaticResource KcvAlbum.Card}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<StackPanel Grid.Column="0" VerticalAlignment="Center">
+								<TextBlock
+									Background="Transparent"
+									FontSize="16"
+									Text="{Binding Ship.NameWithClass}"
+									ToolTip="{Binding ShipNameToolTip}"
+									>
+									<TextBlock.Style>
+										<Style TargetType="TextBlock">
+											<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+											<Style.Triggers>
+												<!--  abyssal ships keep the viewer's colours (flagship, elite)  -->
+												<DataTrigger Binding="{Binding IsAbyssalShip}" Value="True">
+													<Setter Property="Foreground" Value="{Binding NameColor}" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</TextBlock.Style>
+									<TextBlock.InputBindings>
+										<MouseBinding Command="{Binding DataContext.StripMenu_Edit_CopyShipName_ClickCommand, ElementName=Root}" MouseAction="RightClick" />
+									</TextBlock.InputBindings>
+								</TextBlock>
+								<TextBlock
+									Background="Transparent"
+									Style="{StaticResource KcvAlbum.Grey}"
+									Text="{Binding ShipType}"
+									>
+									<TextBlock.ToolTip>
+										<StackPanel>
+											<TextBlock>
+												<Run Text="{Binding ShipTypeToolTipHeader, Mode=OneWay}" />
+												<LineBreak />
+												<LineBreak />
+												<Run Text="{Binding DialogAlbumMasterShip.Equippable, Mode=OneWay}" />
+												<Run Text=":" />
+											</TextBlock>
+											<ItemsControl ItemsSource="{Binding EquippableTypeList}" />
+											<TextBlock>
+												<TextBlock.Style>
+													<Style TargetType="TextBlock">
+														<Style.Triggers>
+															<DataTrigger Binding="{Binding ExpansionEquippableTypeList.Count}" Value="0">
+																<Setter Property="Visibility" Value="Collapsed" />
+															</DataTrigger>
+														</Style.Triggers>
+													</Style>
+												</TextBlock.Style>
+												<LineBreak />
+												<Run Text="{Binding DialogAlbumMasterShip.ReinforcementSlot, Mode=OneWay}" />
+												<Run Text=":" />
+											</TextBlock>
+											<ItemsControl ItemsSource="{Binding ExpansionEquippableTypeList}" />
+										</StackPanel>
+									</TextBlock.ToolTip>
+								</TextBlock>
+								<TextBlock Margin="0 2 0 0" Style="{StaticResource KcvAlbum.Grey}">
+									<Run Text="ID" />
+									<Run Text="{Binding Ship.ID, Mode=OneWay}" />
+									<Run Text="·" />
+									<Run Text="{x:Static fork:ForkStrings.KcvAlbumNumber}" />
+									<Run Text="{Binding Ship.AlbumNo, Mode=OneWay}" />
+									<Run Text="·" />
+									<Run Text="{Binding ResourceNameText, Mode=OneWay}" ToolTip="{Binding ResourceNameToolTip}">
+										<Run.InputBindings>
+											<MouseBinding Command="{Binding DataContext.ResourceName_MouseClickCommand, ElementName=Root}" MouseAction="RightClick" />
+										</Run.InputBindings>
+									</Run>
+								</TextBlock>
+							</StackPanel>
+							<Image
+								Grid.Column="1"
+								Height="40"
+								Margin="8 0 0 0"
+								Source="{Binding Ship, Converter={StaticResource ShipToBannerImageConverter}, IsAsync=True}"
+								ToolTip="{Binding ShipBannerToolTip}"
+								>
+								<Image.InputBindings>
+									<MouseBinding Command="{Binding DataContext.StripMenu_View_ShowShipGraphicViewer_ClickCommand, ElementName=Root}" MouseAction="RightClick" />
+								</Image.InputBindings>
+							</Image>
+						</Grid>
+					</Border>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="244" />
+							<ColumnDefinition Width="8" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+
+						<!--  stats: base, max and the estimate at the level of the box (ASW, evasion, LoS, accuracy)  -->
+						<Border
+							Grid.Column="0"
+							VerticalAlignment="Top"
+							Style="{StaticResource KcvAlbum.Card}"
+							>
+							<StackPanel>
+								<TextBlock Style="{StaticResource KcvAlbum.CardTitle}" Text="{x:Static fork:ForkStrings.KcvAlbumStats}" />
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="18" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="46" />
+										<ColumnDefinition Width="46" />
+										<ColumnDefinition Width="62" />
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+									</Grid.RowDefinitions>
+
+									<!--  the header: 초기·최대 (abyssal ships: the viewer's 기본 값·장비 중) and the level box  -->
+									<Border
+										Grid.Row="0"
+										Grid.ColumnSpan="5"
+										Margin="0 0 0 3"
+										BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+										BorderThickness="0 0 0 1"
+										/>
+									<TextBlock
+										Grid.Row="0"
+										Grid.Column="2"
+										Margin="0 0 0 5"
+										HorizontalAlignment="Right"
+										>
+										<TextBlock.Style>
+											<Style BasedOn="{StaticResource KcvAlbum.Grey}" TargetType="TextBlock">
+												<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvAlbumInitial}" />
+												<Style.Triggers>
+													<DataTrigger Binding="{Binding IsAbyssalShip}" Value="True">
+														<Setter Property="Text" Value="{Binding DataContext.TitleParameterMin, ElementName=Root}" />
+													</DataTrigger>
+												</Style.Triggers>
+											</Style>
+										</TextBlock.Style>
+									</TextBlock>
+									<TextBlock
+										Grid.Row="0"
+										Grid.Column="3"
+										Margin="0 0 0 5"
+										HorizontalAlignment="Right"
+										>
+										<TextBlock.Style>
+											<Style BasedOn="{StaticResource KcvAlbum.Grey}" TargetType="TextBlock">
+												<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvAlbumMaximum}" />
+												<Style.Triggers>
+													<DataTrigger Binding="{Binding IsAbyssalShip}" Value="True">
+														<Setter Property="Text" Value="{Binding DataContext.TitleParameterMax, ElementName=Root}" />
+													</DataTrigger>
+												</Style.Triggers>
+											</Style>
+										</TextBlock.Style>
+									</TextBlock>
+									<StackPanel
+										Grid.Row="0"
+										Grid.Column="4"
+										Margin="0 0 0 4"
+										HorizontalAlignment="Right"
+										Orientation="Horizontal"
+										ToolTip="{Binding DialogAlbumMasterShip.ParameterLevelToolTip}"
+										>
+										<TextBlock
+											Margin="0 0 3 0"
+											Style="{StaticResource KcvAlbum.Grey}"
+											Text="Lv."
+											/>
+										<TextBox
+											Width="36"
+											Padding="0"
+											FontSize="12"
+											Style="{StaticResource KcvRec.TextBox}"
+											Text="{Binding DataContext.Level, ElementName=Root, UpdateSourceTrigger=PropertyChanged}"
+											/>
+									</StackPanel>
+
+									<Image
+										Grid.Row="1"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Hp}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="1"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.TitleHP}"
+										/>
+									<TextBlock
+										Grid.Row="1"
+										Grid.Column="2"
+										Background="Transparent"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding HpMin}"
+										ToolTip="{Binding HpMinToolTip}"
+										/>
+									<TextBlock
+										Grid.Row="1"
+										Grid.Column="3"
+										Background="Transparent"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding HpMax}"
+										ToolTip="{Binding HpMaxToolTip}"
+										/>
+
+									<Image
+										Grid.Row="2"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Firepower}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Firepower}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding FirepowerMin}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding FirepowerMax}"
+										/>
+
+									<Image
+										Grid.Row="3"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Torpedo}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="3"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Torpedo}"
+										/>
+									<TextBlock
+										Grid.Row="3"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding TorpedoMin}"
+										/>
+									<TextBlock
+										Grid.Row="3"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding TorpedoMax}"
+										/>
+
+									<Image
+										Grid.Row="4"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.AntiAir}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="4"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.AA}"
+										/>
+									<TextBlock
+										Grid.Row="4"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AaMin}"
+										/>
+									<TextBlock
+										Grid.Row="4"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AaMax}"
+										/>
+
+									<Image
+										Grid.Row="5"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Armor}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="5"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Armor}"
+										/>
+									<TextBlock
+										Grid.Row="5"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding ArmorMin}"
+										/>
+									<TextBlock
+										Grid.Row="5"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding ArmorMax}"
+										/>
+
+									<Image
+										Grid.Row="6"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.AntiSubmarine}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="6"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.ASW}"
+										/>
+									<TextBlock
+										Grid.Row="6"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AswMin}"
+										/>
+									<TextBlock
+										Grid.Row="6"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AswMax}"
+										/>
+									<TextBlock
+										Grid.Row="6"
+										Grid.Column="4"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AswCurrent}"
+										/>
+
+									<Image
+										Grid.Row="7"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Evasion}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="7"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Evasion}"
+										/>
+									<TextBlock
+										Grid.Row="7"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding EvasionMin}"
+										/>
+									<TextBlock
+										Grid.Row="7"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding EvasionMax}"
+										/>
+									<TextBlock
+										Grid.Row="7"
+										Grid.Column="4"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding EvasionCurrent}"
+										/>
+
+									<Image
+										Grid.Row="8"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Los}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="8"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.LOS}"
+										/>
+									<TextBlock
+										Grid.Row="8"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding LosMin}"
+										/>
+									<TextBlock
+										Grid.Row="8"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding LosMax}"
+										/>
+									<TextBlock
+										Grid.Row="8"
+										Grid.Column="4"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding LosCurrent}"
+										/>
+
+									<Image
+										Grid.Row="9"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Luck}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="9"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Luck}"
+										/>
+									<TextBlock
+										Grid.Row="9"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding LuckMin}"
+										/>
+									<TextBlock
+										Grid.Row="9"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding LuckMax}"
+										/>
+
+									<Image
+										Grid.Row="10"
+										Grid.Column="0"
+										Source="{StaticResource Parameter.Accuracy}"
+										Style="{StaticResource StatIcon}"
+										/>
+									<TextBlock
+										Grid.Row="10"
+										Grid.Column="1"
+										Style="{StaticResource StatName}"
+										Text="{Binding DialogAlbumMasterShip.Accuracy}"
+										/>
+									<TextBlock
+										Grid.Row="10"
+										Grid.Column="2"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AccuracyMin}"
+										/>
+									<TextBlock
+										Grid.Row="10"
+										Grid.Column="3"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AccuracyMax}"
+										/>
+									<TextBlock
+										Grid.Row="10"
+										Grid.Column="4"
+										Style="{StaticResource KcvAlbum.Number}"
+										Text="{Binding AccuracyCurrent}"
+										/>
+								</Grid>
+
+								<!--  speed, range, rarity and consumption  -->
+								<Border
+									Margin="0 6 0 0"
+									Padding="0 5 0 0"
+									BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+									BorderThickness="0 1 0 0"
+									>
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="Auto" />
+											<ColumnDefinition Width="*" />
+										</Grid.ColumnDefinitions>
+										<Grid.RowDefinitions>
+											<RowDefinition Height="Auto" />
+											<RowDefinition Height="Auto" />
+											<RowDefinition Height="Auto" />
+											<RowDefinition Height="Auto" />
+										</Grid.RowDefinitions>
+
+										<TextBlock
+											Grid.Row="0"
+											Style="{StaticResource KcvAlbum.Key}"
+											Text="{Binding DialogAlbumMasterShip.TitleSpeed}"
+											/>
+										<TextBlock
+											Grid.Row="0"
+											Grid.Column="1"
+											Style="{StaticResource KcvAlbum.Value}"
+											Text="{Binding Speed, Converter={StaticResource SpeedConverter}}"
+											/>
+
+										<TextBlock
+											Grid.Row="1"
+											Style="{StaticResource KcvAlbum.Key}"
+											Text="{x:Static fork:ForkStrings.KcvAlbumRange}"
+											/>
+										<TextBlock
+											Grid.Row="1"
+											Grid.Column="1"
+											Background="Transparent"
+											Style="{StaticResource KcvAlbum.Value}"
+											Text="{Binding Range, Converter={StaticResource RangeConverter}}"
+											ToolTip="{Binding RangeToolTip}"
+											/>
+
+										<TextBlock
+											Grid.Row="2"
+											Style="{StaticResource KcvAlbum.Key}"
+											Text="{Binding DialogAlbumMasterShip.TitleRarity}"
+											/>
+										<StackPanel
+											Grid.Row="2"
+											Grid.Column="1"
+											Orientation="Horizontal"
+											>
+											<Ellipse Fill="{Binding Ship.Rarity, Converter={StaticResource KcvAlbum.Rarity}, ConverterParameter='Ship Brush'}">
+												<Ellipse.Style>
+													<Style BasedOn="{StaticResource KcvAlbum.RarityDot}" TargetType="Ellipse">
+														<Style.Triggers>
+															<DataTrigger Binding="{Binding Ship.Rarity}" Value="0">
+																<Setter Property="Visibility" Value="Collapsed" />
+															</DataTrigger>
+														</Style.Triggers>
+													</Style>
+												</Ellipse.Style>
+											</Ellipse>
+											<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding Ship.Rarity, Converter={StaticResource KcvAlbum.Rarity}, ConverterParameter=Ship}" />
+										</StackPanel>
+
+										<TextBlock
+											Grid.Row="3"
+											Style="{StaticResource KcvAlbum.Key}"
+											Text="{Binding DialogAlbumMasterShip.TitleConsumption}"
+											/>
+										<StackPanel
+											Grid.Row="3"
+											Grid.Column="1"
+											Background="Transparent"
+											Orientation="Horizontal"
+											ToolTip="{Binding ConsumptionToolTip}"
+											>
+											<Rectangle Fill="{StaticResource KcvRec.Fuel}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock
+												Margin="0 1 9 1"
+												Style="{StaticResource KcvAlbum.Value}"
+												Text="{Binding Fuel}"
+												/>
+											<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding Ammo}" />
+										</StackPanel>
+									</Grid>
+								</Border>
+							</StackPanel>
+						</Border>
+
+						<StackPanel Grid.Column="2">
+							<!--  the equipment slots: aircraft, the game's icon and the name (right click: the equipment album)  -->
+							<Border Style="{StaticResource KcvAlbum.Card}">
+								<StackPanel>
+									<Grid>
+										<TextBlock Style="{StaticResource KcvAlbum.CardTitle}" Text="{x:Static fork:ForkStrings.KcvAlbumSlots}" />
+										<TextBlock Style="{StaticResource KcvAlbum.CardHint}" Text="{x:Static fork:ForkStrings.KcvAlbumAircraft}" />
+									</Grid>
+									<ItemsControl Focusable="False" ItemsSource="{Binding Slots}">
+										<ItemsControl.ItemTemplate>
+											<DataTemplate DataType="{x:Type ship:EquipmentSlot}">
+												<Border
+													x:Name="Line"
+													Padding="0 2"
+													Background="Transparent"
+													BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+													BorderThickness="0 1 0 0"
+													MouseRightButtonUp="OpenSlotEquipment"
+													ToolTip="{Binding ToolTip}"
+													>
+													<StackPanel Orientation="Horizontal">
+														<TextBlock
+															Width="24"
+															Margin="0 0 8 0"
+															HorizontalAlignment="Right"
+															Style="{StaticResource KcvAlbum.Number}"
+															Text="{Binding Size}"
+															/>
+														<Image
+															Width="20"
+															Height="20"
+															Margin="0 0 5 0"
+															Source="{Binding IconType, Converter={StaticResource Kcv.GameIcon}}"
+															Style="{StaticResource Kcv.EquipmentIcon}"
+															/>
+														<TextBlock x:Name="Name" Style="{StaticResource KcvAlbum.Value}" Text="{Binding Name}" />
+													</StackPanel>
+												</Border>
+												<DataTemplate.Triggers>
+													<DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}">
+														<Setter TargetName="Line" Property="BorderThickness" Value="0" />
+													</DataTrigger>
+													<DataTrigger Binding="{Binding Equipment}" Value="{x:Null}">
+														<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+													</DataTrigger>
+												</DataTemplate.Triggers>
+											</DataTemplate>
+										</ItemsControl.ItemTemplate>
+									</ItemsControl>
+								</StackPanel>
+							</Border>
+
+							<!--  construction time, scrap, modernization (what the ship gives as material)  -->
+							<Border Style="{StaticResource KcvAlbum.Card}">
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+									</Grid.RowDefinitions>
+
+									<TextBlock Style="{StaticResource KcvAlbum.Key}" Text="{Binding DialogAlbumMasterShip.TitleConstructionTime}" />
+									<TextBlock
+										Grid.Column="1"
+										Style="{StaticResource KcvAlbum.Value}"
+										Text="{Binding BuildingTime}"
+										/>
+
+									<TextBlock
+										Grid.Row="1"
+										Style="{StaticResource KcvAlbum.Key}"
+										Text="{Binding DialogAlbumMasterShip.TitleDismantling}"
+										/>
+									<StackPanel
+										Grid.Row="1"
+										Grid.Column="1"
+										Orientation="Horizontal"
+										>
+										<Rectangle Fill="{StaticResource KcvRec.Fuel}" Style="{StaticResource KcvRec.Dot}" />
+										<TextBlock
+											Margin="0 1 9 1"
+											Style="{StaticResource KcvAlbum.Value}"
+											Text="{Binding Ship.Material[0]}"
+											/>
+										<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+										<TextBlock
+											Margin="0 1 9 1"
+											Style="{StaticResource KcvAlbum.Value}"
+											Text="{Binding Ship.Material[1]}"
+											/>
+										<Rectangle Fill="{StaticResource KcvRec.Steel}" Style="{StaticResource KcvRec.Dot}" />
+										<TextBlock
+											Margin="0 1 9 1"
+											Style="{StaticResource KcvAlbum.Value}"
+											Text="{Binding Ship.Material[2]}"
+											/>
+										<Rectangle Fill="{StaticResource KcvRec.Bauxite}" Style="{StaticResource KcvRec.Dot}" />
+										<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding Ship.Material[3]}" />
+									</StackPanel>
+
+									<TextBlock
+										Grid.Row="2"
+										Style="{StaticResource KcvAlbum.Key}"
+										Text="{Binding DialogAlbumMasterShip.TitleModernization}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Grid.Column="1"
+										Style="{StaticResource KcvAlbum.Value}"
+										>
+										<Run Text="{Binding DialogAlbumMasterShip.Firepower, Mode=OneWay}" />
+										<Run Text="{Binding Ship.PowerUp[0], Mode=OneWay}" />
+										<Run Foreground="{DynamicResource Kcv.InactiveForeground}" Text="·" />
+										<Run Text="{Binding DialogAlbumMasterShip.Torpedo, Mode=OneWay}" />
+										<Run Text="{Binding Ship.PowerUp[1], Mode=OneWay}" />
+										<Run Foreground="{DynamicResource Kcv.InactiveForeground}" Text="·" />
+										<Run Text="{Binding DialogAlbumMasterShip.AA, Mode=OneWay}" />
+										<Run Text="{Binding Ship.PowerUp[2], Mode=OneWay}" />
+										<Run Foreground="{DynamicResource Kcv.InactiveForeground}" Text="·" />
+										<Run Text="{Binding DialogAlbumMasterShip.Armor, Mode=OneWay}" />
+										<Run Text="{Binding Ship.PowerUp[3], Mode=OneWay}" />
+									</TextBlock>
+								</Grid>
+							</Border>
+
+							<!--  remodel before and after: a left click goes to the ship, a right click opens it in a new window  -->
+							<Border Style="{StaticResource KcvAlbum.Card}" Visibility="{Binding IsPlayerShip, Converter={StaticResource KcvRec.Visible}}">
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+									</Grid.RowDefinitions>
+
+									<TextBlock Style="{StaticResource KcvAlbum.Key}" Text="{Binding DialogAlbumMasterShip.TitleBeforeRemodel}" />
+									<WrapPanel Grid.Column="1">
+										<TextBlock
+											x:Name="BeforeName"
+											Margin="0 1 6 1"
+											MouseRightButtonUp="OpenRemodelShip"
+											Tag="{Binding Ship.RemodelBeforeShip}"
+											Text="{Binding RemodelBeforeShipName}"
+											ToolTip="{Binding RemodelBeforeShipNameToolTip}"
+											>
+											<TextBlock.Style>
+												<Style BasedOn="{StaticResource KcvAlbum.Link}" TargetType="TextBlock">
+													<Style.Triggers>
+														<DataTrigger Binding="{Binding Ship.RemodelBeforeShip}" Value="{x:Null}">
+															<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+															<Setter Property="Cursor" Value="Arrow" />
+															<Setter Property="TextDecorations" Value="{x:Null}" />
+														</DataTrigger>
+													</Style.Triggers>
+												</Style>
+											</TextBlock.Style>
+											<TextBlock.InputBindings>
+												<MouseBinding
+													Command="{Binding DataContext.ChangeShipCommand, ElementName=Root}"
+													CommandParameter="{Binding Ship.RemodelBeforeShip}"
+													MouseAction="LeftClick"
+													/>
+											</TextBlock.InputBindings>
+										</TextBlock>
+										<StackPanel Orientation="Horizontal" Visibility="{Binding RemodelBeforeLevel, Converter={StaticResource KcvAlbum.NotNull}}">
+											<TextBlock
+												Margin="0 1 6 1"
+												Style="{StaticResource KcvAlbum.Grey}"
+												Text="{Binding RemodelBeforeLevel}"
+												/>
+											<ItemsControl
+												Background="Transparent"
+												Focusable="False"
+												ItemTemplate="{StaticResource RemodelItem}"
+												ItemsPanel="{StaticResource KcvRec.Horizontal}"
+												ItemsSource="{Binding RemodelBeforeItems}"
+												ToolTip="{Binding RemodelBeforeItemsToolTip}"
+												/>
+											<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock
+												Margin="0 1 9 1"
+												Style="{StaticResource KcvAlbum.Value}"
+												Text="{Binding RemodelBeforeAmmo}"
+												/>
+											<Rectangle Fill="{StaticResource KcvRec.Steel}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding RemodelBeforeSteel}" />
+										</StackPanel>
+									</WrapPanel>
+
+									<TextBlock
+										Grid.Row="1"
+										Style="{StaticResource KcvAlbum.Key}"
+										Text="{Binding DialogAlbumMasterShip.TitleAfterRemodel}"
+										/>
+									<WrapPanel Grid.Row="1" Grid.Column="1">
+										<TextBlock
+											x:Name="AfterName"
+											Margin="0 1 6 1"
+											MouseRightButtonUp="OpenRemodelShip"
+											Tag="{Binding Ship.RemodelAfterShip}"
+											Text="{Binding RemodelAfterShipName}"
+											ToolTip="{Binding RemodelAfterShipNameToolTip}"
+											>
+											<TextBlock.Style>
+												<Style BasedOn="{StaticResource KcvAlbum.Link}" TargetType="TextBlock">
+													<Style.Triggers>
+														<DataTrigger Binding="{Binding Ship.RemodelAfterShip}" Value="{x:Null}">
+															<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+															<Setter Property="Cursor" Value="Arrow" />
+															<Setter Property="TextDecorations" Value="{x:Null}" />
+														</DataTrigger>
+													</Style.Triggers>
+												</Style>
+											</TextBlock.Style>
+											<TextBlock.InputBindings>
+												<MouseBinding
+													Command="{Binding DataContext.ChangeShipCommand, ElementName=Root}"
+													CommandParameter="{Binding Ship.RemodelAfterShip}"
+													MouseAction="LeftClick"
+													/>
+											</TextBlock.InputBindings>
+										</TextBlock>
+										<StackPanel Orientation="Horizontal" Visibility="{Binding RemodelAfterLevel, Converter={StaticResource KcvAlbum.NotNull}}">
+											<TextBlock
+												Margin="0 1 6 1"
+												Style="{StaticResource KcvAlbum.Grey}"
+												Text="{Binding RemodelAfterLevel}"
+												/>
+											<ItemsControl
+												Background="Transparent"
+												Focusable="False"
+												ItemTemplate="{StaticResource RemodelItem}"
+												ItemsPanel="{StaticResource KcvRec.Horizontal}"
+												ItemsSource="{Binding RemodelAfterItems}"
+												ToolTip="{Binding RemodelAfterItemsToolTip}"
+												/>
+											<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock
+												Margin="0 1 9 1"
+												Style="{StaticResource KcvAlbum.Value}"
+												Text="{Binding RemodelAfterAmmo}"
+												/>
+											<Rectangle Fill="{StaticResource KcvRec.Steel}" Style="{StaticResource KcvRec.Dot}" />
+											<TextBlock Style="{StaticResource KcvAlbum.Value}" Text="{Binding RemodelAfterSteel}" />
+										</StackPanel>
+									</WrapPanel>
+								</Grid>
+							</Border>
+
+							<!--  abyssal ships: air power, day and night attacks (the viewer's values)  -->
+							<Border Style="{StaticResource KcvAlbum.Card}" Visibility="{Binding IsAbyssalShip, Converter={StaticResource KcvRec.Visible}}">
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+									</Grid.RowDefinitions>
+
+									<TextBlock Style="{StaticResource KcvAlbum.Key}" Text="{Binding DialogAlbumMasterShip.TitleAirSuperiority}" />
+									<TextBlock
+										Grid.Column="1"
+										Style="{StaticResource KcvAlbum.Value}"
+										Text="{Binding AirPower}"
+										/>
+									<TextBlock
+										Grid.Row="1"
+										Style="{StaticResource KcvAlbum.Key}"
+										Text="{Binding DialogAlbumMasterShip.TitleDayAttack}"
+										/>
+									<TextBlock
+										Grid.Row="1"
+										Grid.Column="1"
+										Style="{StaticResource KcvAlbum.Value}"
+										Text="{Binding DayAttack}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Style="{StaticResource KcvAlbum.Key}"
+										Text="{Binding DialogAlbumMasterShip.TitleNightAttack}"
+										/>
+									<TextBlock
+										Grid.Row="2"
+										Grid.Column="1"
+										Style="{StaticResource KcvAlbum.Value}"
+										Text="{Binding NightAttack}"
+										/>
+								</Grid>
+							</Border>
+						</StackPanel>
+					</Grid>
+
+					<!--  the album text (a click switches to the get message, as the viewer)  -->
+					<Border
+						Background="{DynamicResource Kcv.StatusBackground}"
+						Cursor="Hand"
+						Style="{StaticResource KcvAlbum.Card}"
+						>
+						<Border.InputBindings>
+							<MouseBinding Command="{Binding SwitchMessageCommand}" MouseAction="LeftClick" />
+						</Border.InputBindings>
+						<StackPanel>
+							<Grid>
+								<TextBlock Style="{StaticResource KcvAlbum.CardTitle}" Text="{x:Static fork:ForkStrings.KcvAlbumDescription}" />
+								<TextBlock Style="{StaticResource KcvAlbum.CardHint}" Text="{x:Static fork:ForkStrings.KcvAlbumSwitchMessage}" />
+							</Grid>
+							<TextBlock
+								LineHeight="19"
+								Style="{StaticResource KcvAlbum.Value}"
+								Text="{Binding Message}"
+								TextWrapping="Wrap"
+								/>
+						</StackPanel>
+					</Border>
+				</StackPanel>
+			</ScrollViewer>
+		</Grid>
+
+		<!--  the status bar: the ships the search shows  -->
+		<Border Grid.Row="2" Style="{StaticResource KcvRec.StatusBar}">
+			<TextBlock x:Name="Count" />
+		</Border>
+	</Grid>
+</common:WindowBase>

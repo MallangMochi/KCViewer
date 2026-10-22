@@ -1,0 +1,566 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvShipListWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="1000"
+	Height="680"
+	d:DataContext="{d:DesignInstance kcv:KcvShipListViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvShipListViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: KanColleViewer's 所属艦娘一覧 (viewer-design/kcv-reference/02-ship-list.png). A foldable filter area
+		(ship types with すべて選択 and presets; level, lock, expedition, speed, remodel, modernization; the fold is kept),
+		a name box beside the fold (mockup 20261005-list-search-v2) and the ship
+		table: row number, ID, type, name, Lv / Next, condition, 火力 / 雷装 / 対空 / 装甲 with MAX or what
+		modernization can still add (the cell is coloured when MAX), luck, LoS and equipment. Click a column header to
+		sort (rules in the code behind; the table opens in ID order); right click a ship for the encyclopedia.
+	-->
+	<Window.Resources>
+		<Style x:Key="FilterLabel" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Margin" Value="0 0 10 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+		<Style x:Key="FilterBox" TargetType="Border">
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Padding" Value="10 6" />
+			<Setter Property="Margin" Value="0 0 0 6" />
+		</Style>
+		<!--  based on the button style in effect (KanColleViewer's while the style is on)  -->
+		<Style x:Key="Preset" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+			<Setter Property="MinWidth" Value="92" />
+			<Setter Property="Margin" Value="0 4 6 0" />
+			<Setter Property="Padding" Value="10 3" />
+		</Style>
+
+		<Style x:Key="Header" TargetType="DataGridColumnHeader">
+			<Setter Property="Background" Value="{DynamicResource Kcv.TableHeaderBackground}" />
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Padding" Value="6 7" />
+			<Setter Property="HorizontalContentAlignment" Value="Left" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridColumnHeader">
+						<Border
+							Padding="{TemplateBinding Padding}"
+							Background="{TemplateBinding Background}"
+							BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+							BorderThickness="0 0 1 0"
+							>
+							<DockPanel>
+								<Path
+									x:Name="Arrow"
+									Width="8"
+									Height="5"
+									Margin="4 0 0 0"
+									VerticalAlignment="Center"
+									Data="M 0,0 L 4,5 L 8,0 Z"
+									DockPanel.Dock="Right"
+									Fill="{DynamicResource Kcv.SubForeground}"
+									Visibility="Collapsed"
+									/>
+								<ContentPresenter VerticalAlignment="Center" />
+							</DockPanel>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="SortDirection" Value="Descending">
+								<Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+							</Trigger>
+							<Trigger Property="SortDirection" Value="Ascending">
+								<Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
+								<Setter TargetName="Arrow" Property="Data" Value="M 0,5 L 4,0 L 8,5 Z" />
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style x:Key="Cell" TargetType="DataGridCell">
+			<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridCell">
+						<ContentPresenter VerticalAlignment="Stretch" />
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<!--
+			The colours (under the mouse, selected) are set on the row template's border, not on the row's Background:
+			DataGridRow coerces that to the grid's RowBackground, so on the first row (AlternationIndex 0) the triggers
+			did not show.
+		-->
+		<Style x:Key="Row" TargetType="DataGridRow">
+			<Setter Property="MinHeight" Value="27" />
+			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<EventSetter Event="MouseRightButtonUp" Handler="OpenShipEncyclopedia" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="DataGridRow">
+						<Border
+							x:Name="Back"
+							Background="Transparent"
+							SnapsToDevicePixels="True"
+							>
+							<DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</Trigger>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style x:Key="Text" BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="Margin" Value="6 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!--  火力 63 MAX / 雷装 58 +1: the cell takes the parameter colour when MAX  -->
+		<DataTemplate x:Key="Stat" DataType="{x:Type kcv:KcvShipStat}">
+			<!--  the colour is set on the ContentControl, which does not draw a background itself  -->
+			<Border Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ContentControl}}">
+				<TextBlock Style="{StaticResource Text}">
+					<Run Text="{Binding Value, Mode=OneWay}" />
+					<Run
+						x:Name="Suffix"
+						FontSize="10"
+						Foreground="{DynamicResource Kcv.InactiveForeground}"
+						Text="{Binding Suffix, Mode=OneWay}"
+						/>
+				</TextBlock>
+			</Border>
+		</DataTemplate>
+	</Window.Resources>
+
+	<Grid Margin="12 6 12 10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<!--
+			フィルター設定 (folds the filters), the name box, shown folded too, and while folded the filters not at their
+			default (mockup 20261005-list-search-v2)
+		-->
+		<StackPanel
+			Grid.Row="0"
+			Margin="0 0 0 6"
+			Orientation="Horizontal"
+			>
+			<StackPanel.Resources>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</StackPanel.Resources>
+			<ToggleButton IsChecked="{Binding FiltersExpanded}" Style="{StaticResource Kcv.FilterFold}" />
+			<TextBlock Margin="28 0 0 0" Style="{StaticResource KcvRec.FirstLabel}">
+				<Run Text="{x:Static fork:ForkStrings.KcvColumnName}" /><Run Text=":" />
+			</TextBlock>
+			<TextBox
+				Width="220"
+				Style="{StaticResource KcvRec.TextBox}"
+				Tag="{x:Static fork:ForkStrings.KcvPickerNameHint}"
+				Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+				/>
+			<TextBlock
+				Margin="16 0 0 0"
+				VerticalAlignment="Center"
+				FontSize="12"
+				Foreground="{DynamicResource Kcv.InProgressBadgeForeground}"
+				Text="{Binding AppliedText}"
+				/>
+		</StackPanel>
+
+		<StackPanel Grid.Row="1" Visibility="{Binding FiltersExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+			<!--  艦種  -->
+			<Border Style="{StaticResource FilterBox}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<TextBlock
+						Grid.Column="0"
+						VerticalAlignment="Top"
+						Margin="0 3 10 0"
+						Style="{StaticResource FilterLabel}"
+						Text="{x:Static fork:ForkStrings.KcvShipType}"
+						/>
+					<StackPanel Grid.Column="1">
+						<CheckBox Content="{x:Static fork:ForkStrings.KcvSelectAll}" IsChecked="{Binding AllTypes}" />
+						<ItemsControl Margin="20 0 0 0" ItemsSource="{Binding TypeFilters}">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<WrapPanel Orientation="Horizontal" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="{x:Type kcv:KcvShipTypeFilter}">
+									<CheckBox
+										MinWidth="100"
+										Content="{Binding Name}"
+										IsChecked="{Binding IsChecked}"
+										/>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+						<WrapPanel Margin="24 2 0 2">
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="2"
+								Content="{x:Static fork:ForkStrings.KcvPresetDestroyers}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="3,4,21"
+								Content="{x:Static fork:ForkStrings.KcvPresetLightCruisers}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="5,6"
+								Content="{x:Static fork:ForkStrings.KcvPresetHeavyCruisers}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="8,9,10,12"
+								Content="{x:Static fork:ForkStrings.KcvPresetBattleships}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="7,11,18"
+								Content="{x:Static fork:ForkStrings.KcvPresetCarriers}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="13,14"
+								Content="{x:Static fork:ForkStrings.KcvPresetSubmarines}"
+								Style="{StaticResource Preset}"
+								/>
+							<Button
+								Command="{Binding ApplyPresetCommand}"
+								CommandParameter="6,10"
+								Content="{x:Static fork:ForkStrings.KcvPresetAviation}"
+								Style="{StaticResource Preset}"
+								/>
+						</WrapPanel>
+					</StackPanel>
+				</Grid>
+			</Border>
+
+			<!--  レベル / ロック / 遠征 | 速力 / 改造 / 近代化改修  -->
+			<Border Style="{StaticResource FilterBox}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+
+					<TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvLevel}" />
+					<StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding LevelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvLevel2Plus}" IsChecked="{Binding LevelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="Lv.1" IsChecked="{Binding LevelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+
+					<TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvLock}" />
+					<StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding LockFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvLockedShips}" IsChecked="{Binding LockFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvUnlockedShips}" IsChecked="{Binding LockFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+
+					<TextBlock Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvExpedition}" />
+					<CheckBox Grid.Row="2" Grid.Column="1" Content="{x:Static fork:ForkStrings.KcvExcludeExpedition}" IsChecked="{Binding ExcludeExpedition}" />
+
+					<TextBlock Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvSpeed}" />
+					<StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding SpeedFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvFast}" IsChecked="{Binding SpeedFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvSlow}" IsChecked="{Binding SpeedFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+
+					<TextBlock Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvRemodel}" />
+					<StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding RemodelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvRemodelDone}" IsChecked="{Binding RemodelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvRemodelNotDone}" IsChecked="{Binding RemodelFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+
+					<TextBlock Grid.Row="2" Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvModernization}" />
+					<StackPanel Grid.Row="2" Grid.Column="3" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding ModernizationFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvModernizationDone}" IsChecked="{Binding ModernizationFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvModernizationNotDone}" IsChecked="{Binding ModernizationFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+				</Grid>
+			</Border>
+		</StackPanel>
+
+		<DataGrid
+			x:Name="Table"
+			Grid.Row="2"
+			AlternationCount="100000"
+			AutoGenerateColumns="False"
+			Background="Transparent"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="1"
+			CanUserAddRows="False"
+			CanUserDeleteRows="False"
+			CanUserReorderColumns="False"
+			CanUserResizeColumns="False"
+			CanUserResizeRows="False"
+			CellStyle="{StaticResource Cell}"
+			ColumnHeaderStyle="{StaticResource Header}"
+			EnableRowVirtualization="True"
+			GridLinesVisibility="Horizontal"
+			HeadersVisibility="Column"
+			HorizontalGridLinesBrush="{DynamicResource Kcv.Separator}"
+			IsReadOnly="True"
+			ItemsSource="{Binding Rows}"
+			RowBackground="Transparent"
+			RowStyle="{StaticResource Row}"
+			SelectionMode="Single"
+			Sorting="SortTable"
+			>
+			<DataGrid.Columns>
+				<!--  row number in the current order  -->
+				<DataGridTemplateColumn Width="40" CanUserSort="False">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock
+								Foreground="{DynamicResource Kcv.InactiveForeground}"
+								Style="{StaticResource Text}"
+								Text="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=DataGridRow}, Converter={StaticResource Kcv.RowIndex}}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					x:Name="IdColumn"
+					Width="54"
+					Header="ID"
+					SortMemberPath="Id"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<TextBlock Style="{StaticResource Text}" Text="{Binding Id}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn MinWidth="100" Header="{x:Static fork:ForkStrings.KcvColumnType}" SortMemberPath="TypeId">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<TextBlock Style="{StaticResource Text}" Text="{Binding TypeName}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn MinWidth="120" Header="{x:Static fork:ForkStrings.KcvColumnName}" SortMemberPath="SortId">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<TextBlock Style="{StaticResource Text}" Text="{Binding Name}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="140" Header="{x:Static fork:ForkStrings.KcvColumnLevel}" SortMemberPath="ExpTotal">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<TextBlock Style="{StaticResource Text}">
+								<Run FontSize="10" Foreground="{DynamicResource Kcv.SubForeground}" Text="Lv." />
+								<Run Text="{Binding Level, Mode=OneWay}" />
+								<Run FontSize="10" Foreground="{DynamicResource Kcv.InactiveForeground}" Text="{Binding NextText, Mode=OneWay}" />
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="64" Header="cond." SortMemberPath="Condition">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<StackPanel Margin="6 0" VerticalAlignment="Center" Orientation="Horizontal">
+								<Rectangle
+									Width="10"
+									Height="10"
+									Margin="0 0 5 0"
+									Fill="{Binding Condition, Converter={StaticResource Kcv.ConditionBrush}}"
+									Stroke="{DynamicResource Kcv.MarkBorder}"
+									StrokeThickness="1"
+									/>
+								<TextBlock FontSize="13" Style="{StaticResource Kcv.Text}" Text="{Binding Condition}" />
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="80" Header="{x:Static fork:ForkStrings.KcvColumnFirepower}" SortMemberPath="FirepowerValue">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<ContentControl x:Name="Stat" Content="{Binding Firepower}" ContentTemplate="{StaticResource Stat}" Focusable="False" />
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Firepower.IsMax}" Value="True">
+									<Setter TargetName="Stat" Property="Background" Value="{DynamicResource Kcv.StatFirepower}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="80" Header="{x:Static fork:ForkStrings.KcvColumnTorpedo}" SortMemberPath="TorpedoValue">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<ContentControl x:Name="Stat" Content="{Binding Torpedo}" ContentTemplate="{StaticResource Stat}" Focusable="False" />
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Torpedo.IsMax}" Value="True">
+									<Setter TargetName="Stat" Property="Background" Value="{DynamicResource Kcv.StatTorpedo}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="80" Header="{x:Static fork:ForkStrings.KcvColumnAA}" SortMemberPath="AAValue">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<ContentControl x:Name="Stat" Content="{Binding AA}" ContentTemplate="{StaticResource Stat}" Focusable="False" />
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding AA.IsMax}" Value="True">
+									<Setter TargetName="Stat" Property="Background" Value="{DynamicResource Kcv.StatAA}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="80" Header="{x:Static fork:ForkStrings.KcvColumnArmor}" SortMemberPath="ArmorValue">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<ContentControl x:Name="Stat" Content="{Binding Armor}" ContentTemplate="{StaticResource Stat}" Focusable="False" />
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Armor.IsMax}" Value="True">
+									<Setter TargetName="Stat" Property="Background" Value="{DynamicResource Kcv.StatArmor}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="72" Header="{x:Static fork:ForkStrings.KcvColumnLuck}" SortMemberPath="LuckValue">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<ContentControl Content="{Binding Luck}" ContentTemplate="{StaticResource Stat}" Focusable="False" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn Width="56" Header="{x:Static fork:ForkStrings.KcvColumnLos}" SortMemberPath="Los">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<TextBlock Style="{StaticResource Text}" Text="{Binding Los}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<!--
+					Equipment: the ordinary slots, then the reinforcement slot's after a line; at least wide enough for five
+					and the reinforcement slot (mockup 20261010-ex-slot-separator-v1)
+				-->
+				<DataGridTemplateColumn Width="*" MinWidth="160" CanUserSort="False" Header="{x:Static fork:ForkStrings.KcvColumnEquipment}">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvShipRow}">
+							<StackPanel
+								Margin="6 0"
+								VerticalAlignment="Center"
+								Background="Transparent"
+								Orientation="Horizontal"
+								ToolTip="{Binding EquipmentToolTip}"
+								>
+								<ItemsControl ItemsSource="{Binding Equipment}">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<StackPanel Orientation="Horizontal" />
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Image
+												Width="22"
+												Height="22"
+												Margin="0 0 1 0"
+												Source="{Binding Converter={StaticResource Kcv.GameIcon}}"
+												Style="{StaticResource Kcv.EquipmentIcon}"
+												/>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+								<Rectangle
+									x:Name="ExLine"
+									Width="1"
+									Height="18"
+									Margin="3 0 4 0"
+									VerticalAlignment="Center"
+									Fill="{DynamicResource Kcv.Separator}"
+									/>
+								<Image
+									x:Name="ExIcon"
+									Width="22"
+									Height="22"
+									Source="{Binding Expansion, Converter={StaticResource Kcv.GameIcon}}"
+									Style="{StaticResource Kcv.EquipmentIcon}"
+									/>
+							</StackPanel>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Expansion}" Value="{x:Null}">
+									<Setter TargetName="ExLine" Property="Visibility" Value="Collapsed" />
+									<Setter TargetName="ExIcon" Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</common:WindowBase>

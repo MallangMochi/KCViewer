@@ -1,0 +1,117 @@
+<Window
+	x:Class="KCViewer.Fork.KcvViews.KcvColumnSelectorWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static translations:DataGridResources.OpenColumnSelector}"
+	d:DataContext="{d:DesignInstance kcv:KcvColumnSelectorViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: 열 표시 설정 in KanColleViewer's style (KcvTableDialogs, mockup 20261017-table-dialogs-v2): 표시 열 with
+		「전체 선택」 and a check per column (three columns filled from the top down when there are more than 12), the ship
+		group's 열 고정 (왼쪽부터 n 열, 항상 표시될 열의 수), OK and 취소. The viewer applies the result as before.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Click="OnConfirmClick"
+					Content="{Binding Selector.ColumnSelector.Ok}"
+					IsDefault="True"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Content="{Binding Selector.ColumnSelector.Cancel}"
+					IsCancel="True"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<StackPanel Margin="12 6 12 4">
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.ColumnSelectorShown}">
+				<StackPanel>
+					<CheckBox Content="{x:Static fork:ForkStrings.KcvSelectAll}" IsChecked="{Binding AllVisible}" />
+					<Border
+						Height="1"
+						Margin="0 4 0 3"
+						Background="{DynamicResource Kcv.HeaderBackground}"
+						/>
+					<ItemsControl Focusable="False" ItemsSource="{Binding Items}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<WrapPanel
+									Height="{Binding DataContext.ListHeight, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+									ItemWidth="{Binding DataContext.ItemWidth, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+									Orientation="Vertical"
+									/>
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<CheckBox
+									Height="{x:Static kcv:KcvColumnSelectorViewModel.CheckHeight}"
+									Margin="0 0 18 0"
+									VerticalContentAlignment="Center"
+									Content="{Binding Header}"
+									IsChecked="{Binding IsVisible}"
+									/>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</StackPanel>
+			</ContentControl>
+
+			<!--  the ship group's columns that stay when the table scrolls sideways  -->
+			<ContentControl
+				Style="{StaticResource Cfg.Box}"
+				Tag="{Binding Selector.ColumnSelector.ColumnFreezeNumber}"
+				Visibility="{Binding HasFrozen, Converter={StaticResource KcvRec.Visible}}"
+				>
+				<WrapPanel Style="{StaticResource Cfg.Row}">
+					<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{x:Static fork:ForkStrings.ColumnSelectorFromLeft}" />
+					<kcv:KcvNumberBox
+						Maximum="{Binding FrozenMaximum}"
+						Minimum="0"
+						Style="{StaticResource Cfg.Num}"
+						Value="{Binding Frozen}"
+						/>
+					<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{x:Static fork:ForkStrings.ColumnSelectorColumns}" />
+					<TextBlock
+						Margin="6 0 0 0"
+						Style="{StaticResource Cfg.Note}"
+						Text="{x:Static fork:ForkStrings.ColumnSelectorFrozenNote}"
+						/>
+				</WrapPanel>
+			</ContentControl>
+		</StackPanel>
+	</DockPanel>
+</Window>

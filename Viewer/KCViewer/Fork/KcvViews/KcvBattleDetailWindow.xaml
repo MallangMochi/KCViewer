@@ -1,0 +1,152 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvBattleDetailWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="940"
+	Height="680"
+	d:DataContext="{d:DesignInstance kcv:KcvBattleDetailViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvBattleDetailViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	FontSize="12"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the battle panel's 전투 상세 in KanColleViewer's style (KcvBattleDetail.cs, mockup
+		20261010-battle-sortie-detail-v2): the cell and its kind, the map with the difficulty, the gauge, the enemy fleet
+		and the battles above; the boxes of the phases, 전투 종료 and 전투 결과 below, all folded at first.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvBattleDetailViews.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<DockPanel
+			Margin="12 8 12 10"
+			DockPanel.Dock="Top"
+			LastChildFill="True"
+			>
+			<StackPanel
+				VerticalAlignment="Top"
+				DockPanel.Dock="Right"
+				Orientation="Horizontal"
+				>
+				<Button
+					Command="{Binding ExpandAllCommand}"
+					Content="{x:Static fork:ForkStrings.KcvExpandAll}"
+					Style="{StaticResource KcvBd.Button}"
+					/>
+				<Button
+					Command="{Binding CollapseAllCommand}"
+					Content="{x:Static fork:ForkStrings.KcvCollapseAll}"
+					Style="{StaticResource KcvBd.Button}"
+					/>
+			</StackPanel>
+
+			<WrapPanel VerticalAlignment="Center">
+				<StackPanel
+					x:Name="Node"
+					Margin="0 0 10 0"
+					VerticalAlignment="Center"
+					Orientation="Horizontal"
+					>
+					<StackPanel.Style>
+						<Style TargetType="StackPanel">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding NodeLetter}" Value="{x:Null}">
+									<Setter Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</StackPanel.Style>
+					<Border Style="{StaticResource KcvBd.Node}" Tag="{Binding NodeKind}">
+						<TextBlock
+							HorizontalAlignment="Center"
+							VerticalAlignment="Center"
+							Text="{Binding NodeLetter}"
+							/>
+					</Border>
+					<Border Style="{StaticResource KcvBd.NodeKind}" Tag="{Binding NodeKind}">
+						<TextBlock VerticalAlignment="Center" Text="{Binding NodeKindText}" />
+					</Border>
+				</StackPanel>
+				<TextBlock
+					Margin="0 0 10 0"
+					FontSize="15"
+					Style="{StaticResource KcvBd.Text}"
+					Text="{Binding MapText}"
+					/>
+				<TextBlock
+					x:Name="Gauge"
+					Margin="0 0 10 0"
+					Text="{Binding Gauge}"
+					>
+					<TextBlock.Style>
+						<Style BasedOn="{StaticResource KcvBd.Dim}" TargetType="TextBlock">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding Gauge}" Value="{x:Null}">
+									<Setter Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</TextBlock.Style>
+				</TextBlock>
+				<TextBlock
+					x:Name="FleetName"
+					Margin="0 0 10 0"
+					FontSize="13"
+					Text="{Binding FleetName}"
+					>
+					<TextBlock.Style>
+						<Style BasedOn="{StaticResource KcvBd.Sub}" TargetType="TextBlock">
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding FleetName}" Value="{x:Null}">
+									<Setter Property="Visibility" Value="Collapsed" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</TextBlock.Style>
+				</TextBlock>
+				<ItemsControl
+					VerticalAlignment="Center"
+					Focusable="False"
+					ItemsSource="{Binding Battles}"
+					>
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Horizontal" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<Border Margin="0 0 6 0" Style="{StaticResource KcvBd.Chip}">
+								<TextBlock VerticalAlignment="Center" Text="{Binding}" />
+							</Border>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</WrapPanel>
+		</DockPanel>
+
+		<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+			<ItemsControl
+				Margin="12 0 12 12"
+				Focusable="False"
+				ItemsSource="{Binding Items}"
+				/>
+		</ScrollViewer>
+	</DockPanel>
+</common:WindowBase>

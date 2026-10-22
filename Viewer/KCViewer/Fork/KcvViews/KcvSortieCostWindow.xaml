@@ -1,0 +1,530 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvSortieCostWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:cost="clr-namespace:KCViewer.Window.Tools.SortieRecordViewer.SortieCostViewer"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Cost.Translation.Title}"
+	Width="1040"
+	Height="520"
+	d:DataContext="{d:DesignInstance kcv:KcvSortieCostViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvSortieCostViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the sortie record's 출격 코스트 in KanColleViewer's style (KcvSortieCost.cs, mockup
+		viewer-design/mockups/20261017-sortie-cost-v3.html, approved 2026-10-17 "분식보급으로 통일하고 구현"): 「계산 조건」
+		with the damage counted for buckets, a row per sortie (시간·해역·경로·연료·탄약·강재·보크사이트·고속 수복재·함대,
+		0 faded, a gain green), a clicked row's detail lined up with its numbers (only the lines with a value, the repair
+		line with the ships counted for buckets, grey when not counted), and the total in the status bar.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvSortieRoutes x:Key="Routes" />
+			<kcv:KcvRouteConverter x:Key="RouteOf" Routes="{StaticResource Routes}" />
+
+			<!--  a cost's number from Tag: 「−15」 green for a gain, faded when 0  -->
+			<Style x:Key="Amount" TargetType="TextBlock">
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+				<Setter Property="Text" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={x:Static kcv:KcvCostAmountConverter.Text}}" />
+				<Style.Triggers>
+					<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={x:Static kcv:KcvCostAmountConverter.KindOf}}" Value="Zero">
+						<Setter Property="Foreground" Value="{DynamicResource Kcv.FaintForeground}" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={x:Static kcv:KcvCostAmountConverter.KindOf}}" Value="Gain">
+						<Setter Property="Foreground" Value="{DynamicResource Kcv.GainForeground}" />
+					</DataTrigger>
+				</Style.Triggers>
+			</Style>
+
+			<!--  the status bar's sums: the bar's text colour, green below 0  -->
+			<Style x:Key="Sum" TargetType="TextBlock">
+				<Setter Property="Margin" Value="0 0 8 0" />
+				<Setter Property="Text" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={x:Static kcv:KcvCostAmountConverter.Text}}" />
+				<Style.Triggers>
+					<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={x:Static kcv:KcvCostAmountConverter.KindOf}}" Value="Gain">
+						<Setter Property="Foreground" Value="{DynamicResource Kcv.GainForeground}" />
+					</DataTrigger>
+				</Style.Triggers>
+			</Style>
+
+			<!--  the square before a number in the detail, kept hidden so its numbers line up with the row's  -->
+			<Style
+				x:Key="Spacer"
+				BasedOn="{StaticResource KcvRec.Dot}"
+				TargetType="Rectangle"
+				>
+				<Setter Property="Visibility" Value="Hidden" />
+			</Style>
+
+			<DataTemplate x:Key="RouteNode" DataType="{x:Type kcv:KcvRouteNode}">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock
+						x:Name="Arrow"
+						Margin="2 0"
+						VerticalAlignment="Center"
+						FontSize="9"
+						Foreground="{DynamicResource Kcv.FaintForeground}"
+						Text="▸"
+						/>
+					<Border Style="{StaticResource KcvRec.Node}" ToolTip="{Binding ToolTip}">
+						<TextBlock HorizontalAlignment="Center" Text="{Binding Letter}" />
+					</Border>
+				</StackPanel>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding IsFirst}" Value="True">
+						<Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+
+			<!--  「소파 2」 after the repair line, 「 · 」 between them, grey when the choice does not count that damage  -->
+			<DataTemplate x:Key="DamagePart" DataType="{x:Type kcv:KcvSortieCostDamage}">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock
+						x:Name="Dot"
+						Foreground="{DynamicResource Kcv.InactiveForeground}"
+						Text=" · "
+						/>
+					<TextBlock
+						x:Name="Label"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						Text="{Binding Text}"
+						/>
+				</StackPanel>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding IsFirst}" Value="True">
+						<Setter TargetName="Dot" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+					<DataTrigger Binding="{Binding IsCounted}" Value="False">
+						<Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Kcv.FaintForeground}" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+
+			<!--  a consumed item (damage control and the like) in the status bar: its icon and count, the name in the tooltip  -->
+			<DataTemplate x:Key="ConsumedItem" DataType="{x:Type cost:ConsumableItem}">
+				<StackPanel
+					Margin="6 0 0 0"
+					Background="Transparent"
+					Orientation="Horizontal"
+					ToolTip="{Binding Equipment.Name}"
+					>
+					<Image
+						Width="16"
+						Height="16"
+						Source="{Binding Equipment.MasterEquipment.IconTypeTyped, Converter={StaticResource KcvRec.GameIcon}}"
+						/>
+					<TextBlock VerticalAlignment="Center" Text="{Binding Count, StringFormat=×{0}}" />
+				</StackPanel>
+			</DataTemplate>
+
+			<!--  a row with its detail under the cells (the record windows' row has no detail); the detail on its own background  -->
+			<Style
+				x:Key="CostRow"
+				BasedOn="{StaticResource KcvRec.Row}"
+				TargetType="DataGridRow"
+				>
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="DataGridRow">
+							<Border
+								x:Name="Back"
+								Background="Transparent"
+								SnapsToDevicePixels="True"
+								>
+								<Grid>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto" />
+										<RowDefinition Height="Auto" />
+									</Grid.RowDefinitions>
+									<DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+									<Border
+										Grid.Row="1"
+										Background="{DynamicResource Kcv.StatusBackground}"
+										Visibility="{TemplateBinding DetailsVisibility}"
+										>
+										<DataGridDetailsPresenter />
+									</Border>
+								</Grid>
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+								</Trigger>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  계산 조건: the damage whose ships are counted for buckets (the viewer's choice, kept by the sortie record window)  -->
+		<ContentControl
+			Grid.Row="0"
+			Style="{StaticResource KcvRec.Box}"
+			Tag="{x:Static fork:ForkStrings.KcvCalcConditions}"
+			>
+			<DockPanel MinHeight="24">
+				<TextBlock
+					VerticalAlignment="Center"
+					DockPanel.Dock="Right"
+					FontSize="11"
+					Foreground="{DynamicResource Kcv.InactiveForeground}"
+					Text="{x:Static fork:ForkStrings.SortieCostBucketNote}"
+					/>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock
+						Margin="0 0 10 0"
+						Style="{StaticResource KcvRec.Label}"
+						Text="{Binding Cost.Translation.Bucket, StringFormat={}{0}:}"
+						/>
+					<CheckBox
+						Content="{x:Static fork:ForkStrings.SortieCostScratch}"
+						IsChecked="{Binding Cost.Configuration.IsNormalDamageBucket}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+					<CheckBox
+						Content="{Binding Cost.Translation.LightDamage}"
+						IsChecked="{Binding Cost.Configuration.IsShouhaBucket}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+					<CheckBox
+						Content="{Binding Cost.Translation.MediumDamage}"
+						IsChecked="{Binding Cost.Configuration.IsChuuhaBucket}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+					<CheckBox
+						Content="{Binding Cost.Translation.HeavyDamage}"
+						IsChecked="{Binding Cost.Configuration.IsTaihaBucket}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+				</StackPanel>
+			</DockPanel>
+		</ContentControl>
+
+		<DataGrid
+			x:Name="Table"
+			Grid.Row="1"
+			CanUserReorderColumns="False"
+			ItemsSource="{Binding Rows}"
+			RowDetailsVisibilityMode="VisibleWhenSelected"
+			RowStyle="{StaticResource CostRow}"
+			Style="{StaticResource KcvRec.Grid}"
+			>
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="140"
+					Header="{x:Static fork:ForkStrings.KcvRecordTime}"
+					SortMemberPath="Time"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Time, Converter={StaticResource KcvRec.Time}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="50"
+					Header="{x:Static translations:SortieRecordViewerResources.World}"
+					SortMemberPath="MapKey"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding MapText}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="120"
+					CanUserSort="False"
+					Header="{x:Static fork:ForkStrings.KcvRecordRoute}"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<ItemsControl
+								Margin="6 0"
+								VerticalAlignment="Center"
+								Focusable="False"
+								ItemTemplate="{StaticResource RouteNode}"
+								ItemsPanel="{StaticResource KcvRec.Horizontal}"
+								>
+								<ItemsControl.ItemsSource>
+									<MultiBinding Converter="{StaticResource RouteOf}">
+										<Binding Path="SortieId" />
+										<Binding Path="Version" Source="{StaticResource Routes}" />
+									</MultiBinding>
+								</ItemsControl.ItemsSource>
+							</ItemsControl>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="76"
+					Header="{x:Static translations:ConstantsRes.Fuel}"
+					SortMemberPath="Fuel"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<StackPanel Margin="6 0" Orientation="Horizontal">
+								<Rectangle Fill="{StaticResource KcvRec.Fuel}" Style="{StaticResource KcvRec.Dot}" />
+								<TextBlock
+									FontSize="13"
+									Style="{StaticResource Amount}"
+									Tag="{Binding Fuel}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="76"
+					Header="{x:Static translations:ConstantsRes.Ammo}"
+					SortMemberPath="Ammo"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<StackPanel Margin="6 0" Orientation="Horizontal">
+								<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+								<TextBlock
+									FontSize="13"
+									Style="{StaticResource Amount}"
+									Tag="{Binding Ammo}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="76"
+					Header="{x:Static translations:ConstantsRes.Steel}"
+					SortMemberPath="Steel"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<StackPanel Margin="6 0" Orientation="Horizontal">
+								<Rectangle Fill="{StaticResource KcvRec.Steel}" Style="{StaticResource KcvRec.Dot}" />
+								<TextBlock
+									FontSize="13"
+									Style="{StaticResource Amount}"
+									Tag="{Binding Steel}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="90"
+					Header="{x:Static translations:ConstantsRes.Baux}"
+					SortMemberPath="Bauxite"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<StackPanel Margin="6 0" Orientation="Horizontal">
+								<Rectangle Fill="{StaticResource KcvRec.Bauxite}" Style="{StaticResource KcvRec.Dot}" />
+								<TextBlock
+									FontSize="13"
+									Style="{StaticResource Amount}"
+									Tag="{Binding Bauxite}"
+									/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="92"
+					Header="{x:Static translations:ConstantsRes.Bucket}"
+					SortMemberPath="Buckets"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<StackPanel Margin="6 0" Orientation="Horizontal">
+								<common:UseItemIcon
+									x:Name="Icon"
+									Width="16"
+									Height="16"
+									Type="InstantRepair"
+									/>
+								<TextBlock
+									Margin="3 0 0 0"
+									FontSize="13"
+									Style="{StaticResource Amount}"
+									Tag="{Binding Buckets}"
+									/>
+							</StackPanel>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding Buckets}" Value="0">
+									<Setter TargetName="Icon" Property="Opacity" Value="0.35" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="Auto"
+					MinWidth="120"
+					CanUserSort="False"
+					Header="{x:Static translations:SortieRecordViewerResources.Fleet}"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+							<ItemsControl ItemsSource="{Binding Sortie, Converter={StaticResource KcvRec.FleetShips}}" Style="{StaticResource KcvRec.Fleet}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+
+			<!--  the detail: a line per cost or gain with a value, under the row's columns (KcvFollowColumns)  -->
+			<DataGrid.RowDetailsTemplate>
+				<DataTemplate DataType="{x:Type kcv:KcvSortieCostRow}">
+					<ItemsControl
+						Margin="0 2 0 4"
+						Focusable="False"
+						ItemsSource="{Binding Lines}"
+						>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type kcv:KcvSortieCostLine}">
+								<Grid Height="20" kcv:KcvFollowColumns.Count="7">
+									<TextBlock
+										Grid.ColumnSpan="3"
+										Margin="26 0 6 0"
+										VerticalAlignment="Center"
+										FontSize="12"
+										Foreground="{DynamicResource Kcv.SubForeground}"
+										Text="{Binding Name}"
+										TextTrimming="CharacterEllipsis"
+										/>
+									<StackPanel
+										Grid.Column="3"
+										Margin="6 0"
+										Orientation="Horizontal"
+										>
+										<Rectangle Style="{StaticResource Spacer}" />
+										<TextBlock
+											FontSize="12"
+											Style="{StaticResource Amount}"
+											Tag="{Binding Fuel}"
+											/>
+									</StackPanel>
+									<StackPanel
+										Grid.Column="4"
+										Margin="6 0"
+										Orientation="Horizontal"
+										>
+										<Rectangle Style="{StaticResource Spacer}" />
+										<TextBlock
+											FontSize="12"
+											Style="{StaticResource Amount}"
+											Tag="{Binding Ammo}"
+											/>
+									</StackPanel>
+									<StackPanel
+										Grid.Column="5"
+										Margin="6 0"
+										Orientation="Horizontal"
+										>
+										<Rectangle Style="{StaticResource Spacer}" />
+										<TextBlock
+											FontSize="12"
+											Style="{StaticResource Amount}"
+											Tag="{Binding Steel}"
+											/>
+									</StackPanel>
+									<StackPanel
+										Grid.Column="6"
+										Margin="6 0"
+										Orientation="Horizontal"
+										>
+										<Rectangle Style="{StaticResource Spacer}" />
+										<TextBlock
+											FontSize="12"
+											Style="{StaticResource Amount}"
+											Tag="{Binding Bauxite}"
+											/>
+									</StackPanel>
+									<ItemsControl
+										Grid.Column="7"
+										Margin="6 0"
+										VerticalAlignment="Center"
+										Focusable="False"
+										FontSize="11"
+										ItemTemplate="{StaticResource DamagePart}"
+										ItemsPanel="{StaticResource KcvRec.Horizontal}"
+										ItemsSource="{Binding Damage}"
+										/>
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</DataTemplate>
+			</DataGrid.RowDetailsTemplate>
+		</DataGrid>
+
+		<!--  calculating n / total, then the total of every sortie on the right: the resources, buckets and consumed items  -->
+		<Border Grid.Row="2" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<StackPanel
+					DockPanel.Dock="Right"
+					Orientation="Horizontal"
+					Visibility="{Binding Cost.SortieCostSummary, Converter={x:Static kcv:KcvNotNullConverter.Visible}}"
+					>
+					<Rectangle Fill="{StaticResource KcvRec.Fuel}" Style="{StaticResource KcvRec.Dot}" />
+					<TextBlock Style="{StaticResource Sum}" Tag="{Binding Cost.SortieCostSummary.Fuel}" />
+					<Rectangle Fill="{StaticResource KcvRec.Ammo}" Style="{StaticResource KcvRec.Dot}" />
+					<TextBlock Style="{StaticResource Sum}" Tag="{Binding Cost.SortieCostSummary.Ammo}" />
+					<Rectangle Fill="{StaticResource KcvRec.Steel}" Style="{StaticResource KcvRec.Dot}" />
+					<TextBlock Style="{StaticResource Sum}" Tag="{Binding Cost.SortieCostSummary.Steel}" />
+					<Rectangle Fill="{StaticResource KcvRec.Bauxite}" Style="{StaticResource KcvRec.Dot}" />
+					<TextBlock Style="{StaticResource Sum}" Tag="{Binding Cost.SortieCostSummary.Bauxite}" />
+					<common:UseItemIcon
+						Width="16"
+						Height="16"
+						Type="InstantRepair"
+						/>
+					<TextBlock VerticalAlignment="Center" Text="{Binding Cost.Buckets, StringFormat=×{0}}" />
+					<ItemsControl
+						Focusable="False"
+						ItemTemplate="{StaticResource ConsumedItem}"
+						ItemsPanel="{StaticResource KcvRec.Horizontal}"
+						ItemsSource="{Binding Cost.ConsumedItems}"
+						/>
+				</StackPanel>
+				<TextBlock Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

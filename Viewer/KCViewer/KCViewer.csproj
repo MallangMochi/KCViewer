@@ -1,0 +1,234 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
+		<OutputType>WinExe</OutputType>
+		<BootstrapperEnabled>true</BootstrapperEnabled>
+		<UseWindowsForms>true</UseWindowsForms>
+		<UseWPF>true</UseWPF>
+		<Platforms>x64</Platforms>
+		<Nullable>enable</Nullable>
+		<SatelliteResourceLanguages>en;ja</SatelliteResourceLanguages>
+		<LangVersion>preview</LangVersion>
+		<DebugType>embedded</DebugType>
+		<OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+		<Configurations>Debug;Release;Browser Debug</Configurations>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- Fork: the viewer's own icon (user's choice 2026-10-22, Fork/ForkAppIcon.cs); KCBrowser.exe has it too -->
+		<ApplicationIcon>kcviewer.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<NoWin32Manifest>true</NoWin32Manifest>
+		<StartupObject>KCViewer.App</StartupObject>
+		<Title>KCViewer</Title>
+		<Description />
+		<Configuration />
+		<Company />
+		<Product>KCViewer</Product>
+		<Copyright>Copyright ©  2014 Andante, 2026 MallangMochi</Copyright>
+		<Trademark />
+		<Culture />
+		<!-- Fork: AssemblyVersion stays 74식's: saved window states (Settings\WindowStates) name the types with it, and
+		     the version window shows it as the base. The files' version is ours (fork-portable.ps1 sets a release's). -->
+		<AssemblyVersion>5.4.3.0</AssemblyVersion>
+		<FileVersion>1.0.0.0</FileVersion>
+		<Version>1.0.0</Version>
+		<AnalysisLevel>preview</AnalysisLevel>
+		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="AvalonDockTesting\**" />
+		<EmbeddedResource Remove="AvalonDockTesting\**" />
+		<None Remove="AvalonDockTesting\**" />
+		<Page Remove="AvalonDockTesting\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include=".editorconfig" />
+		<Page Include="Properties\DesignTimeResources.xaml">
+			<SubType>Designer</SubType>
+			<Generator>MSBuild:Compile</Generator>
+			<ContainsDesignTimeResources>true</ContainsDesignTimeResources>
+		</Page>
+		<None Update="Assets.zip">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Settings\ColorScheme.example.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Settings\ColorScheme.Dark.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="kcviewer.ico" />
+		<!-- Fork: the icon for the tray and the windows (ForkAppIcon), its 16 px picture for the menu (Icons.xaml) -->
+		<EmbeddedResource Include="kcviewer.ico" LogicalName="KCViewer.AppIcon.ico" />
+		<Resource Include="kcviewer-16.png" />
+		<Content Include="Other\Information\apilist.txt" />
+		<Content Include="Other\Information\todo.txt" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+		<ProjectReference Include="..\KCViewer.TestData\KCViewer.TestData.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AvalonDock.Themes.VS2013\AvalonDock.Themes.VS2013.csproj" />
+		<ProjectReference Include="..\Avalonia.Win32.Interoperability\Avalonia.Win32.Interoperability.csproj" />
+		<ProjectReference Include="..\BrowserLibCore\BrowserLibCore.csproj" />
+		<ProjectReference Include="..\KCViewer.Avalonia\KCViewer.Avalonia.csproj" />
+		<ProjectReference Include="..\KCViewer.KancolleApi.Types\KCViewer.KancolleApi.Types.csproj" />
+		<ProjectReference Include="..\KCViewer.SourceGenerators\KCViewer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\KCViewer.Core\KCViewer.Core.csproj" />
+		<ProjectReference Include="..\KancolleProgress\KancolleProgress.csproj" />
+		<!-- Fork: plugin contract -->
+		<ProjectReference Include="..\KCViewer.Plugins\KCViewer.Plugins.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Aigamo.ResXGenerator" Version="4.3.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="CsvHelper" Version="33.1.0" />
+		<PackageReference Include="Dirkster.AvalonDock" Version="4.74.1" />
+		<PackageReference Include="Dirkster.ColorPickerLib" Version="1.6.2" />
+		<PackageReference Include="DotnetRuntimeBootstrapper" Version="2.5.4">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+		<PackageReference Include="HanumanInstitute.MvvmDialogs.Wpf" Version="2.3.0" />
+		<PackageReference Include="Jot" Version="2.1.17" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+		<PackageReference Include="ModernWpfUI" Version="0.9.6" />
+		<PackageReference Include="ModernWpfUI.MahApps" Version="0.9.5" />
+		<PackageReference Include="NAudio" Version="2.3.0" />
+		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
+		<PackageReference Include="DynaJson" Version="2.2.0" />
+		<PackageReference Include="Riok.Mapperly" Version="4.3.1" />
+		<PackageReference Include="ScottPlot" Version="4.1.70" />
+		<PackageReference Include="ScottPlot.WPF" Version="4.1.70" />
+		<PackageReference Include="System.Diagnostics.EventLog" Version="10.0.8" />
+		<PackageReference Include="System.Linq.Async" Version="7.0.1" />
+		<PackageReference Include="System.Management" Version="10.0.8" />
+		<PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
+		<PackageReference Include="Grpc" Version="2.46.6" />
+		<PackageReference Include="Grpc.Core" Version="2.46.6" />
+		<PackageReference Include="Grpc.Core.Api" Version="2.80.0" />
+		<PackageReference Include="log4net" Version="3.3.1" />
+		<PackageReference Include="MagicOnion" Version="3.0.13" />
+		<PackageReference Include="MagicOnion.Abstractions" Version="3.0.13" />
+		<PackageReference Include="MagicOnion.Hosting" Version="3.0.13" />
+		<PackageReference Include="MessagePack" Version="3.1.6" />
+		<PackageReference Include="MessagePack.Annotations" Version="3.1.6" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+		<PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
+		<PackageReference Include="Titanium.Web.Proxy" Version="3.2.0" />
+		<PackageReference Include="WpfExtensions.Xaml" Version="1.2.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Compile Remove="Observer\kcsapi\api_start2.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Splashscreen.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Page Remove="Properties\DesignTimeResources.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<SplashScreen Include="SplashScreen.png" />
+	</ItemGroup>
+
+	<!--
+		Fork: the fork's commit, its date and whether the working tree had changes, for the version window
+		(Fork/ForkVersion.cs). Read with git at build time, the way fork-portable.ps1 names its zip; empty without git.
+		A release also has its version (2026-10-18 "정식 태그버전(1.0.0)과 개발버전(커밋해시와 날짜) 모두 입력 가능하게"):
+		-p:ForkReleaseVersion=1.0.0 (fork-portable.ps1 -Version), else a tag such as v1.0.0 or 1.0.0 on the commit.
+		The program update's public key (UPDATER-DESIGN.md 8-2, Fork/Update/ForkProgramUpdate.cs): -p:ForkUpdatePublicKey=,
+		else ..\Portable\update-public-key.txt when it is there. Without one the viewer does not look for program updates.
+	-->
+	<Target Name="ForkCommitInfo" BeforeTargets="GetAssemblyAttributes">
+		<Exec Command="git rev-parse --short HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low" WorkingDirectory="$(MSBuildProjectDirectory)">
+			<Output TaskParameter="ConsoleOutput" PropertyName="ForkCommit" />
+		</Exec>
+		<Exec Command="git log -1 --format=%%cs" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low" WorkingDirectory="$(MSBuildProjectDirectory)">
+			<Output TaskParameter="ConsoleOutput" PropertyName="ForkCommitDate" />
+		</Exec>
+		<Exec Command="git status --porcelain" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low" WorkingDirectory="$(MSBuildProjectDirectory)">
+			<Output TaskParameter="ConsoleOutput" PropertyName="ForkChanges" />
+		</Exec>
+		<Exec Command="git tag --points-at HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low" WorkingDirectory="$(MSBuildProjectDirectory)">
+			<Output TaskParameter="ConsoleOutput" PropertyName="ForkTags" />
+		</Exec>
+		<PropertyGroup>
+			<ForkDirty>False</ForkDirty>
+			<ForkDirty Condition="'$(ForkChanges)' != ''">True</ForkDirty>
+			<!-- the first tag of the form [v]1.2.3 (the tags come as one list, separated by semicolons) -->
+			<ForkTagVersion>$([System.Text.RegularExpressions.Regex]::Match(';$(ForkTags);', '(?&lt;=;v?)\d+\.\d+\.\d+[^;]*(?=;)'))</ForkTagVersion>
+			<ForkReleaseVersion Condition="'$(ForkReleaseVersion)' == ''">$(ForkTagVersion)</ForkReleaseVersion>
+			<ForkUpdatePublicKeyFile>$(MSBuildProjectDirectory)\..\Portable\update-public-key.txt</ForkUpdatePublicKeyFile>
+			<ForkUpdatePublicKey Condition="'$(ForkUpdatePublicKey)' == '' And Exists('$(ForkUpdatePublicKeyFile)')">$([System.IO.File]::ReadAllText('$(ForkUpdatePublicKeyFile)').Trim())</ForkUpdatePublicKey>
+		</PropertyGroup>
+		<ItemGroup>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>ForkReleaseVersion</_Parameter1>
+				<_Parameter2>$(ForkReleaseVersion)</_Parameter2>
+			</AssemblyAttribute>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>ForkCommit</_Parameter1>
+				<_Parameter2>$(ForkCommit)</_Parameter2>
+			</AssemblyAttribute>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>ForkCommitDate</_Parameter1>
+				<_Parameter2>$(ForkCommitDate)</_Parameter2>
+			</AssemblyAttribute>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>ForkDirty</_Parameter1>
+				<_Parameter2>$(ForkDirty)</_Parameter2>
+			</AssemblyAttribute>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>ForkUpdatePublicKey</_Parameter1>
+				<_Parameter2>$(ForkUpdatePublicKey)</_Parameter2>
+			</AssemblyAttribute>
+		</ItemGroup>
+	</Target>
+
+	<ItemGroup>
+		<EmbeddedResource Update="**\*.resx">
+			<CustomToolNamespace>KCViewer.Translations</CustomToolNamespace>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<PropertyGroup>
+		<ResXGenerator_GenerateCode>true</ResXGenerator_GenerateCode>
+		<ResXGenerator_PublicClass>true</ResXGenerator_PublicClass>
+		<ResXGenerator_NullForgivingOperators>true</ResXGenerator_NullForgivingOperators>
+		<ResXGenerator_StaticClass>true</ResXGenerator_StaticClass>
+		<ResXGenerator_StaticMembers>true</ResXGenerator_StaticMembers>
+	</PropertyGroup>
+</Project>

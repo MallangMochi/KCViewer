@@ -1,0 +1,5 @@
+# Scripts\fork-portable.ps1's output (portable folders, release zips and their signed json)
+/dist/
+# build output of the scripts' tools (Viewer\.gitignore has its own)
+bin/
+obj/

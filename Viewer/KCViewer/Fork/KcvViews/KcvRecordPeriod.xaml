@@ -1,0 +1,61 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvRecordPeriod"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Focusable="False"
+	>
+	<!--
+		Fork: the 기간 condition of the record windows, 「기간: 2026-09-29 0:00 ~ 2026-10-04 0:00」, in two pieces
+		(「기간: 2026-09-29 0:00 ~」 and 「2026-10-04 0:00」), so a narrow window wraps it after 「~」 instead of cutting it
+		(mockup v4, 2026-10-05). It binds the viewer's names (DateBegin, TimeBegin, DateEnd, TimeEnd, MinDate,
+		MaxDate), which all its record view models have.
+	-->
+	<WrapPanel Margin="0 1" Orientation="Horizontal">
+		<StackPanel Orientation="Horizontal">
+			<TextBlock
+				Margin="0 0 5 0"
+				VerticalAlignment="Center"
+				FontSize="13"
+				Foreground="{DynamicResource Kcv.SubForeground}"
+				Text="{Binding Source={x:Static fork:ForkStrings.KcvRecordPeriod}, StringFormat={}{0}:}"
+				/>
+			<DatePicker
+				Width="128"
+				VerticalAlignment="Center"
+				DisplayDateEnd="{Binding MaxDate}"
+				DisplayDateStart="{Binding MinDate}"
+				FirstDayOfWeek="Monday"
+				SelectedDate="{Binding DateBegin}"
+				/>
+			<ui:SimpleTimePicker
+				Margin="2 0 0 0"
+				VerticalAlignment="Center"
+				Culture="ja-JP"
+				SelectedDateTime="{Binding TimeBegin}"
+				/>
+			<TextBlock
+				Margin="6 0"
+				VerticalAlignment="Center"
+				Text="~"
+				/>
+		</StackPanel>
+		<StackPanel Orientation="Horizontal">
+			<DatePicker
+				Width="128"
+				VerticalAlignment="Center"
+				DisplayDateEnd="{Binding MaxDate}"
+				DisplayDateStart="{Binding MinDate}"
+				FirstDayOfWeek="Monday"
+				SelectedDate="{Binding DateEnd}"
+				/>
+			<ui:SimpleTimePicker
+				Margin="2 0 0 0"
+				VerticalAlignment="Center"
+				Culture="ja-JP"
+				SelectedDateTime="{Binding TimeEnd}"
+				/>
+		</StackPanel>
+	</WrapPanel>
+</UserControl>

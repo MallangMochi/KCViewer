@@ -1,0 +1,581 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvFleetView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:core="clr-namespace:KCViewer.Core.Types;assembly=KCViewer.Core"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:fleetOverview="clr-namespace:KCViewer.Window.Wpf.FleetOverview"
+	xmlns:fleetViewModels="clr-namespace:KCViewer.Window.Wpf.Fleet.ViewModels"
+	xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	x:Name="KcvFleetControl"
+	d:DesignHeight="300"
+	d:DesignWidth="800"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the fleet panel drawn as KanColleViewer's 艦隊 tab (viewer-design/kcv-reference/04-fleet.png).
+		Fleet name with a state mark, a status bar in the state colour, then one 41 px row per ship:
+		type and name, Lv and Next, HP with its gauge, condition mark, fuel and ammo gauges, equipment icons.
+		Tooltips, menus and when a ship is heavily damaged come from the viewer's own view models.
+		A heavily damaged ship's row is red, a docked ship's row in the docking colour with 입거 시 강조 on, and a docked
+		ship has 「입거 03:45:16」 over its HP gauge; nothing blinks (mockup 20261009-fleet-dock-badge-v5).
+	-->
+	<UserControl.Resources>
+		<fleetViewModels:FleetViewModelBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+
+		<ContextMenu x:Key="Kcv.FleetMenu">
+			<MenuItem Command="{Binding CopyCommand}" Header="{Binding FormFleet.ContextMenuFleet_CopyFleet}" />
+			<MenuItem Header="{Binding FormFleet.ContextMenuFleet_CopyFleetDeckBuilder}" ItemsSource="{Binding AirBaseAreas}">
+				<MenuItem.ItemContainerStyle>
+					<Style BasedOn="{StaticResource DefaultMenuItemStyle}" TargetType="MenuItem">
+						<Setter Property="Command" Value="{Binding DataContext.CopyDeckBuilderCommand, Source={StaticResource Proxy}}" />
+						<Setter Property="CommandParameter" Value="{Binding AreaId}" />
+						<Setter Property="Header" Value="{Binding Display}" />
+					</Style>
+				</MenuItem.ItemContainerStyle>
+			</MenuItem>
+			<MenuItem Command="{Binding CopyKanmusuListCommand}" Header="{Binding FormFleet.ContextMenuFleet_CopyKanmusuList}" />
+			<MenuItem Header="{Binding FormFleet.ContextMenuFleet_CopyFleetAnalysisShips}">
+				<MenuItem Command="{Binding CopyFleetAnalysisAllShipsCommand}" Header="{Binding FormFleet.All}" />
+				<MenuItem Command="{Binding CopyFleetAnalysisLockedShipsCommand}" Header="{Binding FormFleet.Locked}" />
+			</MenuItem>
+			<MenuItem Header="{Binding FormFleet.ContextMenuFleet_CopyFleetAnalysisEquipment}">
+				<MenuItem Command="{Binding CopyFleetAnalysisAllEquipCommand}" Header="{Binding FormFleet.All}" />
+				<MenuItem Command="{Binding CopyFleetAnalysisLockedEquipCommand}" Header="{Binding FormFleet.Locked}" />
+			</MenuItem>
+			<Separator />
+			<MenuItem Header="{Binding FormFleet.CopyToFleetAnalysisSpreadsheetShips}">
+				<MenuItem Command="{Binding CopyFleetAnalysisAllShipsShortCommand}" Header="{Binding FormFleet.All}" />
+				<MenuItem Command="{Binding CopyFleetAnalysisLockedShipsShortCommand}" Header="{Binding FormFleet.Locked}" />
+			</MenuItem>
+			<MenuItem Header="{Binding FormFleet.CopyToFleetAnalysisSpreadsheetEquipment}">
+				<MenuItem Command="{Binding CopyFleetAnalysisAllEquipShortCommand}" Header="{Binding FormFleet.All}" />
+				<MenuItem Command="{Binding CopyFleetAnalysisLockedEquipShortCommand}" Header="{Binding FormFleet.Locked}" />
+			</MenuItem>
+			<Separator />
+			<MenuItem Command="{Binding AntiAirDetailsCommand}" Header="{Binding FormFleet.ContextMenuFleet_AntiAirDetails}" />
+			<MenuItem Command="{Binding OutputFleetImageCommand}" Header="{Binding FormFleet.ContextMenuFleet_OutputFleetImage}" />
+			<MenuItem Command="{Binding OpenAirControlSimulatorCommand}" Header="{Binding FormFleet.AirControlSimulator}" />
+			<MenuItem Command="{Binding OpenOperationRoomCommand}" Header="{Binding FormFleet.OperationRoom}" />
+		</ContextMenu>
+
+		<Style x:Key="Kcv.StatText" BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="Margin" Value="3 0 12 0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+
+		<!--  A header timer (anchorage repair or home port supply, KcvFleetTimers.cs): the viewer's icon, the elapsed time, its tooltip  -->
+		<DataTemplate x:Key="Kcv.HeaderTimer" DataType="{x:Type fleetOverview:FleetOverviewItemViewModel}">
+			<StackPanel
+				Background="Transparent"
+				Orientation="Horizontal"
+				ToolTip="{Binding ToolTip}"
+				Visibility="{Binding Visible, Converter={StaticResource BooleanToVisibilityConverter}}"
+				>
+				<common:IconContentIcon VerticalAlignment="Center" Type="{Binding Icon}" />
+				<TextBlock Style="{StaticResource Kcv.StatText}" Text="{Binding Text}" />
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<Grid DataContext="{Binding ViewModel, ElementName=KcvFleetControl}" Visibility="{Binding Visibility}">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<!--  Fleet name with its state mark; the viewer's fleet values on the right  -->
+		<DockPanel
+			Grid.Row="0"
+			Margin="10 7 10 5"
+			Background="Transparent"
+			ContextMenu="{StaticResource Kcv.FleetMenu}"
+			>
+			<!--  艦隊詳細 (KcvFleetDetailWindow) for this fleet  -->
+			<Button
+				Margin="14 0 0 0"
+				Padding="12 3"
+				Click="OpenFleetDetail"
+				Content="{x:Static fork:ForkStrings.KcvFleetDetail}"
+				DockPanel.Dock="Right"
+				FontSize="12"
+				/>
+			<StackPanel
+				DataContext="{Binding ControlFleet}"
+				DockPanel.Dock="Right"
+				Orientation="Horizontal"
+				>
+				<!--  Left of the air power: the anchorage repair timer (repair ship flagship), then the home port supply timer (野埼 flagship or 2nd)  -->
+				<ContentControl
+					Content="{Binding Timers.Repair, ElementName=KcvFleetControl}"
+					ContentTemplate="{StaticResource Kcv.HeaderTimer}"
+					Focusable="False"
+					/>
+				<ContentControl
+					Content="{Binding Timers.Supply, ElementName=KcvFleetControl}"
+					ContentTemplate="{StaticResource Kcv.HeaderTimer}"
+					Focusable="False"
+					/>
+				<StackPanel
+					Background="Transparent"
+					DataContext="{Binding AirSuperiority}"
+					Orientation="Horizontal"
+					ToolTip="{Binding ToolTip}"
+					>
+					<Image Width="20" Height="20" Source="{Binding Source={x:Static core:EquipmentIconType.CarrierBasedFighter}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource Kcv.EquipmentIcon}" />
+					<TextBlock Style="{StaticResource Kcv.StatText}" Text="{Binding Text}" />
+				</StackPanel>
+				<StackPanel
+					Background="Transparent"
+					DataContext="{Binding SearchingAbility}"
+					Orientation="Horizontal"
+					ToolTip="{Binding ToolTip}"
+					>
+					<StackPanel.InputBindings>
+						<MouseBinding Command="{Binding ViewModel.ControlFleet.IncreaseBranchWeightCommand, ElementName=KcvFleetControl}" MouseAction="LeftClick" />
+					</StackPanel.InputBindings>
+					<Image Width="20" Height="20" Source="{Binding Source={x:Static core:EquipmentIconType.CarrierBasedRecon}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource Kcv.EquipmentIcon}" />
+					<TextBlock Style="{StaticResource Kcv.StatText}" Text="{Binding Text}" />
+				</StackPanel>
+				<StackPanel
+					Background="Transparent"
+					DataContext="{Binding AntiAirPower}"
+					Orientation="Horizontal"
+					ToolTip="{Binding ToolTip}"
+					>
+					<Image Width="20" Height="20" Source="{Binding Source={x:Static core:EquipmentIconType.HighAngleGun}, Converter={StaticResource Kcv.GameIcon}}" Style="{StaticResource Kcv.EquipmentIcon}" />
+					<TextBlock Style="{StaticResource Kcv.StatText}" Text="{Binding Text}" />
+				</StackPanel>
+				<StackPanel
+					Background="Transparent"
+					DataContext="{Binding Speed}"
+					Orientation="Horizontal"
+					ToolTip="{Binding ToolTip}"
+					>
+					<common:ParameterIcon Type="Speed" />
+					<TextBlock
+						Margin="3 0 0 0"
+						Style="{StaticResource Kcv.StatText}"
+						Text="{Binding Text}"
+						/>
+				</StackPanel>
+			</StackPanel>
+
+			<StackPanel
+				DataContext="{Binding ControlFleet}"
+				Orientation="Horizontal"
+				ToolTip="{Binding Name.ToolTip}"
+				>
+				<Rectangle
+					Width="11"
+					Height="11"
+					VerticalAlignment="Center"
+					Fill="{Binding State.StateLabels[0].State, Converter={StaticResource Kcv.FleetStateBrush}, ConverterParameter=Mark}"
+					/>
+				<TextBlock
+					Margin="6 0 0 0"
+					VerticalAlignment="Center"
+					FontSize="14"
+					Style="{StaticResource Kcv.Text}"
+					Text="{Binding Name.Text}"
+					/>
+			</StackPanel>
+		</DockPanel>
+
+		<!--  Status bar: coloured by the main state (出撃可能！, 遠征中, 出撃中, ...), the other states after it  -->
+		<Border
+			Grid.Row="1"
+			MinHeight="22"
+			Margin="10 0 10 3"
+			Background="{Binding ControlFleet.State.StateLabels[0].State, Converter={StaticResource Kcv.FleetStateBrush}}"
+			ContextMenu="{StaticResource Kcv.FleetMenu}"
+			>
+			<ItemsControl
+				Margin="6 0"
+				VerticalAlignment="Center"
+				ItemsSource="{Binding ControlFleet.State.StateLabels}"
+				>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type fleetViewModels:StateLabel}">
+						<TextBlock
+							Margin="0 2 16 2"
+							FontSize="12"
+							Foreground="White"
+							Text="{Binding DisplayText}"
+							ToolTip="{Binding Label.ToolTip}"
+							Visibility="{Binding Visibility}"
+							/>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</Border>
+
+		<ScrollViewer
+			Grid.Row="2"
+			Grid.IsSharedSizeScope="True"
+			HorizontalScrollBarVisibility="Auto"
+			VerticalScrollBarVisibility="Auto"
+			>
+			<ItemsControl Margin="10 0" ItemsSource="{Binding ControlMember}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type fleetViewModels:FleetItemViewModel}">
+						<Border
+							Height="41"
+							BorderBrush="{DynamicResource Kcv.Separator}"
+							BorderThickness="0 0 0 1"
+							Visibility="{Binding Visibility}"
+							>
+							<Border.Style>
+								<Style TargetType="Border">
+									<Setter Property="Background" Value="Transparent" />
+									<Style.Triggers>
+										<!--
+											Heavily damaged (in a sortie, or in port with 대파 시 강조 on): half transparent red, so the row stays
+											readable in the light and the dark theme. It blinked, each row on its own; now it stays.
+										-->
+										<DataTrigger Binding="{Binding ShowSinkWarning}" Value="True">
+											<Setter Property="Background" Value="#80E02020" />
+										</DataTrigger>
+										<!--  In the dock with 입거 시 강조 on: the docking mark colour (#FF9A20) as half transparent  -->
+										<MultiDataTrigger>
+											<MultiDataTrigger.Conditions>
+												<Condition Binding="{Binding HP.RepairTimeShowMode}" Value="Visible" />
+												<Condition Binding="{Binding DockHighlight, RelativeSource={RelativeSource AncestorType=kcv:KcvFleetView}}" Value="True" />
+											</MultiDataTrigger.Conditions>
+											<Setter Property="Background" Value="#80FF9A20" />
+										</MultiDataTrigger>
+									</Style.Triggers>
+								</Style>
+							</Border.Style>
+
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" MinWidth="84" SharedSizeGroup="KcvShipType" />
+									<ColumnDefinition Width="Auto" MinWidth="104" SharedSizeGroup="KcvShipName" />
+									<ColumnDefinition Width="Auto" MinWidth="78" SharedSizeGroup="KcvShipLevel" />
+									<ColumnDefinition Width="Auto" MinWidth="90" SharedSizeGroup="KcvShipHp" />
+									<ColumnDefinition Width="Auto" MinWidth="49" SharedSizeGroup="KcvShipCondition" />
+									<ColumnDefinition Width="Auto" MinWidth="65" SharedSizeGroup="KcvShipResource" />
+									<ColumnDefinition Width="*" />
+								</Grid.ColumnDefinitions>
+
+								<!--  Type (small, grey, right aligned) and name (large) on one baseline  -->
+								<TextBlock
+									Grid.Column="0"
+									Margin="0 0 8 10"
+									HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									FontSize="13"
+									Style="{StaticResource Kcv.SubText}"
+									>
+									<TextBlock.Text>
+										<MultiBinding Converter="{StaticResource Kcv.ShipType}">
+											<Binding Path="Ship" />
+											<Binding Path="Name.Text" />
+										</MultiBinding>
+									</TextBlock.Text>
+								</TextBlock>
+
+								<Border
+									Grid.Column="1"
+									Margin="0 0 14 7"
+									VerticalAlignment="Bottom"
+									Background="{Binding Name.Background}"
+									ToolTip="{Binding Name.ToolTip}"
+									>
+									<Border.InputBindings>
+										<MouseBinding Command="{Binding Name.OpenShipEncyclopediaCommand}" MouseAction="RightClick" />
+									</Border.InputBindings>
+									<TextBlock
+										FontSize="20"
+										Style="{StaticResource Kcv.Text}"
+										Text="{Binding Name.Text}"
+										TextTrimming="CharacterEllipsis"
+										/>
+								</Border>
+
+								<!--  Lv. 74 / Next: 8923  -->
+								<StackPanel
+									Grid.Column="2"
+									Margin="0 0 12 0"
+									VerticalAlignment="Center"
+									Background="{Binding Level.Background}"
+									Cursor="Help"
+									DataContext="{Binding Level}"
+									ForceCursor="True"
+									ToolTip="{Binding ToolTip}"
+									>
+									<StackPanel.ContextMenu>
+										<ContextMenu>
+											<MenuItem Command="{Binding OpenExpCheckerCommand}" Header="{Binding DataContext.FormFleet.ContextMenuFleetShipLevel_OpenExpChecker, Source={StaticResource Proxy}}" />
+											<Separator />
+											<MenuItem
+												Command="{Binding CreateTrainingPlanCommand}"
+												Header="{Binding DataContext.FormFleet.ContextMenuFleetShipLevel_CreateTrainingPlan, Source={StaticResource Proxy}}"
+												Visibility="{Binding CanAddPlan, Converter={StaticResource BooleanToVisibilityConverter}}"
+												/>
+											<MenuItem
+												Command="{Binding ShipTrainingPlanViewerViewModel.OpenEditPopupCommand}"
+												CommandParameter="{Binding FirstTrainingPlan}"
+												Header="{Binding DataContext.FormFleet.ContextMenuFleetShipLevel_EditTrainingPlan, Source={StaticResource Proxy}}"
+												Visibility="{Binding CanEditOrRemovePlan, Converter={StaticResource BooleanToVisibilityConverter}}"
+												/>
+											<MenuItem
+												Command="{Binding ShipTrainingPlanViewerViewModel.RemovePlanCommand}"
+												CommandParameter="{Binding FirstTrainingPlan}"
+												Header="{Binding DataContext.FormFleet.ContextMenuFleetShipLevel_RemoveTrainingPlan, Source={StaticResource Proxy}}"
+												Visibility="{Binding CanEditOrRemovePlan, Converter={StaticResource BooleanToVisibilityConverter}}"
+												/>
+										</ContextMenu>
+									</StackPanel.ContextMenu>
+									<TextBlock Style="{StaticResource Kcv.Text}">
+										<Run FontSize="12" Foreground="{DynamicResource Kcv.SubForeground}" Text="Lv." />
+										<Run FontSize="16" Text="{Binding Value, Mode=OneWay}" />
+									</TextBlock>
+									<TextBlock Margin="0 -2 0 0" Style="{StaticResource Kcv.SubText}">
+										<Run Text="Next:" />
+										<Run Text="{Binding ValueNext, Mode=OneWay}" />
+									</TextBlock>
+								</StackPanel>
+
+								<!--  HP: 45 / 45 with the gauge  -->
+								<StackPanel
+									Grid.Column="3"
+									Margin="0 0 12 0"
+									VerticalAlignment="Center"
+									Background="{Binding HP.Background}"
+									DataContext="{Binding HP}"
+									ToolTip="{Binding ToolTip}"
+									>
+									<i:Interaction.Triggers>
+										<i:EventTrigger EventName="MouseEnter">
+											<i:InvokeCommandAction Command="{Binding MouseEnterCommand}" />
+										</i:EventTrigger>
+										<i:EventTrigger EventName="MouseLeave">
+											<i:InvokeCommandAction Command="{Binding MouseLeaveCommand}" />
+										</i:EventTrigger>
+									</i:Interaction.Triggers>
+									<TextBlock Style="{StaticResource Kcv.Text}">
+										<Run FontSize="12" Foreground="{DynamicResource Kcv.SubForeground}" Text="HP:" />
+										<Run FontSize="16" Text="{Binding HPBar.Value, Mode=OneWay}" />
+										<Run FontSize="12" Foreground="{DynamicResource Kcv.SubForeground}" Text="/" />
+										<Run FontSize="12" Foreground="{DynamicResource Kcv.SubForeground}" Text="{Binding HPBar.MaximumValue, Mode=OneWay}" />
+									</TextBlock>
+									<Grid Margin="0 2 0 0" HorizontalAlignment="Left">
+										<ProgressBar
+											Width="72"
+											Maximum="{Binding HPBar.MaximumValue}"
+											Style="{StaticResource Kcv.Gauge}"
+											Value="{Binding HPBar.Value, Mode=OneWay}"
+											>
+											<ProgressBar.Foreground>
+												<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+													<Binding Path="HPBar.Value" />
+													<Binding Path="HPBar.MaximumValue" />
+												</MultiBinding>
+											</ProgressBar.Foreground>
+										</ProgressBar>
+										<!--
+											In the dock: 「입거 03:45:16」 over the gauge, the time left as the viewer counts it every second (no
+											tooltip of its own). On a canvas, so it stands out over and under the 6 px gauge without moving the row.
+										-->
+										<Canvas>
+											<Border
+												Canvas.Top="-4"
+												Width="72"
+												Height="13"
+												Background="{DynamicResource Kcv.InProgressBadgeBackground}"
+												CornerRadius="2"
+												>
+												<Border.Style>
+													<Style TargetType="Border">
+														<Setter Property="Visibility" Value="Collapsed" />
+														<Style.Triggers>
+															<DataTrigger Binding="{Binding RepairTimeShowMode}" Value="Visible">
+																<Setter Property="Visibility" Value="Visible" />
+															</DataTrigger>
+														</Style.Triggers>
+													</Style>
+												</Border.Style>
+												<TextBlock
+													HorizontalAlignment="Center"
+													VerticalAlignment="Center"
+													FontSize="10.5"
+													Foreground="{DynamicResource Kcv.InProgressBadgeForeground}"
+													>
+													<Run Text="{x:Static fork:ForkStrings.KcvFleetDockBadge}" />
+													<Run Text="{Binding DisplayText, Mode=OneWay}" />
+												</TextBlock>
+											</Border>
+										</Canvas>
+									</Grid>
+								</StackPanel>
+
+								<!--  ■ 49 / condition  -->
+								<StackPanel
+									Grid.Column="4"
+									Margin="0 0 4 0"
+									VerticalAlignment="Center"
+									Background="Transparent"
+									DataContext="{Binding Condition}"
+									ToolTip="{Binding ToolTip}"
+									>
+									<StackPanel Orientation="Horizontal">
+										<Rectangle
+											Width="11"
+											Height="11"
+											Margin="0 2 5 0"
+											VerticalAlignment="Center"
+											Fill="{Binding Tag, Converter={StaticResource Kcv.ConditionBrush}}"
+											Stroke="{DynamicResource Kcv.MarkBorder}"
+											StrokeThickness="1"
+											/>
+										<TextBlock
+											FontSize="16"
+											Style="{StaticResource Kcv.Text}"
+											Text="{Binding Text}"
+											/>
+									</StackPanel>
+									<TextBlock
+										Margin="0 -3 0 0"
+										Style="{StaticResource Kcv.SubText}"
+										Text="condition"
+										/>
+								</StackPanel>
+
+								<!--  Fuel and ammo  -->
+								<StackPanel
+									Grid.Column="5"
+									Margin="0 0 9 0"
+									VerticalAlignment="Center"
+									Background="Transparent"
+									DataContext="{Binding ShipResource}"
+									ToolTip="{Binding ToolTip}"
+									>
+									<ProgressBar
+										Width="56"
+										Maximum="{Binding BarFuel.MaximumValue}"
+										Style="{StaticResource Kcv.Gauge}"
+										Value="{Binding BarFuel.Value, Mode=OneWay}"
+										>
+										<ProgressBar.Foreground>
+											<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+												<Binding Path="BarFuel.Value" />
+												<Binding Path="BarFuel.MaximumValue" />
+											</MultiBinding>
+										</ProgressBar.Foreground>
+									</ProgressBar>
+									<ProgressBar
+										Width="56"
+										Margin="0 7 0 0"
+										Maximum="{Binding BarAmmo.MaximumValue}"
+										Style="{StaticResource Kcv.Gauge}"
+										Value="{Binding BarAmmo.Value, Mode=OneWay}"
+										>
+										<ProgressBar.Foreground>
+											<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+												<Binding Path="BarAmmo.Value" />
+												<Binding Path="BarAmmo.MaximumValue" />
+											</MultiBinding>
+										</ProgressBar.Foreground>
+									</ProgressBar>
+								</StackPanel>
+
+								<!--
+									Equipment icons. The viewer's six slots: five ordinary ones, then the reinforcement slot (Slots[^1]),
+									set apart by a line when it has equipment (Kcv.IsLastItem, mockup 20261010-ex-slot-separator-v1)
+								-->
+								<ItemsControl
+									Grid.Column="6"
+									VerticalAlignment="Center"
+									Background="Transparent"
+									DataContext="{Binding Equipments}"
+									ItemsSource="{Binding Slots}"
+									ToolTip="{Binding ToolTip}"
+									>
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<StackPanel Orientation="Horizontal" />
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate DataType="{x:Type fleetViewModels:ShipSlotViewModel}">
+											<StackPanel Orientation="Horizontal">
+												<Rectangle
+													x:Name="ExLine"
+													Width="1"
+													Height="22"
+													Margin="3 0 5 0"
+													VerticalAlignment="Center"
+													Fill="{DynamicResource Kcv.Separator}"
+													Visibility="Collapsed"
+													/>
+												<!--  the game's icon (KcvGameIcons), as big as KanColleViewer's  -->
+												<Image
+													Width="30"
+													Height="30"
+													Margin="0 0 2 0"
+													Source="{Binding EquipmentIconType, Converter={StaticResource Kcv.GameIcon}}"
+													ToolTip="{Binding NameWithLevel}"
+													>
+													<Image.Style>
+														<Style BasedOn="{StaticResource Kcv.EquipmentIcon}" TargetType="Image">
+															<Setter Property="Visibility" Value="{Binding SlotVisibility}" />
+															<Style.Triggers>
+																<!--
+																	An empty slot has no icon. ShipSlotViewModel.Equipment is [DoNotNotify], so a trigger on
+																	it kept the state of the first render: equipment put into a slot that was empty then
+																	(another ship in the same row before a preset, or equipped later) stayed hidden.
+																	EquipmentIconType notifies and is Nothing for an empty slot.
+																-->
+																<DataTrigger Binding="{Binding EquipmentIconType}" Value="{x:Static core:EquipmentIconType.Nothing}">
+																	<Setter Property="Visibility" Value="Collapsed" />
+																</DataTrigger>
+															</Style.Triggers>
+														</Style>
+													</Image.Style>
+												</Image>
+											</StackPanel>
+											<!--  the line only before equipment in the reinforcement slot: none for an empty or closed one  -->
+											<DataTemplate.Triggers>
+												<DataTrigger Value="True">
+													<DataTrigger.Binding>
+														<MultiBinding Converter="{StaticResource Kcv.IsLastItem}">
+															<Binding />
+															<Binding Path="ItemsSource" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+														</MultiBinding>
+													</DataTrigger.Binding>
+													<Setter TargetName="ExLine" Property="Visibility" Value="Visible" />
+												</DataTrigger>
+												<DataTrigger Binding="{Binding EquipmentIconType}" Value="{x:Static core:EquipmentIconType.Nothing}">
+													<Setter TargetName="ExLine" Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+												<DataTrigger Binding="{Binding SlotVisibility}" Value="Collapsed">
+													<Setter TargetName="ExLine" Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+											</DataTemplate.Triggers>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</Grid>
+</UserControl>

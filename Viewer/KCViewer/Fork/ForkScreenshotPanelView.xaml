@@ -1,0 +1,51 @@
+<UserControl
+	x:Class="KCViewer.Fork.ForkScreenshotPanelView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	d:DataContext="{d:DesignInstance Type=fork:ForkScreenshotPanelViewModel}"
+	d:DesignHeight="44"
+	d:DesignWidth="300"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the screenshot panel (mockup 20261009-screenshot-capture-v2): the whole panel is one button, 4 px inside its
+		edges, the camera icon and 「스크린샷」 in the middle; narrower than 90 px, the icon alone. The button takes the
+		page's button style: KanColleViewer's while its style is on (accent border on hover, accent fill when pressed),
+		the viewer's otherwise. Dimmed while the browser is not running (ForkScreenshotPanelViewModel.CanTake).
+	-->
+	<Button
+		x:Name="TakeButton"
+		Margin="4"
+		Padding="0"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		HorizontalContentAlignment="Center"
+		VerticalContentAlignment="Center"
+		Command="{Binding TakeCommand}"
+		IsEnabled="{Binding CanTake}"
+		ToolTip="{Binding ButtonToolTip}"
+		>
+		<StackPanel Orientation="Horizontal">
+			<common:IconContentIcon
+				x:Name="CameraIcon"
+				Width="16"
+				Height="16"
+				VerticalAlignment="Center"
+				Type="BrowserScreenShot"
+				/>
+			<TextBlock
+				x:Name="ButtonLabel"
+				Margin="6 0 0 0"
+				VerticalAlignment="Center"
+				FontSize="13"
+				Text="{Binding ButtonText}"
+				/>
+		</StackPanel>
+	</Button>
+</UserControl>

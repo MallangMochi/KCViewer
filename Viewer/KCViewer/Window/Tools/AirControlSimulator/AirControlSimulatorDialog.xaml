@@ -1,0 +1,133 @@
+﻿<common:WindowBase
+	x:Class="KCViewer.Window.Tools.AirControlSimulator.BaseAirCorpsSimulationContentDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:airControlSimulator="clr-namespace:KCViewer.Window.Tools.AirControlSimulator"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:controls="http://schemas.modernwpf.com/2019"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="clr-namespace:KCViewer.Window.Tools.AirControlSimulator"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	Title="{Binding AirControlSimulator.Title}"
+	controls:WindowHelper.UseModernWindowStyle="True"
+	d:DataContext="{d:DesignInstance local:AirControlSimulatorViewModel}"
+	x:TypeArguments="airControlSimulator:AirControlSimulatorViewModel"
+	SizeToContent="WidthAndHeight"
+	TextElement.FontFamily="{Binding Font}"
+	TextElement.FontSize="{Binding FontSize}"
+	TextElement.Foreground="{Binding FontBrush}"
+	mc:Ignorable="d"
+	>
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<GroupBox
+			Grid.Row="0"
+			Header="{Binding AirControlSimulator.Fleet}"
+			Visibility="{Binding FleetSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+			>
+			<StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<CheckBox Content="#1" IsChecked="{Binding Fleet1}" />
+					<CheckBox Content="#2" IsChecked="{Binding Fleet2}" />
+					<CheckBox Content="#3" IsChecked="{Binding Fleet3}" />
+					<CheckBox Content="#4" IsChecked="{Binding Fleet4}" />
+				</StackPanel>
+
+				<CheckBox Content="{Binding AirControlSimulator.MaxProficiency}" IsChecked="{Binding MaxAircraftLevelFleet}" />
+			</StackPanel>
+		</GroupBox>
+
+		<GroupBox
+			Grid.Row="1"
+			Header="{Binding AirControlSimulator.AirBase}"
+			Visibility="{Binding AirBaseSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+			>
+			<StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<ComboBox ItemsSource="{Binding AirBaseAreas}" SelectedItem="{Binding AirBaseArea}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Display}" />
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+
+					<TextBlock
+						Margin="4 0"
+						VerticalAlignment="Center"
+						Text="If your AB isn't in the list, go to the sortie screen to load it."
+						Visibility="Collapsed"
+						/>
+				</StackPanel>
+
+				<CheckBox Content="{Binding AirControlSimulator.MaxProficiency}" IsChecked="{Binding MaxAircraftLevelAirBase}" />
+			</StackPanel>
+		</GroupBox>
+
+		<GroupBox
+			Grid.Row="2"
+			Header="{Binding AirControlSimulator.Data}"
+			Visibility="{Binding DataSelectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+			>
+			<StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<CheckBox Content="{Binding AirControlSimulator.Ships}" IsChecked="{Binding ShipData}" />
+					<CheckBox
+						Content="{Binding AirControlSimulator.IncludeUnlocked}"
+						IsChecked="{Binding IncludeUnlockedShips}"
+						IsEnabled="{Binding ShipData}"
+						/>
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal">
+					<CheckBox Content="{Binding AirControlSimulator.Equipment}" IsChecked="{Binding EquipmentData}" />
+					<CheckBox
+						Content="{Binding AirControlSimulator.IncludeUnlocked}"
+						IsChecked="{Binding IncludeUnlockedEquipment}"
+						IsEnabled="{Binding EquipmentData}"
+						/>
+				</StackPanel>
+			</StackPanel>
+		</GroupBox>
+
+		<GroupBox
+			Grid.Row="3"
+			Header="{Binding AirControlSimulator.Browser}"
+			Visibility="Collapsed"
+			>
+			<StackPanel Orientation="Horizontal">
+				<RadioButton Content="EO" IsChecked="{Binding KCViewerBrowser}" />
+				<RadioButton Content="System" IsChecked="{Binding SystemBrowser}" />
+			</StackPanel>
+		</GroupBox>
+
+		<StackPanel
+			Grid.Row="4"
+			HorizontalAlignment="Right"
+			Orientation="Horizontal"
+			>
+			<Button
+				Margin="4"
+				Command="{Binding CopyLinkCommand}"
+				Content="{Binding AirControlSimulator.CopyLink}"
+				/>
+			<Button
+				Margin="4"
+				Command="{Binding ConfirmCommand}"
+				Content="{Binding AirControlSimulator.Ok}"
+				/>
+			<Button
+				Margin="4"
+				Command="{Binding CancelCommand}"
+				Content="{Binding AirControlSimulator.Cancel}"
+				/>
+		</StackPanel>
+	</Grid>
+</common:WindowBase>

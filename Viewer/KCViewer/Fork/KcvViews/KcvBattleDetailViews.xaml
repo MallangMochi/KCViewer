@@ -1,0 +1,1016 @@
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	>
+	<!--
+		Fork: the boxes of the battle detail and the sortie detail in KanColleViewer's style (KcvBattleDetail.cs, mockup
+		20261010-battle-sortie-detail-v2): a folding box per phase, the fleets with equipment icons, the attacks, the end
+		of the battle and the result. Colours from the palette (KcvPanels): the cells as the sortie record and the compass,
+		the HP gauges as the fleet panel, enemies in the battle cell's text colour, cut-ins in the night cell's purple,
+		criticals in their own orange (Kcv.Critical), sinks in the lack red, air supremacy in the expedition success green.
+	-->
+	<BooleanToVisibilityConverter x:Key="KcvBd.Visible" />
+
+	<Style
+		x:Key="KcvBd.Text"
+		BasedOn="{StaticResource Kcv.Text}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+	<Style
+		x:Key="KcvBd.Sub"
+		BasedOn="{StaticResource KcvBd.Text}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+	</Style>
+	<Style
+		x:Key="KcvBd.Dim"
+		BasedOn="{StaticResource KcvBd.Text}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+	</Style>
+	<!--  a table header cell, and a cell with a number on the right  -->
+	<Style
+		x:Key="KcvBd.Th"
+		BasedOn="{StaticResource KcvBd.Sub}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Padding" Value="6 3" />
+	</Style>
+	<Style
+		x:Key="KcvBd.ThNum"
+		BasedOn="{StaticResource KcvBd.Th}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="TextAlignment" Value="Right" />
+	</Style>
+	<Style
+		x:Key="KcvBd.Num"
+		BasedOn="{StaticResource KcvBd.Text}"
+		TargetType="TextBlock"
+		>
+		<Setter Property="Padding" Value="6 0" />
+		<Setter Property="TextAlignment" Value="Right" />
+	</Style>
+	<Style x:Key="KcvBd.Header" TargetType="Border">
+		<Setter Property="Background" Value="{DynamicResource Kcv.TableHeaderBackground}" />
+	</Style>
+	<!--  a chip: the battle's kind, 보호, a cut-in, the air state  -->
+	<Style x:Key="KcvBd.Chip" TargetType="Border">
+		<Setter Property="Height" Value="18" />
+		<Setter Property="Padding" Value="6 0" />
+		<Setter Property="CornerRadius" Value="2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.ChipBackground}" />
+		<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+		<Setter Property="TextElement.FontSize" Value="11" />
+	</Style>
+	<!--  a cell's letter and kind (Kcv.Node: the colour of the kind by its Tag)  -->
+	<Style
+		x:Key="KcvBd.Node"
+		BasedOn="{StaticResource Kcv.Node}"
+		TargetType="Border"
+		>
+		<Setter Property="MinWidth" Value="20" />
+		<Setter Property="Height" Value="20" />
+		<Setter Property="Padding" Value="5 0" />
+		<Setter Property="TextElement.FontSize" Value="12" />
+	</Style>
+	<Style
+		x:Key="KcvBd.NodeKind"
+		BasedOn="{StaticResource Kcv.Node}"
+		TargetType="Border"
+		>
+		<Setter Property="Height" Value="20" />
+		<Setter Property="Padding" Value="6 0" />
+		<Setter Property="Margin" Value="4 0 0 0" />
+	</Style>
+	<!--
+		the battle rank on a chip: SS and S gold on their gold, A red, B orange, C yellow, D green, E sky blue (the
+		user's colours of 2026-10-13, as everywhere a rank shows)
+	-->
+	<Style x:Key="KcvBd.Rank" TargetType="Border">
+		<Setter Property="CornerRadius" Value="2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Background" Value="{DynamicResource Kcv.ChipBackground}" />
+		<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.Foreground}" />
+		<Style.Triggers>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="S">
+				<Setter Property="Background" Value="{DynamicResource Kcv.GreatSuccess}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankS}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="SS">
+				<Setter Property="Background" Value="{DynamicResource Kcv.GreatSuccess}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankS}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="A">
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankA}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="B">
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankB}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="C">
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankC}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="D">
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankD}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="E">
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.RankE}" />
+			</DataTrigger>
+		</Style.Triggers>
+	</Style>
+	<!--  the expand and collapse buttons of the window's head  -->
+	<Style
+		x:Key="KcvBd.Button"
+		BasedOn="{StaticResource {x:Type Button}}"
+		TargetType="Button"
+		>
+		<Setter Property="Margin" Value="6 0 0 0" />
+		<Setter Property="Padding" Value="12 2" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<!--  a box: ▸ title, folded at first; unfolded, a line under the title and the blocks  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleSection}">
+		<Border
+			Margin="0 0 0 6"
+			BorderBrush="{DynamicResource Kcv.Separator}"
+			BorderThickness="1"
+			>
+			<DockPanel>
+				<ToggleButton
+					HorizontalAlignment="Stretch"
+					HorizontalContentAlignment="Stretch"
+					Cursor="Hand"
+					DockPanel.Dock="Top"
+					Focusable="False"
+					IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+					>
+					<ToggleButton.Template>
+						<ControlTemplate TargetType="ToggleButton">
+							<Border
+								x:Name="Back"
+								Padding="8 4"
+								Background="Transparent"
+								>
+								<StackPanel Orientation="Horizontal">
+									<Path
+										x:Name="Chevron"
+										Width="8"
+										Height="8"
+										VerticalAlignment="Center"
+										Data="M 1,0 L 6,4 L 1,8 Z"
+										Fill="{DynamicResource Kcv.InactiveForeground}"
+										/>
+									<TextBlock
+										Margin="8 0 0 0"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{Binding Title}"
+										/>
+								</StackPanel>
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsChecked" Value="True">
+									<Setter TargetName="Chevron" Property="Data" Value="M 0,1 L 8,1 L 4,6 Z" />
+								</Trigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</ToggleButton.Template>
+				</ToggleButton>
+				<Border
+					Height="1"
+					Background="{DynamicResource Kcv.ButtonBorder}"
+					DockPanel.Dock="Top"
+					Visibility="{Binding IsExpanded, Converter={StaticResource KcvBd.Visible}}"
+					/>
+				<ItemsControl
+					Margin="10 6 10 8"
+					Focusable="False"
+					ItemsSource="{Binding Blocks}"
+					Visibility="{Binding IsExpanded, Converter={StaticResource KcvBd.Visible}}"
+					/>
+			</DockPanel>
+		</Border>
+	</DataTemplate>
+
+	<!--  the name of a battle before its boxes, when a cell has more than one  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleHeading}">
+		<TextBlock
+			Margin="2 6 0 4"
+			FontWeight="Bold"
+			Style="{StaticResource KcvBd.Sub}"
+			Text="{Binding Title}"
+			/>
+	</DataTemplate>
+
+	<!--  the viewer's text: the support fleet, the friendly fleet, the night gear, the air bases  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleTextBlock}">
+		<StackPanel Margin="0 2 0 6">
+			<TextBlock
+				x:Name="Title"
+				Margin="0 0 0 3"
+				FontWeight="Bold"
+				Style="{StaticResource KcvBd.Text}"
+				Text="{Binding Title}"
+				/>
+			<TextBlock
+				x:Name="Body"
+				LineHeight="18"
+				Style="{StaticResource KcvBd.Sub}"
+				Text="{Binding Text}"
+				TextWrapping="Wrap"
+				/>
+		</StackPanel>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding Title}" Value="{x:Null}">
+				<Setter TargetName="Title" Property="Visibility" Value="Collapsed" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding Text}" Value="">
+				<Setter TargetName="Body" Property="Visibility" Value="Collapsed" />
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+	<!--  rows 「진형 아군 단종진 · 적 복종진」, 「Stage 1 [제공권 확보] 아군 -1 / 82 · 적 -0 / 0」  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleInfoBlock}">
+		<ItemsControl
+			Margin="0 0 0 6"
+			Focusable="False"
+			Grid.IsSharedSizeScope="True"
+			ItemsSource="{Binding Rows}"
+			>
+			<ItemsControl.ItemTemplate>
+				<DataTemplate DataType="{x:Type kcv:KcvBattleInfoRow}">
+					<Grid Margin="0 2">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<TextBlock
+							Margin="0 0 12 0"
+							Style="{StaticResource KcvBd.Sub}"
+							Text="{Binding Label}"
+							/>
+						<WrapPanel Grid.Column="1" VerticalAlignment="Center">
+							<Border
+								x:Name="Chip"
+								Margin="0 0 6 0"
+								Style="{StaticResource KcvBd.Chip}"
+								>
+								<TextBlock VerticalAlignment="Center" Text="{Binding Chip}" />
+							</Border>
+							<ItemsControl Focusable="False" ItemsSource="{Binding Segments}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<WrapPanel />
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+								<ItemsControl.ItemTemplate>
+									<DataTemplate DataType="{x:Type kcv:KcvBattleSegment}">
+										<TextBlock
+											x:Name="Segment"
+											Style="{StaticResource KcvBd.Text}"
+											Text="{Binding Text}"
+											/>
+										<DataTemplate.Triggers>
+											<DataTrigger Binding="{Binding IsStrong}" Value="True">
+												<Setter TargetName="Segment" Property="FontWeight" Value="Bold" />
+											</DataTrigger>
+										</DataTemplate.Triggers>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</WrapPanel>
+					</Grid>
+					<DataTemplate.Triggers>
+						<DataTrigger Binding="{Binding Chip}" Value="{x:Null}">
+							<Setter TargetName="Chip" Property="Visibility" Value="Collapsed" />
+						</DataTrigger>
+						<DataTrigger Binding="{Binding ChipTone}" Value="{x:Static kcv:KcvBattleTone.Good}">
+							<Setter TargetName="Chip" Property="Background" Value="{DynamicResource Kcv.Success}" />
+							<Setter TargetName="Chip" Property="TextElement.Foreground" Value="{DynamicResource Kcv.SuccessText}" />
+						</DataTrigger>
+						<DataTrigger Binding="{Binding ChipTone}" Value="{x:Static kcv:KcvBattleTone.Bad}">
+							<Setter TargetName="Chip" Property="Background" Value="{DynamicResource Kcv.Failure}" />
+							<Setter TargetName="Chip" Property="TextElement.Foreground" Value="{DynamicResource Kcv.FailureText}" />
+						</DataTrigger>
+					</DataTemplate.Triggers>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+	</DataTemplate>
+
+	<!--  an equipment icon, its name on hover (the fleet panel's icons, 20 px)  -->
+	<DataTemplate x:Key="KcvBd.Icon" DataType="{x:Type kcv:KcvBattleIcon}">
+		<Image
+			Width="20"
+			Height="20"
+			Margin="0 0 2 0"
+			Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+			Style="{StaticResource Kcv.EquipmentIcon}"
+			ToolTip="{Binding ToolTip}"
+			/>
+	</DataTemplate>
+
+	<!--
+		The fleets of 전력: # | 함종 | 이름 | (ID) | Lv | HP | 화력 | 뇌장 | 대공 | 장갑 | 장비. The rows are grids of the same
+		columns, so the star column (the name) has the same width in every row.
+	-->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleFleetBlock}">
+		<StackPanel Margin="0 2 0 8">
+			<StackPanel Margin="0 2 0 3" Orientation="Horizontal">
+				<TextBlock
+					x:Name="Title"
+					FontWeight="Bold"
+					Style="{StaticResource KcvBd.Text}"
+					Text="{Binding Title}"
+					/>
+				<TextBlock
+					Margin="10 0 0 0"
+					FontSize="11"
+					Style="{StaticResource KcvBd.Dim}"
+					Text="{Binding Summary}"
+					/>
+			</StackPanel>
+			<Border Style="{StaticResource KcvBd.Header}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="28" />
+						<ColumnDefinition Width="84" />
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="40" />
+						<ColumnDefinition Width="132" />
+						<ColumnDefinition Width="50" />
+						<ColumnDefinition Width="50" />
+						<ColumnDefinition Width="50" />
+						<ColumnDefinition Width="50" />
+						<ColumnDefinition Width="160" />
+					</Grid.ColumnDefinitions>
+					<TextBlock
+						Grid.Column="0"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="#"
+						/>
+					<TextBlock
+						Grid.Column="1"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvColumnType}"
+						/>
+					<TextBlock
+						Grid.Column="2"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvBattleName}"
+						/>
+					<TextBlock
+						x:Name="IdHeader"
+						Grid.Column="3"
+						Width="48"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="ID"
+						/>
+					<TextBlock
+						Grid.Column="4"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="Lv"
+						/>
+					<TextBlock
+						Grid.Column="5"
+						Style="{StaticResource KcvBd.Th}"
+						Text="HP"
+						/>
+					<TextBlock
+						Grid.Column="6"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvColumnFirepower}"
+						/>
+					<TextBlock
+						Grid.Column="7"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvColumnTorpedo}"
+						/>
+					<TextBlock
+						Grid.Column="8"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvColumnAA}"
+						/>
+					<TextBlock
+						Grid.Column="9"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvColumnArmor}"
+						/>
+					<TextBlock
+						Grid.Column="10"
+						Margin="6 0 0 0"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvColumnEquipment}"
+						/>
+				</Grid>
+			</Border>
+			<ItemsControl Focusable="False" ItemsSource="{Binding Ships}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvBattleShipRow}">
+						<Border x:Name="Row" Background="Transparent">
+							<Grid Height="24">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="28" />
+									<ColumnDefinition Width="84" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="40" />
+									<ColumnDefinition Width="132" />
+									<ColumnDefinition Width="50" />
+									<ColumnDefinition Width="50" />
+									<ColumnDefinition Width="50" />
+									<ColumnDefinition Width="50" />
+									<ColumnDefinition Width="160" />
+								</Grid.ColumnDefinitions>
+								<TextBlock
+									Grid.Column="0"
+									Style="{StaticResource KcvBd.Num}"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding Index}"
+									/>
+								<TextBlock
+									Grid.Column="1"
+									Padding="6 0"
+									Style="{StaticResource KcvBd.Dim}"
+									Text="{Binding Type}"
+									TextTrimming="CharacterEllipsis"
+									/>
+								<StackPanel
+									Grid.Column="2"
+									Margin="6 0"
+									Orientation="Horizontal"
+									>
+									<TextBlock
+										x:Name="Name"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{Binding Name}"
+										TextTrimming="CharacterEllipsis"
+										/>
+									<Border
+										x:Name="Escaped"
+										Margin="6 0 0 0"
+										Style="{StaticResource KcvBd.Chip}"
+										Visibility="Collapsed"
+										>
+										<TextBlock VerticalAlignment="Center" Text="{x:Static translations:BattleRes.Escaped}" />
+									</Border>
+								</StackPanel>
+								<TextBlock
+									x:Name="Id"
+									Grid.Column="3"
+									Width="48"
+									Style="{StaticResource KcvBd.Num}"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding Id}"
+									/>
+								<TextBlock
+									Grid.Column="4"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding Level}"
+									/>
+								<StackPanel
+									Grid.Column="5"
+									Margin="6 0"
+									Orientation="Horizontal"
+									>
+									<TextBlock
+										FontWeight="Bold"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{Binding Hp}"
+										/>
+									<TextBlock Style="{StaticResource KcvBd.Dim}" Text="{Binding HpMax, StringFormat={} / {0}}" />
+									<ProgressBar
+										Width="54"
+										Height="5"
+										Margin="6 0 0 0"
+										VerticalAlignment="Center"
+										Foreground="{Binding HpBrush}"
+										Maximum="{Binding HpMax}"
+										Style="{StaticResource Kcv.Gauge}"
+										Value="{Binding Hp, Mode=OneWay}"
+										/>
+								</StackPanel>
+								<TextBlock
+									Grid.Column="6"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding Firepower}"
+									/>
+								<TextBlock
+									Grid.Column="7"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding Torpedo}"
+									/>
+								<TextBlock
+									Grid.Column="8"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding AntiAir}"
+									/>
+								<TextBlock
+									Grid.Column="9"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding Armor}"
+									/>
+								<StackPanel
+									Grid.Column="10"
+									Margin="6 0 0 0"
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									>
+									<ItemsControl
+										Focusable="False"
+										ItemTemplate="{StaticResource KcvBd.Icon}"
+										ItemsSource="{Binding Equipment}"
+										>
+										<ItemsControl.ItemsPanel>
+											<ItemsPanelTemplate>
+												<StackPanel Orientation="Horizontal" />
+											</ItemsPanelTemplate>
+										</ItemsControl.ItemsPanel>
+									</ItemsControl>
+									<!--  the expansion slot after a line, as the fleet panel  -->
+									<Rectangle
+										x:Name="ExLine"
+										Width="1"
+										Height="16"
+										Margin="2 0 3 0"
+										VerticalAlignment="Center"
+										Fill="{DynamicResource Kcv.Separator}"
+										/>
+									<ContentPresenter
+										x:Name="ExIcon"
+										Content="{Binding Expansion}"
+										ContentTemplate="{StaticResource KcvBd.Icon}"
+										/>
+								</StackPanel>
+							</Grid>
+						</Border>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding IsAlternate}" Value="True">
+								<Setter TargetName="Row" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding Id}" Value="{x:Null}">
+								<Setter TargetName="Id" Property="Visibility" Value="Collapsed" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding Expansion}" Value="{x:Null}">
+								<Setter TargetName="ExLine" Property="Visibility" Value="Collapsed" />
+								<Setter TargetName="ExIcon" Property="Visibility" Value="Collapsed" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding IsEscaped}" Value="True">
+								<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+								<Setter TargetName="Escaped" Property="Visibility" Value="Visible" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding IsEnemy}" Value="True">
+								<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding IsEnemy}" Value="True">
+				<Setter TargetName="Title" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding IsEnemy}" Value="False">
+				<Setter TargetName="IdHeader" Property="Visibility" Value="Collapsed" />
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+	<!--  a hit of an attack: [보호] 202 치명타, …; a miss as 빗나감  -->
+	<DataTemplate x:Key="KcvBd.Hit" DataType="{x:Type kcv:KcvBattleHit}">
+		<StackPanel Orientation="Horizontal">
+			<Border
+				x:Name="Protected"
+				Margin="0 0 4 0"
+				Style="{StaticResource KcvBd.Chip}"
+				Visibility="Collapsed"
+				>
+				<TextBlock VerticalAlignment="Center" Text="{x:Static translations:BattleRes.Protected}" />
+			</Border>
+			<TextBlock
+				x:Name="Damage"
+				FontWeight="Bold"
+				Style="{StaticResource KcvBd.Text}"
+				Text="{Binding Damage}"
+				/>
+			<TextBlock
+				x:Name="Critical"
+				Margin="4 0 0 0"
+				FontSize="11"
+				Foreground="{DynamicResource Kcv.Critical}"
+				Style="{StaticResource KcvBd.Text}"
+				Text="{x:Static fork:ForkStrings.KcvBattleCritical}"
+				Visibility="Collapsed"
+				/>
+			<TextBlock
+				x:Name="Comma"
+				Style="{StaticResource KcvBd.Text}"
+				Text=", "
+				Visibility="Collapsed"
+				/>
+		</StackPanel>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding IsProtected}" Value="True">
+				<Setter TargetName="Protected" Property="Visibility" Value="Visible" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding IsCritical}" Value="True">
+				<Setter TargetName="Damage" Property="Foreground" Value="{DynamicResource Kcv.Critical}" />
+				<Setter TargetName="Critical" Property="Visibility" Value="Visible" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding IsMiss}" Value="True">
+				<Setter TargetName="Damage" Property="FontWeight" Value="Normal" />
+				<Setter TargetName="Damage" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+			</DataTrigger>
+			<DataTrigger Binding="{Binding HasNext}" Value="True">
+				<Setter TargetName="Comma" Property="Visibility" Value="Visible" />
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+	<!--  the attacks: 공격 → 대상 | 종류 | 피해 | 대상 HP, the same columns in every table  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleAttackBlock}">
+		<StackPanel Margin="0 2 0 6">
+			<Border Style="{StaticResource KcvBd.Header}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="27*" />
+						<ColumnDefinition Width="24" />
+						<ColumnDefinition Width="27*" />
+						<ColumnDefinition Width="17*" />
+						<ColumnDefinition Width="12*" />
+						<ColumnDefinition Width="17*" />
+					</Grid.ColumnDefinitions>
+					<TextBlock Style="{StaticResource KcvBd.Th}" Text="{x:Static fork:ForkStrings.KcvBattleAttacker}" />
+					<TextBlock
+						Grid.Column="2"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvBattleTarget}"
+						/>
+					<TextBlock
+						Grid.Column="3"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvBattleKind}"
+						/>
+					<TextBlock
+						Grid.Column="4"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvBattleDamage}"
+						/>
+					<TextBlock
+						Grid.Column="5"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvBattleTargetHp}"
+						/>
+				</Grid>
+			</Border>
+			<ItemsControl Focusable="False" ItemsSource="{Binding Rows}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvBattleAttackRow}">
+						<Border
+							x:Name="Row"
+							Background="Transparent"
+							BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+							BorderThickness="0 0 0 1"
+							>
+							<Grid MinHeight="22">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="27*" />
+									<ColumnDefinition Width="24" />
+									<ColumnDefinition Width="27*" />
+									<ColumnDefinition Width="17*" />
+									<ColumnDefinition Width="12*" />
+									<ColumnDefinition Width="17*" />
+								</Grid.ColumnDefinitions>
+								<TextBlock
+									x:Name="Attacker"
+									Padding="6 0"
+									Style="{StaticResource KcvBd.Text}"
+									Text="{Binding Attacker}"
+									TextTrimming="CharacterEllipsis"
+									/>
+								<TextBlock
+									Grid.Column="1"
+									HorizontalAlignment="Center"
+									Style="{StaticResource KcvBd.Dim}"
+									Text="→"
+									/>
+								<TextBlock
+									x:Name="Target"
+									Grid.Column="2"
+									Padding="6 0"
+									Style="{StaticResource KcvBd.Text}"
+									Text="{Binding Target}"
+									TextTrimming="CharacterEllipsis"
+									/>
+								<Grid Grid.Column="3" Margin="6 0">
+									<TextBlock
+										x:Name="Kind"
+										Style="{StaticResource KcvBd.Dim}"
+										Text="{Binding Kind}"
+										TextTrimming="CharacterEllipsis"
+										/>
+									<Border
+										x:Name="Special"
+										HorizontalAlignment="Left"
+										Background="{DynamicResource Kcv.NodeNight}"
+										Style="{StaticResource KcvBd.Chip}"
+										TextElement.Foreground="{DynamicResource Kcv.NodeNightText}"
+										Visibility="Collapsed"
+										>
+										<TextBlock
+											VerticalAlignment="Center"
+											Text="{Binding Kind}"
+											TextTrimming="CharacterEllipsis"
+											/>
+									</Border>
+								</Grid>
+								<ItemsControl
+									Grid.Column="4"
+									Margin="6 0"
+									HorizontalAlignment="Right"
+									VerticalAlignment="Center"
+									Focusable="False"
+									ItemTemplate="{StaticResource KcvBd.Hit}"
+									ItemsSource="{Binding Hits}"
+									>
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<WrapPanel HorizontalAlignment="Right" />
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+								</ItemsControl>
+								<StackPanel
+									x:Name="Hp"
+									Grid.Column="5"
+									Margin="6 0"
+									HorizontalAlignment="Right"
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									>
+									<TextBlock Style="{StaticResource KcvBd.Text}" Text="{Binding HpBefore}" />
+									<TextBlock
+										Margin="4 0"
+										Style="{StaticResource KcvBd.Text}"
+										Text="→"
+										/>
+									<TextBlock
+										x:Name="HpAfter"
+										FontWeight="Bold"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{Binding HpAfter}"
+										/>
+									<TextBlock
+										x:Name="Sunk"
+										Margin="4 0 0 0"
+										FontSize="11"
+										Foreground="{DynamicResource Kcv.LackForeground}"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{x:Static fork:ForkStrings.KcvBattleSunk}"
+										Visibility="Collapsed"
+										/>
+									<!--  a repair goddess or personnel saved the target  -->
+									<TextBlock
+										x:Name="Damecon"
+										Margin="4 0 0 0"
+										FontSize="11"
+										Style="{StaticResource KcvBd.Sub}"
+										Text="{Binding Damecon}"
+										/>
+								</StackPanel>
+							</Grid>
+						</Border>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding IsAlternate}" Value="True">
+								<Setter TargetName="Row" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding AttackerIsEnemy}" Value="True">
+								<Setter TargetName="Attacker" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding TargetIsEnemy}" Value="True">
+								<Setter TargetName="Target" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding IsSpecial}" Value="True">
+								<Setter TargetName="Kind" Property="Visibility" Value="Collapsed" />
+								<Setter TargetName="Special" Property="Visibility" Value="Visible" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding HpBefore}" Value="{x:Null}">
+								<Setter TargetName="Hp" Property="Visibility" Value="Collapsed" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding HpAfter}" Value="0">
+								<Setter TargetName="HpAfter" Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding IsSunk}" Value="True">
+								<Setter TargetName="Sunk" Property="Visibility" Value="Visible" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding Damecon}" Value="{x:Null}">
+								<Setter TargetName="Damecon" Property="Visibility" Value="Collapsed" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+	</DataTemplate>
+
+	<!--  a table of 전투 종료: 이름 | HP 전 → 후 | 받은 피해  -->
+	<DataTemplate x:Key="KcvBd.EndTable" DataType="{x:Type kcv:KcvBattleEndTable}">
+		<StackPanel Margin="0 2 0 6">
+			<TextBlock
+				x:Name="Title"
+				Margin="0 2 0 3"
+				FontWeight="Bold"
+				Style="{StaticResource KcvBd.Text}"
+				Text="{Binding Title}"
+				/>
+			<Border Style="{StaticResource KcvBd.Header}">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="150" />
+						<ColumnDefinition Width="74" />
+					</Grid.ColumnDefinitions>
+					<TextBlock Style="{StaticResource KcvBd.Th}" Text="{x:Static fork:ForkStrings.KcvBattleName}" />
+					<TextBlock
+						Grid.Column="1"
+						Style="{StaticResource KcvBd.Th}"
+						Text="{x:Static fork:ForkStrings.KcvBattleHpBeforeAfter}"
+						/>
+					<TextBlock
+						Grid.Column="2"
+						Style="{StaticResource KcvBd.ThNum}"
+						Text="{x:Static fork:ForkStrings.KcvBattleDamageTaken}"
+						/>
+				</Grid>
+			</Border>
+			<ItemsControl Focusable="False" ItemsSource="{Binding Rows}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvBattleEndRow}">
+						<Border x:Name="Row" Background="Transparent">
+							<Grid Height="22">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="150" />
+									<ColumnDefinition Width="74" />
+								</Grid.ColumnDefinitions>
+								<TextBlock
+									x:Name="Name"
+									Padding="6 0"
+									Style="{StaticResource KcvBd.Text}"
+									Text="{Binding Name}"
+									TextTrimming="CharacterEllipsis"
+									/>
+								<StackPanel
+									Grid.Column="1"
+									Margin="6 0"
+									Orientation="Horizontal"
+									>
+									<TextBlock Style="{StaticResource KcvBd.Text}" Text="{Binding Before}" />
+									<TextBlock
+										Margin="4 0"
+										Style="{StaticResource KcvBd.Text}"
+										Text="→"
+										/>
+									<TextBlock
+										x:Name="After"
+										FontWeight="Bold"
+										Style="{StaticResource KcvBd.Text}"
+										Text="{Binding After}"
+										/>
+									<TextBlock Style="{StaticResource KcvBd.Dim}" Text="{Binding Max, StringFormat={} / {0}}" />
+									<ProgressBar
+										Width="54"
+										Height="5"
+										Margin="6 0 0 0"
+										VerticalAlignment="Center"
+										Foreground="{Binding HpBrush}"
+										Maximum="{Binding Max}"
+										Style="{StaticResource Kcv.Gauge}"
+										Value="{Binding After, Mode=OneWay}"
+										/>
+								</StackPanel>
+								<TextBlock
+									x:Name="Taken"
+									Grid.Column="2"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Style="{StaticResource KcvBd.Num}"
+									Text="{Binding Taken}"
+									/>
+							</Grid>
+						</Border>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding IsAlternate}" Value="True">
+								<Setter TargetName="Row" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding IsEnemy}" Value="True">
+								<Setter TargetName="Name" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding After}" Value="0">
+								<Setter TargetName="After" Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+							</DataTrigger>
+							<DataTrigger Binding="{Binding HasTaken}" Value="True">
+								<Setter TargetName="Taken" Property="Foreground" Value="{DynamicResource Kcv.LackForeground}" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+		<DataTemplate.Triggers>
+			<DataTrigger Binding="{Binding IsEnemy}" Value="True">
+				<Setter TargetName="Title" Property="Foreground" Value="{DynamicResource Kcv.NodeBattleText}" />
+			</DataTrigger>
+		</DataTemplate.Triggers>
+	</DataTemplate>
+
+	<!--  전투 종료: the friendly side on the left, the enemy on the right  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleEndBlock}">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition />
+				<ColumnDefinition Width="12" />
+				<ColumnDefinition />
+			</Grid.ColumnDefinitions>
+			<ItemsControl
+				Focusable="False"
+				ItemTemplate="{StaticResource KcvBd.EndTable}"
+				ItemsSource="{Binding Friend}"
+				/>
+			<ItemsControl
+				Grid.Column="2"
+				Focusable="False"
+				ItemTemplate="{StaticResource KcvBd.EndTable}"
+				ItemsSource="{Binding Enemy}"
+				/>
+		</Grid>
+	</DataTemplate>
+
+	<!--  전투 결과: the rank, MVP, the experience and the drops  -->
+	<DataTemplate DataType="{x:Type kcv:KcvBattleResultBlock}">
+		<StackPanel Margin="0 4" Orientation="Horizontal">
+			<Border
+				Width="40"
+				Height="40"
+				Style="{StaticResource KcvBd.Rank}"
+				Tag="{Binding Rank}"
+				>
+				<TextBlock
+					HorizontalAlignment="Center"
+					VerticalAlignment="Center"
+					FontSize="24"
+					FontWeight="Bold"
+					Text="{Binding Rank}"
+					/>
+			</Border>
+			<ItemsControl
+				Margin="16 0 0 0"
+				VerticalAlignment="Center"
+				Focusable="False"
+				Grid.IsSharedSizeScope="True"
+				ItemsSource="{Binding Rows}"
+				>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvBattleResultRow}">
+						<Grid Margin="0 1">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+								<ColumnDefinition />
+							</Grid.ColumnDefinitions>
+							<TextBlock
+								Margin="0 0 16 0"
+								VerticalAlignment="Top"
+								Style="{StaticResource KcvBd.Sub}"
+								Text="{Binding Label}"
+								/>
+							<TextBlock
+								x:Name="Value"
+								Grid.Column="1"
+								Style="{StaticResource KcvBd.Text}"
+								Text="{Binding Value}"
+								/>
+						</Grid>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding IsDim}" Value="True">
+								<Setter TargetName="Value" Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+	</DataTemplate>
+</ResourceDictionary>

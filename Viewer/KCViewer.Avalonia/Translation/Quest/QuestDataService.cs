@@ -1,0 +1,89 @@
+﻿using System.Text;
+using System.Text.Json;
+using KCViewer.Core.Services;
+
+namespace KCViewer.Avalonia.Translation.Quest;
+
+public sealed class QuestDataService(
+	IConfigurationUi configurationUi,
+	ISoftwareUpdaterService softwareUpdaterService,
+	IEoLogger logger)
+	: DataServiceBase(configurationUi, softwareUpdaterService, logger)
+{
+	protected override string FileName => "quest.json";
+	protected override DataType DataType => DataType.Translation;
+
+	private Dictionary<int, QuestRecord> QuestList { get; set; } = [];
+
+	/// <inheritdoc />
+	public override async Task Initialize()
+	{
+		QuestList = [];
+		await LoadDictionary(FilePath);
+	}
+
+	private async Task LoadDictionary(string path)
+	{
+		Dictionary<string, JsonElement>? raw = await Load<Dictionary<string, JsonElement>>(path);
+
+		if (raw is null) return;
+
+		foreach ((string key, JsonElement data) in raw)
+		{
+			if (key is "version") continue;
+			if (data.Deserialize<QuestRecord>() is not QuestRecord quest) continue;
+			if (!int.TryParse(key, out int questId)) continue;
+
+			QuestList.TryAdd(questId, quest);
+		}
+	}
+
+	private QuestRecord? TryGetQuest(int id)
+	{
+		if (ConfigurationUi.DisableOtherTranslations) return null;
+
+		QuestList.TryGetValue(id, out QuestRecord? quest);
+		
+		return quest;
+	}
+	
+	public string Name(int id, string rawData) => TryGetQuest(id)?.Name ?? rawData;
+
+	/// <summary>Fork: the rewards besides the resources, also with the translations off (their names are in both languages).</summary>
+	public QuestReward? Reward(int id) => QuestList.TryGetValue(id, out QuestRecord? quest) ? quest.Reward : null;
+
+	public string Code(int id) => QuestList.TryGetValue(id, out QuestRecord? quest) switch
+	{
+		true => quest.Code,
+		_ => string.Empty
+	};
+
+	public string Description(int id, string rawData)
+	{
+		if (TryGetQuest(id) is not QuestRecord quest)
+		{
+			return rawData.Replace("<br>", "\r\n");
+		}
+
+		string[] words = quest.Description.Split(' ');
+		StringBuilder sb = new();
+		StringBuilder line = new();
+
+		foreach (string word in words)
+		{
+			if (line.Length + word.Length > 80)
+			{
+				sb.AppendLine(line.ToString().TrimEnd());
+				line.Clear();
+			}
+			line.Append(word).Append(' ');
+		}
+
+		if (line.Length > 0)
+		{
+			sb.AppendLine(line.ToString().TrimEnd());
+		}
+
+		return sb.ToString();
+	}
+}

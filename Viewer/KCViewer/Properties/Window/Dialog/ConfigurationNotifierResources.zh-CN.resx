@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SoundVolumeToolTip" xml:space="preserve">
+    <value>设置提示音音量。
+0是静音，100是最大音量。</value>
+  </data>
+  <data name="ShowWithActivationToolTip" xml:space="preserve">
+    <value>显示时将激活对话框。
+禁用此功能不会影响操作，但对话框会容易被遮挡。</value>
+  </data>
+  <data name="SettingsWillBeAppliedForTest" xml:space="preserve">
+    <value>＊在进行测试时会应用设置</value>
+  </data>
+  <data name="GroupAnchorageRepair" xml:space="preserve">
+    <value>泊地修理设置</value>
+  </data>
+  <data name="TriggerWhen" xml:space="preserve">
+    <value>发动条件：</value>
+  </data>
+  <data name="GroupBaseAirCorps" xml:space="preserve">
+    <value>基地航空队设置</value>
+  </data>
+  <data name="BaseAirCorps_NotSupplied" xml:space="preserve">
+    <value>未补给时</value>
+  </data>
+  <data name="BaseAirCorps_NotSuppliedToolTip" xml:space="preserve">
+    <value>出击前存在任何中队未补给时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_Tired" xml:space="preserve">
+    <value>疲劳时</value>
+  </data>
+  <data name="BaseAirCorps_TiredToolTip" xml:space="preserve">
+    <value>出击前存在任何中队橙色以上疲劳时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_RestToolTip" xml:space="preserve">
+    <value>出击前，基地航空队存在任何[休息]状态中队时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_RetreatToolTip" xml:space="preserve">
+    <value>出击前，基地航空队存在任何[退避]状态中队时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_Standby" xml:space="preserve">
+    <value>[待机]</value>
+  </data>
+  <data name="BaseAirCorps_StandbyToolTip" xml:space="preserve">
+    <value>出击前，基地航空队存在任何[待机]状态中队时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_NormalMapToolTip" xml:space="preserve">
+    <value>出击前，通常海域的基地航空队准备不足时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_EventMap" xml:space="preserve">
+    <value>活动海域</value>
+  </data>
+  <data name="BaseAirCorps_EventMapToolTip" xml:space="preserve">
+    <value>出击前，活动海域的基地航空队准备不足时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_EquipmentRelocation" xml:space="preserve">
+    <value>装备配置转换完毕</value>
+  </data>
+  <data name="BaseAirCorps_EquipmentRelocationToolTip" xml:space="preserve">
+    <value>装备配置转换完毕时显示通知。</value>
+  </data>
+  <data name="BaseAirCorps_SquadronRelocation" xml:space="preserve">
+    <value>基地配置转换完毕</value>
+  </data>
+  <data name="BaseAirCorps_SquadronRelocationToolTip" xml:space="preserve">
+    <value>基地装备槽位配置转换完成时显示通知。
+此处与「装备配置转换完毕」不同，不会通知您哪些飞机装备返回装备栏。</value>
+  </data>
+  <data name="GroupBattleEnd" xml:space="preserve">
+    <value>战斗结束设置</value>
+  </data>
+  <data name="BattleEnd_IdleTimerEnabled" xml:space="preserve">
+    <value>启用放置计时器</value>
+  </data>
+  <data name="BattleEnd_IdleTimerEnabledToolTip" xml:space="preserve">
+    <value>在战斗开始一定时间后显示通知。</value>
+  </data>
+  <data name="BattleEnd_IdleTime" xml:space="preserve">
+    <value>放置计时器</value>
+  </data>
+  <data name="BattleEnd_IdleTimeToolTip" xml:space="preserve">
+    <value>请以秒为单位设置放置计时器。</value>
+  </data>
+  <data name="AnchorageRepairNotificationLevel_Always" xml:space="preserve">
+    <value>随时</value>
+  </data>
+  <data name="AnchorageRepairNotificationLevel_AkashiFlagship" xml:space="preserve">
+    <value>当明石为旗舰时</value>
+  </data>
+  <data name="AnchorageRepairNotificationLevel_ShipNeededRepair" xml:space="preserve">
+    <value>当有可维修舰时</value>
+  </data>
+  <data name="AnchorageRepairNotificationLevel_Preset" xml:space="preserve">
+    <value>预设编成时</value>
+  </data>
+  <data name="AnchorageRepairNotificationLevelToolTip" xml:space="preserve">
+    <value>随时：20分钟后显示通知。
+当明石为旗舰时：除上述外，仅明石作为旗舰时显示通知。
+当有可维修舰时：除上述外，实际有船可进行维修时显示通知。
+预设编成时：除上述外，当预设编成符合维修条件时显示通知。</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="TestNotificationCustomPositioning" xml:space="preserve">
+    <value>这里是测试通知。
+移动窗口后关闭将更新通知显示的位置。</value>
+  </data>
+  <data name="TestNotification" xml:space="preserve">
+    <value>测试通知。</value>
+  </data>
+  <data name="BaseAirCorps_NotOrganized" xml:space="preserve">
+    <value>未编成・配置转换中</value>
+  </data>
+  <data name="BaseAirCorps_NotOrganizedToolTip" xml:space="preserve">
+    <value>出击前存在任何中队未编成或配置转换中时显示通知。</value>
+  </data>
+  <data name="HomePortSupplyNotificationLevel_Always" xml:space="preserve">
+    <value>随时</value>
+  </data>
+  <data name="HomePortSupplyNotificationLevel_HomePortSupplyFleet" xml:space="preserve">
+    <value>母港补给舰队</value>
+  </data>
+  <data name="HomePortSupplyNotificationLevel_HomePortSupplyAvailable" xml:space="preserve">
+    <value>存在母港补给时</value>
+  </data>
+  <data name="HomePortSupplyNotificationLevel_IncludingPresets" xml:space="preserve">
+    <value>预设编成时</value>
+  </data>
+  <data name="HomePortSupplyNotificationLevelToolTip" xml:space="preserve">
+    <value>随时：经过15分钟后通知。
+母港补给舰队：附加条件 仅母港满足补给舰队编成时通知（野埼位于1或2号位）。
+需要母港补给时：附加条件 仅在实际满足补给条件时通知。
+预设编成时：附加条件 存在满足补给条件的预设编成时通知。</value>
+  </data>
+  <data name="GroupHomePortSupply" xml:space="preserve">
+    <value>母港补给设置</value>
+  </data>
+  <data name="HomePortSupply_NotifyForExpeditions" xml:space="preserve">
+    <value>在远征时通知</value>
+  </data>
+  <data name="HomePortSupply_NotifyForExpeditionsToolTip" xml:space="preserve">
+    <value>母港补给舰队远征计时15分钟＋远征通知提前显示时，发送通知信息</value>
+  </data>
+  <data name="HomePortSupply_ExpeditionHurryBy" xml:space="preserve">
+    <value>远征通知提前</value>
+  </data>
+</root>

@@ -1,0 +1,237 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvShipPickerWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:shipFilter="clr-namespace:KCViewer.Avalonia.Controls.ShipFilter;assembly=KCViewer.Avalonia"
+	xmlns:shipSelector="clr-namespace:KCViewer.Avalonia.Dialogs.ShipSelector;assembly=KCViewer.Avalonia"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{x:Static shipSelector:ShipSelectorResources.ShipPicker}"
+	Width="560"
+	Height="480"
+	d:DataContext="{d:DesignInstance kcv:KcvShipPickerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvShipPickerViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	ShowInTaskbar="False"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the drop record's ship picker in KanColleViewer's style (mockup v5 ③-1, viewer-design/mockups/
+		20261005-record-windows-v5.html, approved 2026-10-05 with "배너만 남기고 해당 부분들은 제외"). The four conditions
+		on top, then 함종 (the viewer's eight groups), 함명 (also by reading) and 최종 개조, and the table 배너·No.·함종·함명.
+		A button or a row picks and closes.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--  the header without the record tables' column menu  -->
+			<Style
+				x:Key="Header"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ContextMenu" Value="{x:Null}" />
+			</Style>
+
+			<Style
+				x:Key="Row"
+				BasedOn="{StaticResource KcvRec.Row}"
+				TargetType="DataGridRow"
+				>
+				<Setter Property="Cursor" Value="Hand" />
+				<EventSetter Event="PreviewMouseLeftButtonUp" Handler="PickRow" />
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  (모두) (드랍) (없음) (만원)  -->
+		<StackPanel
+			Grid.Row="0"
+			Margin="8 6 8 0"
+			Orientation="Horizontal"
+			>
+			<ItemsControl Focusable="False" ItemsSource="{Binding Options}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:DropRecordOptionChoice}">
+						<Button
+							Margin="0 0 6 0"
+							Click="PickOption"
+							Content="{Binding Name}"
+							Style="{StaticResource KcvRec.Button}"
+							/>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+			<TextBlock
+				Margin="4 0 0 0"
+				Style="{StaticResource KcvRec.Sub}"
+				Text="{x:Static fork:ForkStrings.KcvPickerOptionsHint}"
+				/>
+		</StackPanel>
+
+		<!--  검색 조건: 함종 / 함명·최종 개조  -->
+		<ContentControl Grid.Row="1" Style="{StaticResource KcvRec.Conditions}">
+			<StackPanel>
+				<DockPanel Margin="0 1">
+					<TextBlock
+						VerticalAlignment="Top"
+						DockPanel.Dock="Left"
+						Style="{StaticResource KcvRec.FirstLabel}"
+						Text="{x:Static fork:ForkStrings.KcvShipType}"
+						/>
+					<StackPanel>
+						<CheckBox
+							Margin="0 0 0 3"
+							HorizontalAlignment="Left"
+							Content="{x:Static fork:ForkStrings.KcvSelectAll}"
+							IsChecked="{Binding AllTypes}"
+							Style="{StaticResource KcvRec.Check}"
+							/>
+						<ItemsControl Focusable="False" ItemsSource="{Binding TypeFilters}">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<UniformGrid Columns="4" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+							<ItemsControl.ItemTemplate>
+								<DataTemplate DataType="{x:Type kcv:KcvShipTypeGroupFilter}">
+									<CheckBox
+										Margin="0 0 12 3"
+										HorizontalAlignment="Left"
+										Content="{Binding Name}"
+										IsChecked="{Binding IsChecked}"
+										Style="{StaticResource KcvRec.Check}"
+										/>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</StackPanel>
+				</DockPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding Source={x:Static translations:ConstructionRecordViewerResources.Ship}, StringFormat={}{0}:}" />
+						<TextBox
+							x:Name="NameBox"
+							Width="150"
+							Style="{StaticResource KcvRec.TextBox}"
+							Tag="{x:Static fork:ForkStrings.KcvPickerNameHint}"
+							Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+							/>
+					</StackPanel>
+					<CheckBox
+						Content="{x:Static shipFilter:ShipFilterResources.FinalRemodel}"
+						IsChecked="{Binding FinalRemodel}"
+						Style="{StaticResource KcvRec.Check}"
+						/>
+				</WrapPanel>
+			</StackPanel>
+		</ContentControl>
+
+		<DataGrid
+			x:Name="Table"
+			Grid.Row="2"
+			ColumnHeaderStyle="{StaticResource Header}"
+			ItemsSource="{Binding View}"
+			PreviewKeyDown="PickSelected"
+			RowStyle="{StaticResource Row}"
+			SelectionMode="Single"
+			Style="{StaticResource KcvRec.Grid}"
+			>
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="128"
+					MinWidth="128"
+					CanUserSort="False"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvPickerShip}">
+							<Image
+								Width="120"
+								Height="30"
+								Margin="4 1"
+								HorizontalAlignment="Left"
+								Source="{Binding Banner}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="56"
+					MinWidth="56"
+					Header="No."
+					SortMemberPath="AlbumNo"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvPickerShip}">
+							<TextBlock
+								Foreground="{DynamicResource Kcv.InactiveForeground}"
+								Style="{StaticResource KcvRec.Text}"
+								Text="{Binding AlbumNo}"
+								/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="110"
+					MinWidth="110"
+					Header="{x:Static fork:ForkStrings.KcvPickerShipType}"
+					SortMemberPath="TypeName"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvPickerShip}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding TypeName}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="120"
+					Header="{x:Static translations:ConstructionRecordViewerResources.Ship}"
+					SortMemberPath="Name"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvPickerShip}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Name}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<Border Grid.Row="3" Style="{StaticResource KcvRec.StatusBar}">
+			<DockPanel>
+				<TextBlock DockPanel.Dock="Right" Text="{x:Static fork:ForkStrings.KcvPickerRowHint}" />
+				<TextBlock Text="{Binding CountText}" />
+			</DockPanel>
+		</Border>
+	</Grid>
+</common:WindowBase>

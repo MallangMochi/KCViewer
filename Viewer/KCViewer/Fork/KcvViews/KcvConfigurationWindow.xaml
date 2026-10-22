@@ -1,0 +1,184 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvConfigurationWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:settings="clr-namespace:KCViewer.Window.Settings"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Translation.Title}"
+	Width="900"
+	Height="640"
+	MinWidth="560"
+	MinHeight="360"
+	d:DataContext="{d:DesignInstance settings:ConfigurationViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="settings:ConfigurationViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: 파일 › 설정 in KanColleViewer's style (mockup 20261007-settings-v2, approved 2026-10-07 "구현") with the
+		viewer's view model, so [OK] saves as its window does. The list on the left (보조 윈도우 and 알람 open their pages
+		under them while one is chosen, the others fold), the page's title and the page (KcvConfigurationPages.xaml,
+		KcvConfigurationNotifyPages.xaml), which scrolls when the window is lower than it. The play time, [OK] and
+		[취소] stay at the bottom. 900×640 by default (the viewer's 800×450 cut pages off).
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationPages.xaml" />
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationNotifyPages.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--  an entry of the list: the chosen one with the accent bar, a group with its fold mark, its pages indented  -->
+			<Style x:Key="NavItem" TargetType="ListBoxItem">
+				<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+				<Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+				<Setter Property="Visibility" Value="{Binding IsShown, Converter={StaticResource KcvRec.Visible}}" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ListBoxItem">
+							<Border
+								x:Name="Back"
+								Height="25"
+								Background="Transparent"
+								>
+								<Grid>
+									<Rectangle
+										x:Name="Bar"
+										Width="3"
+										Margin="0 3"
+										HorizontalAlignment="Left"
+										Fill="{DynamicResource Kcv.Accent}"
+										Visibility="Collapsed"
+										/>
+									<TextBlock
+										x:Name="Label"
+										Margin="14 0 22 0"
+										VerticalAlignment="Center"
+										d:DataContext="{d:DesignInstance kcv:KcvConfigEntry}"
+										FontSize="13"
+										Foreground="{DynamicResource Kcv.SubForeground}"
+										Text="{Binding Name}"
+										TextTrimming="CharacterEllipsis"
+										/>
+									<TextBlock
+										x:Name="Fold"
+										Margin="0 0 10 0"
+										HorizontalAlignment="Right"
+										VerticalAlignment="Center"
+										FontSize="10"
+										Foreground="{DynamicResource Kcv.InactiveForeground}"
+										Text="▸"
+										Visibility="Collapsed"
+										/>
+								</Grid>
+							</Border>
+							<ControlTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsChild}" Value="True">
+									<Setter TargetName="Back" Property="Height" Value="23" />
+									<Setter TargetName="Label" Property="Margin" Value="30 0 10 0" />
+									<Setter TargetName="Label" Property="FontSize" Value="12" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding IsGroup}" Value="True">
+									<Setter TargetName="Fold" Property="Visibility" Value="Visible" />
+								</DataTrigger>
+								<DataTrigger Binding="{Binding IsOpen}" Value="True">
+									<Setter TargetName="Fold" Property="Text" Value="▾" />
+								</DataTrigger>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+								</Trigger>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+									<Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+									<Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<!--  the play time, [OK] and [취소]  -->
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<DockPanel>
+				<StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+					<Button
+						MinWidth="72"
+						Click="Confirm"
+						Content="{Binding Translation.OK}"
+						Style="{StaticResource KcvRec.PrimaryButton}"
+						/>
+					<Button
+						MinWidth="72"
+						Command="{Binding CancelCommand}"
+						Content="{Binding Translation.Cancel}"
+						Style="{StaticResource KcvRec.Button}"
+						/>
+				</StackPanel>
+				<TextBlock
+					VerticalAlignment="Center"
+					FontSize="12"
+					Foreground="{DynamicResource Kcv.InactiveForeground}"
+					>
+					<Run Text="{Binding Translation.Log_PlayTime, Mode=OneWay, Converter={StaticResource Cfg.Label}}" />
+					<Run Text="{Binding Log_PlayTime, Mode=OneWay}" />
+				</TextBlock>
+			</DockPanel>
+		</Border>
+
+		<Border
+			Width="180"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 0 1 0"
+			DockPanel.Dock="Left"
+			>
+			<ListBox
+				x:Name="Nav"
+				Padding="0 6"
+				Background="Transparent"
+				BorderThickness="0"
+				ItemContainerStyle="{StaticResource NavItem}"
+				ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+				SelectionChanged="ShowEntry"
+				/>
+		</Border>
+
+		<DockPanel>
+			<TextBlock
+				x:Name="PageTitle"
+				Margin="16 10 16 8"
+				DockPanel.Dock="Top"
+				FontSize="16"
+				/>
+			<!--  the scroll bar is drawn over the content (ModernWpf), so the page keeps its width free on the right  -->
+			<ScrollViewer
+				x:Name="Page"
+				Padding="16 0 20 12"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto"
+				>
+				<!--  at the top: a page with one box keeps its height (the scroll viewer stretches what is lower than it)  -->
+				<ContentControl
+					x:Name="PageContent"
+					VerticalAlignment="Top"
+					Focusable="False"
+					/>
+			</ScrollViewer>
+		</DockPanel>
+	</DockPanel>
+</common:WindowBase>

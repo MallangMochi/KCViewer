@@ -1,0 +1,413 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvAirDefenseWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:airDefense="clr-namespace:KCViewer.Window.Tools.AirDefense"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding AirDefense.Title}"
+	Width="800"
+	Height="520"
+	d:DataContext="{d:DesignInstance airDefense:AirDefenseViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="airDefense:AirDefenseViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: 대공 포화 상세 in KanColleViewer's style (mockup 20261006-calc-windows-v2, approved 2026-10-06) with the
+		viewer's view model. The box 「계산 조건」: 함대 · 진형 · 적 슬롯 수, then 대공 컷인 and 「모든 컷인 보기」, with the
+		fleet's anti-air and the wipe-out rate as cards on the right. The table as the record windows' with the viewer's
+		columns; a count's rate 「(17%)」 is grey, a cell that shoots down every plane of the slot has the failure colour.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvLabelTextConverter x:Key="LabelText" />
+			<kcv:KcvWipeBrushConverter x:Key="Wipe" />
+
+			<!--  a result card: the viewer's label without its colon over a large value  -->
+			<Style x:Key="Card" TargetType="Border">
+				<Setter Property="MinWidth" Value="88" />
+				<Setter Property="Margin" Value="6 0 0 0" />
+				<Setter Property="Padding" Value="10 3 10 4" />
+				<Setter Property="Background" Value="{DynamicResource Kcv.StatusBackground}" />
+				<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+				<Setter Property="BorderThickness" Value="1" />
+			</Style>
+			<Style x:Key="CardLabel" TargetType="TextBlock">
+				<Setter Property="HorizontalAlignment" Value="Right" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			</Style>
+			<Style x:Key="CardValue" TargetType="TextBlock">
+				<Setter Property="HorizontalAlignment" Value="Right" />
+				<Setter Property="FontSize" Value="18" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.Foreground}" />
+			</Style>
+
+			<!--  headers with the viewer's tool tips  -->
+			<Style
+				x:Key="TipBoth"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ToolTip" Value="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownBothToolTip}" />
+			</Style>
+			<Style
+				x:Key="TipProportional"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ToolTip" Value="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownProportionalToolTip}" />
+			</Style>
+			<Style
+				x:Key="TipFixed"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ToolTip" Value="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownFixedToolTip}" />
+			</Style>
+			<Style
+				x:Key="TipFailed"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ToolTip" Value="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownFailedToolTip}" />
+			</Style>
+			<Style
+				x:Key="TipBarrage"
+				BasedOn="{StaticResource KcvRec.Header}"
+				TargetType="DataGridColumnHeader"
+				>
+				<Setter Property="ToolTip" Value="{x:Static translations:AntiAirDefenseResources.ResultView_AARocketBarrageProbabilityToolTip}" />
+			</Style>
+
+			<!--  「6 (17%)」: the count, its rate grey  -->
+			<DataTemplate x:Key="ShotDownBoth" DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+				<Border>
+					<Border.Background>
+						<MultiBinding Converter="{StaticResource Wipe}">
+							<Binding Path="ShotDownBoth" />
+							<Binding Path="DataContext.EnemyAircraftCount" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+						</MultiBinding>
+					</Border.Background>
+					<TextBlock Style="{StaticResource KcvRec.Text}">
+						<Run Text="{Binding ShotDownBothDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=main}" />
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.InactiveForeground}"
+							Text="{Binding ShotDownBothDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=rate}"
+							/>
+					</TextBlock>
+				</Border>
+			</DataTemplate>
+			<DataTemplate x:Key="ShotDownProportional" DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+				<Border>
+					<Border.Background>
+						<MultiBinding Converter="{StaticResource Wipe}">
+							<Binding Path="ShotDownProportional" />
+							<Binding Path="DataContext.EnemyAircraftCount" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+						</MultiBinding>
+					</Border.Background>
+					<TextBlock Style="{StaticResource KcvRec.Text}">
+						<Run Text="{Binding ShotDownProportionalDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=main}" />
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.InactiveForeground}"
+							Text="{Binding ShotDownProportionalDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=rate}"
+							/>
+					</TextBlock>
+				</Border>
+			</DataTemplate>
+			<DataTemplate x:Key="ShotDownFixed" DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+				<Border>
+					<Border.Background>
+						<MultiBinding Converter="{StaticResource Wipe}">
+							<Binding Path="ShotDownFixed" />
+							<Binding Path="DataContext.EnemyAircraftCount" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+						</MultiBinding>
+					</Border.Background>
+					<TextBlock Style="{StaticResource KcvRec.Text}">
+						<Run Text="{Binding ShotDownFixedDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=main}" />
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.InactiveForeground}"
+							Text="{Binding ShotDownFixedDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=rate}"
+							/>
+					</TextBlock>
+				</Border>
+			</DataTemplate>
+			<DataTemplate x:Key="ShotDownFailed" DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+				<Border>
+					<Border.Background>
+						<MultiBinding Converter="{StaticResource Wipe}">
+							<Binding Path="ShotDownFailed" />
+							<Binding Path="DataContext.EnemyAircraftCount" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+						</MultiBinding>
+					</Border.Background>
+					<TextBlock Style="{StaticResource KcvRec.Text}">
+						<Run Text="{Binding ShotDownFailedDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=main}" />
+						<Run
+							FontSize="11"
+							Foreground="{DynamicResource Kcv.InactiveForeground}"
+							Text="{Binding ShotDownFailedDisplay, Mode=OneWay, Converter={StaticResource KcvRec.CountPart}, ConverterParameter=rate}"
+							/>
+					</TextBlock>
+				</Border>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<!--  계산 조건: 함대 · 진형 · 적 슬롯 수 / 대공 컷인 · 모든 컷인 보기, the result cards on the right  -->
+		<ContentControl
+			Grid.Row="0"
+			Style="{StaticResource KcvRec.Box}"
+			Tag="{x:Static fork:ForkStrings.KcvCalcConditions}"
+			>
+			<DockPanel>
+				<StackPanel
+					VerticalAlignment="Center"
+					DockPanel.Dock="Right"
+					Orientation="Horizontal"
+					>
+					<Border Style="{StaticResource Card}">
+						<StackPanel>
+							<TextBlock Style="{StaticResource CardLabel}" Text="{Binding AirDefense.FleetAA, Converter={StaticResource LabelText}}" />
+							<TextBlock Style="{StaticResource CardValue}" Text="{Binding AdjustedFleetAAText}" />
+						</StackPanel>
+					</Border>
+					<Border Style="{StaticResource Card}">
+						<StackPanel>
+							<TextBlock Style="{StaticResource CardLabel}" Text="{Binding AirDefense.WipeRate, Converter={StaticResource LabelText}}" />
+							<TextBlock Style="{StaticResource CardValue}" Text="{Binding AnnihilationProbabilityText}" />
+						</StackPanel>
+					</Border>
+				</StackPanel>
+
+				<StackPanel>
+					<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+						<StackPanel Style="{StaticResource KcvRec.Pair}">
+							<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding AirDefense.Fleet}" />
+							<ComboBox
+								MinWidth="96"
+								ItemsSource="{Binding Fleets}"
+								SelectedItem="{Binding SelectedFleet}"
+								Style="{StaticResource KcvRec.Combo}"
+								>
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</StackPanel>
+						<StackPanel Style="{StaticResource KcvRec.Pair}">
+							<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding AirDefense.Formation}" />
+							<ComboBox
+								MinWidth="92"
+								ItemsSource="{Binding Formations}"
+								SelectedItem="{Binding SelectedFormation}"
+								Style="{StaticResource KcvRec.Combo}"
+								>
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Converter={StaticResource EnumDisplayConverter}}" />
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</StackPanel>
+						<StackPanel Style="{StaticResource KcvRec.Pair}">
+							<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding AirDefense.PlaneSlot}" />
+							<kcv:KcvNumberBox
+								Width="60"
+								Minimum="1"
+								Value="{Binding EnemyAircraftCount}"
+								/>
+						</StackPanel>
+					</WrapPanel>
+
+					<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+						<StackPanel Style="{StaticResource KcvRec.Pair}">
+							<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding AirDefense.AACI}" />
+							<ComboBox
+								MinWidth="230"
+								ItemsSource="{Binding AntiAirCutIns}"
+								SelectedItem="{Binding SelectedAaci}"
+								Style="{StaticResource KcvRec.Combo}"
+								>
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Background="Transparent" ToolTip="{Binding Converter={StaticResource AaciDisplayConverter}}">
+											<Run Text="{Binding Id, Mode=OneWay, Converter={StaticResource AaciIdDisplayConverter}}" />
+											<Run Text="{Binding ValueDisplay, Mode=OneWay}" />
+										</TextBlock>
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</StackPanel>
+						<CheckBox
+							Content="{Binding AirDefense.ShowAll}"
+							IsChecked="{Binding ShowAll}"
+							Style="{StaticResource KcvRec.Check}"
+							ToolTip="{Binding AirDefense.ShowAllToolTip}"
+							/>
+					</WrapPanel>
+				</StackPanel>
+			</DockPanel>
+		</ContentControl>
+
+		<DataGrid
+			Grid.Row="1"
+			ItemsSource="{Binding DataGridViewModel.Items}"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridViewModel}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridViewModel.ClearSortingCommand}" Header="{Binding DataGridViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<DataGridTemplateColumn
+					Width="110"
+					MinWidth="110"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ShipName}"
+					SortMemberPath="Name"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Name}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="52"
+					MinWidth="52"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_AntiAir}"
+					SortMemberPath="AaBase"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding AaBase}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="74"
+					MinWidth="74"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_AdjustedAntiAir}"
+					SortMemberPath="AdjustedAa"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding AdjustedAa}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="78"
+					MinWidth="78"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ProportionalAirDefense}"
+					SortMemberPath="ProportionalAa"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding ProportionalAaDisplay}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="76"
+					MinWidth="76"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_FixedAirDefense}"
+					SortMemberPath="FixedAa"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding FixedAa}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="82"
+					MinWidth="82"
+					CellTemplate="{StaticResource ShotDownBoth}"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownBoth}"
+					HeaderStyle="{StaticResource TipBoth}"
+					SortMemberPath="ShotDownBoth"
+					/>
+
+				<DataGridTemplateColumn
+					Width="72"
+					MinWidth="72"
+					CellTemplate="{StaticResource ShotDownProportional}"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownProportional}"
+					HeaderStyle="{StaticResource TipProportional}"
+					SortMemberPath="ShotDownProportional"
+					/>
+
+				<DataGridTemplateColumn
+					Width="72"
+					MinWidth="72"
+					CellTemplate="{StaticResource ShotDownFixed}"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownFixed}"
+					HeaderStyle="{StaticResource TipFixed}"
+					SortMemberPath="ShotDownFixed"
+					/>
+
+				<DataGridTemplateColumn
+					Width="78"
+					MinWidth="78"
+					CellTemplate="{StaticResource ShotDownFailed}"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_ShootDownFailed}"
+					HeaderStyle="{StaticResource TipFailed}"
+					SortMemberPath="ShotDownFailed"
+					/>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="78"
+					Header="{x:Static translations:AntiAirDefenseResources.ResultView_AARocketBarrageProbability}"
+					HeaderStyle="{StaticResource TipBarrage}"
+					SortMemberPath="AarbProbability"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type airDefense:AirDefenseRowViewModel}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding AarbProbabilityDisplay}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</common:WindowBase>

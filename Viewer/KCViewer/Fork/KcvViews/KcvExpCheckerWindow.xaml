@@ -1,0 +1,322 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvExpCheckerWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:expChecker="clr-namespace:KCViewer.Window.Tools.ExpChecker"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:persistentColumns="clr-namespace:KCViewer.Behaviors.PersistentColumns"
+	xmlns:translations="clr-namespace:KCViewer.Translations"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="800"
+	Height="520"
+	d:DataContext="{d:DesignInstance expChecker:ExpCheckerViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="expChecker:ExpCheckerViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: 필요 경험치 계산 in KanColleViewer's style (mockup 20261006-calc-windows-v2, approved 2026-10-06) with the
+		viewer's view model. The box 「표시 조건」: 대상함 · 함대에서 찾기 / 대잠 개수 · 운 개수 · 출격 당 습득 Exp / the two
+		display checks; labels without colons as the viewer's ("없이 둠"). Under it one line: the ship's name, then its Exp
+		and anti-submarine value (empty before a ship is chosen), and the viewer's warning when the value is unknown. The
+		table as the record windows'; the opening anti-submarine sets with the equipment's icons, a remodel level green.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvRecordStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<kcv:KcvAswEquipmentConverter x:Key="AswEquipment" />
+
+			<!--  the sets of one level: each equipment with its icon and 「×2」, the viewer's text as the tool tip  -->
+			<DataTemplate x:Key="Equipment" DataType="{x:Type expChecker:DataGridItem}">
+				<Grid Background="Transparent" ToolTip="{Binding ToolTip}">
+					<TextBlock
+						x:Name="None"
+						Style="{StaticResource KcvRec.Text}"
+						Text="{Binding EquipmentList}"
+						Visibility="Collapsed"
+						/>
+					<ItemsControl
+						x:Name="Sets"
+						Margin="6 0"
+						VerticalAlignment="Center"
+						ItemsPanel="{StaticResource KcvRec.Horizontal}"
+						ItemsSource="{Binding EquipmentList, Converter={StaticResource AswEquipment}}"
+						>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<ItemsControl
+									Margin="0 0 18 0"
+									ItemsPanel="{StaticResource KcvRec.Horizontal}"
+									ItemsSource="{Binding}"
+									>
+									<ItemsControl.ItemTemplate>
+										<DataTemplate DataType="{x:Type kcv:KcvAswEquipment}">
+											<StackPanel Margin="0 0 12 0" Orientation="Horizontal">
+												<Image
+													Width="18"
+													Height="18"
+													Margin="0 0 4 0"
+													Source="{Binding Icon, Converter={StaticResource Kcv.GameIcon}}"
+													Style="{StaticResource Kcv.EquipmentIcon}"
+													/>
+												<TextBlock
+													VerticalAlignment="Center"
+													FontSize="13"
+													Text="{Binding Name}"
+													/>
+												<TextBlock
+													Margin="3 0 0 0"
+													Style="{StaticResource KcvRec.Sub}"
+													Text="{Binding CountText}"
+													/>
+											</StackPanel>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
+				<DataTemplate.Triggers>
+					<DataTrigger Binding="{Binding HasItems, ElementName=Sets}" Value="False">
+						<Setter TargetName="None" Property="Visibility" Value="Visible" />
+						<Setter TargetName="Sets" Property="Visibility" Value="Collapsed" />
+					</DataTrigger>
+				</DataTemplate.Triggers>
+			</DataTemplate>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<!--  표시 조건  -->
+		<ContentControl
+			Grid.Row="0"
+			Style="{StaticResource KcvRec.Box}"
+			Tag="{Binding ExpChecker.DisplayCriteria}"
+			>
+			<StackPanel>
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.FirstLabel}" Text="{Binding ExpChecker.Ship}" />
+						<ComboBox
+							MinWidth="180"
+							ItemsSource="{Binding Ships}"
+							SelectedItem="{Binding SelectedShip}"
+							Style="{StaticResource KcvRec.Combo}"
+							>
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding NameWithLevel}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</StackPanel>
+					<CheckBox
+						Content="{Binding ExpChecker.SearchInFleet}"
+						IsChecked="{Binding SearchInFleet}"
+						Style="{StaticResource KcvRec.Check}"
+						ToolTip="{Binding ExpChecker.SearchInFleetToolTip}"
+						/>
+				</WrapPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock
+							Style="{StaticResource KcvRec.FirstLabel}"
+							Text="{Binding ExpChecker.AswOffset}"
+							ToolTip="{Binding ExpChecker.ASWModernizationToolTip}"
+							/>
+						<kcv:KcvNumberBox
+							Width="56"
+							Maximum="9"
+							Minimum="0"
+							Value="{Binding ASWModernization}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock
+							Style="{StaticResource KcvRec.Label}"
+							Text="{Binding ExpChecker.LuckOffset}"
+							ToolTip="{Binding ExpChecker.LuckOffsetToolTip}"
+							/>
+						<kcv:KcvNumberBox
+							Width="56"
+							Maximum="{Binding MaxLuckModernization}"
+							Minimum="0"
+							Value="{Binding LuckModernization}"
+							/>
+					</StackPanel>
+					<StackPanel Style="{StaticResource KcvRec.Pair}">
+						<TextBlock Style="{StaticResource KcvRec.Label}" Text="{Binding ExpChecker.SortieExp}" />
+						<kcv:KcvNumberBox
+							Width="72"
+							Minimum="0"
+							Value="{Binding SortieExp}"
+							/>
+					</StackPanel>
+				</WrapPanel>
+
+				<WrapPanel Style="{StaticResource KcvRec.ConditionRow}">
+					<CheckBox
+						Content="{Binding ExpChecker.ShowAllLevel}"
+						IsChecked="{Binding ShowAllLevel}"
+						Style="{StaticResource KcvRec.Check}"
+						ToolTip="{Binding ExpChecker.ShowAllLevelToolTip}"
+						/>
+					<CheckBox
+						Content="{Binding ExpChecker.ShowAllASWEquipments}"
+						IsChecked="{Binding ShowAllASWEquipments}"
+						Style="{StaticResource KcvRec.Check}"
+						ToolTip="{Binding ExpChecker.ShowAllASWEquipmentsToolTip}"
+						/>
+				</WrapPanel>
+			</StackPanel>
+		</ContentControl>
+
+		<!--  the ship: its name bold, its Exp and anti-submarine value grey; the viewer's warning under it  -->
+		<StackPanel Grid.Row="1" Margin="10 0 10 6">
+			<StackPanel MinHeight="19" Orientation="Horizontal">
+				<TextBlock
+					x:Name="SummaryName"
+					VerticalAlignment="Bottom"
+					FontSize="14"
+					FontWeight="SemiBold"
+					/>
+				<TextBlock
+					x:Name="SummaryValues"
+					Margin="10 0 0 1"
+					VerticalAlignment="Bottom"
+					FontSize="13"
+					Foreground="{DynamicResource Kcv.SubForeground}"
+					/>
+			</StackPanel>
+			<TextBlock
+				x:Name="Warning"
+				Margin="0 2 0 0"
+				FontSize="12"
+				Foreground="{DynamicResource Kcv.InProgressBadgeForeground}"
+				Text="{Binding WarningText}"
+				TextWrapping="Wrap"
+				Visibility="Collapsed"
+				/>
+		</StackPanel>
+
+		<DataGrid
+			Grid.Row="2"
+			ItemsSource="{Binding DataGridViewModel.Items, IsAsync=True}"
+			Style="{StaticResource KcvRec.Grid}"
+			Tag="{Binding DataGridViewModel}"
+			>
+			<b:Interaction.Behaviors>
+				<persistentColumns:PersistentColumnsBehavior ColumnProperties="{Binding DataGridViewModel.ColumnProperties}" SortDescriptions="{Binding DataGridViewModel.SortDescriptions}" />
+			</b:Interaction.Behaviors>
+
+			<DataGrid.ContextMenu>
+				<ContextMenu>
+					<MenuItem Command="{Binding DataGridViewModel.OpenColumnSelectorCommand}" Header="{Binding DataGridViewModel.DataGrid.OpenColumnSelector}" />
+					<MenuItem Command="{Binding DataGridViewModel.ClearSortingCommand}" Header="{Binding DataGridViewModel.DataGrid.ClearSorting}" />
+				</ContextMenu>
+			</DataGrid.ContextMenu>
+
+			<DataGrid.Columns>
+				<!--  a remodel level green, as the viewer's  -->
+				<DataGridTemplateColumn
+					Width="48"
+					MinWidth="48"
+					Header="Lv"
+					SortMemberPath="Level"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type expChecker:DataGridItem}">
+							<Border x:Name="Back" Background="Transparent">
+								<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Level}" />
+							</Border>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsRemodelLevel}" Value="True">
+									<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.Success}" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="84"
+					MinWidth="84"
+					Header="{x:Static translations:ExpCheckerResources.GroupExp}"
+					SortMemberPath="NeededExp"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type expChecker:DataGridItem}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding NeededExp}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="76"
+					MinWidth="76"
+					Header="{x:Static translations:ExpCheckerResources.ColumnSortieCount}"
+					SortMemberPath="SortieCount"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type expChecker:DataGridItem}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding SortieCount}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="56"
+					MinWidth="56"
+					Header="{x:Static translations:ExpCheckerResources.ASW}"
+					SortMemberPath="Asw"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type expChecker:DataGridItem}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding Asw}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTemplateColumn
+					Width="*"
+					MinWidth="200"
+					CellTemplate="{StaticResource Equipment}"
+					Header="{x:Static translations:ExpCheckerResources.ColumnEquipment}"
+					SortMemberPath="EquipmentList"
+					/>
+
+				<DataGridTemplateColumn
+					Width="72"
+					MinWidth="72"
+					Header="{x:Static translations:ExpCheckerResources.Accuracy}"
+					SortMemberPath="ShipAccuracy"
+					>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate DataType="{x:Type expChecker:DataGridItem}">
+							<TextBlock Style="{StaticResource KcvRec.Text}" Text="{Binding ShipAccuracy, StringFormat={}{0:0.##}}" />
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+			</DataGrid.Columns>
+		</DataGrid>
+	</Grid>
+</common:WindowBase>

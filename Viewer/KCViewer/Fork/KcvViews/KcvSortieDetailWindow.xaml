@@ -1,0 +1,207 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvSortieDetailWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="{Binding Title}"
+	Width="940"
+	Height="680"
+	d:DataContext="{d:DesignInstance kcv:KcvSortieDetailViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="kcv:KcvSortieDetailViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	FontSize="12"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the sortie record's 출격 상세 in KanColleViewer's style (KcvBattleDetail.cs, mockup
+		20261010-battle-sortie-detail-v2): the viewer's file menu, the map and the start time, then a row per cell in the
+		order the fleet went (the step, the cell and its kind, the battles, the rank, MVP), all folded at first. A cell with
+		a battle unfolds into the battle detail's boxes, themselves folded at first.
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvBattleDetailViews.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<!--  the viewer's file menu, as it is  -->
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="{Binding Detail.SortieDetail.File}">
+				<MenuItem Command="{Binding Detail.CopySortieDataCommand}" Header="{Binding Detail.SortieDetail.CopySortieData}" />
+				<MenuItem Command="{Binding Detail.LoadSortieDataCommand}" Header="{Binding Detail.SortieDetail.LoadSortieData}" />
+				<MenuItem Header="{Binding Detail.SortieDetail.AirControlSimulator}">
+					<MenuItem Command="{Binding Detail.CopyAirControlSimulatorLinkCommand}" Header="{Binding Detail.SortieDetail.CopyLink}" />
+					<MenuItem Command="{Binding Detail.OpenAirControlSimulatorCommand}" Header="{Binding Detail.SortieDetail.Open}" />
+				</MenuItem>
+				<MenuItem Header="{Binding Detail.SortieDetail.OperationRoom}">
+					<MenuItem Command="{Binding Detail.CopyOperationRoomLinkCommand}" Header="{Binding Detail.SortieDetail.CopyLink}" />
+					<MenuItem Command="{Binding Detail.OpenOperationRoomCommand}" Header="{Binding Detail.SortieDetail.Open}" />
+				</MenuItem>
+				<MenuItem
+					Command="{Binding Detail.OpenLocalApiLoaderCommand}"
+					Header="Local api loader"
+					Visibility="{Binding Detail.IsDebug, Converter={StaticResource KcvBd.Visible}}"
+					/>
+			</MenuItem>
+		</Menu>
+
+		<DockPanel
+			Margin="12 6 12 10"
+			DockPanel.Dock="Top"
+			LastChildFill="True"
+			>
+			<StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+				<Button
+					Command="{Binding ExpandAllCommand}"
+					Content="{x:Static fork:ForkStrings.KcvExpandAll}"
+					Style="{StaticResource KcvBd.Button}"
+					/>
+				<Button
+					Command="{Binding CollapseAllCommand}"
+					Content="{x:Static fork:ForkStrings.KcvCollapseAll}"
+					Style="{StaticResource KcvBd.Button}"
+					/>
+			</StackPanel>
+			<StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+				<TextBlock
+					FontSize="15"
+					Style="{StaticResource KcvBd.Text}"
+					Text="{Binding MapText}"
+					/>
+				<TextBlock
+					Margin="10 0 0 0"
+					Style="{StaticResource KcvBd.Dim}"
+					Text="{Binding StartTime}"
+					/>
+			</StackPanel>
+		</DockPanel>
+
+		<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+			<ItemsControl
+				Margin="12 0 12 12"
+				Focusable="False"
+				ItemsSource="{Binding Nodes}"
+				>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate DataType="{x:Type kcv:KcvSortieNodeRow}">
+						<StackPanel>
+							<!--  ▸ 2 [B][통상 전투] 통상 함대 주간전 [S] MVP 나가토 改  -->
+							<ToggleButton
+								x:Name="Head"
+								HorizontalAlignment="Stretch"
+								HorizontalContentAlignment="Stretch"
+								Cursor="Hand"
+								Focusable="False"
+								IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+								IsEnabled="{Binding HasDetail}"
+								>
+								<ToggleButton.Template>
+									<ControlTemplate TargetType="ToggleButton">
+										<Border
+											x:Name="Back"
+											Padding="4 5"
+											Background="Transparent"
+											BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+											BorderThickness="0 0 0 1"
+											>
+											<StackPanel Orientation="Horizontal">
+												<Path
+													x:Name="Chevron"
+													Width="8"
+													Height="8"
+													Margin="2 0 0 0"
+													VerticalAlignment="Center"
+													Data="M 1,0 L 6,4 L 1,8 Z"
+													Fill="{DynamicResource Kcv.InactiveForeground}"
+													/>
+												<TextBlock
+													Width="16"
+													Margin="0 0 8 0"
+													FontSize="11"
+													Style="{StaticResource KcvBd.Dim}"
+													Text="{Binding Step}"
+													TextAlignment="Right"
+													/>
+												<Border Style="{StaticResource KcvBd.Node}" Tag="{Binding Kind}">
+													<TextBlock
+														HorizontalAlignment="Center"
+														VerticalAlignment="Center"
+														Text="{Binding Letter}"
+														/>
+												</Border>
+												<Border Style="{StaticResource KcvBd.NodeKind}" Tag="{Binding Kind}">
+													<TextBlock VerticalAlignment="Center" Text="{Binding KindText}" />
+												</Border>
+												<TextBlock
+													Margin="10 0 0 0"
+													Style="{StaticResource KcvBd.Text}"
+													Text="{Binding Battles}"
+													/>
+												<Border
+													x:Name="Rank"
+													Margin="10 0 0 0"
+													Padding="6 0"
+													Style="{StaticResource KcvBd.Rank}"
+													Tag="{Binding Rank}"
+													>
+													<TextBlock VerticalAlignment="Center" Text="{Binding Rank}" />
+												</Border>
+												<TextBlock
+													Margin="10 0 0 0"
+													Style="{StaticResource KcvBd.Dim}"
+													Text="{Binding Mvp}"
+													/>
+											</StackPanel>
+										</Border>
+										<ControlTemplate.Triggers>
+											<Trigger Property="IsChecked" Value="True">
+												<Setter TargetName="Chevron" Property="Data" Value="M 0,1 L 8,1 L 4,6 Z" />
+												<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+											</Trigger>
+											<Trigger Property="IsMouseOver" Value="True">
+												<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+											</Trigger>
+											<!--  a cell without a battle: nothing to unfold  -->
+											<Trigger Property="IsEnabled" Value="False">
+												<Setter TargetName="Chevron" Property="Visibility" Value="Hidden" />
+												<Setter TargetName="Back" Property="Background" Value="Transparent" />
+											</Trigger>
+											<DataTrigger Binding="{Binding Rank}" Value="{x:Null}">
+												<Setter TargetName="Rank" Property="Visibility" Value="Collapsed" />
+											</DataTrigger>
+										</ControlTemplate.Triggers>
+									</ControlTemplate>
+								</ToggleButton.Template>
+							</ToggleButton>
+							<!--  the boxes of the cell, with a line under them as under the rows  -->
+							<Border
+								Padding="26 8 0 4"
+								BorderBrush="{DynamicResource Kcv.ButtonBorder}"
+								BorderThickness="0 0 0 1"
+								Visibility="{Binding IsExpanded, Converter={StaticResource KcvBd.Visible}}"
+								>
+								<ItemsControl Focusable="False" ItemsSource="{Binding Items}" />
+							</Border>
+						</StackPanel>
+						<DataTemplate.Triggers>
+							<DataTrigger Binding="{Binding HasDetail}" Value="False">
+								<Setter TargetName="Head" Property="Cursor" Value="Arrow" />
+							</DataTrigger>
+						</DataTemplate.Triggers>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</DockPanel>
+</common:WindowBase>

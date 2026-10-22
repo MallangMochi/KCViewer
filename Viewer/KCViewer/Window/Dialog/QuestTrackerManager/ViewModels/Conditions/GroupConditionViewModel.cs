@@ -1,0 +1,165 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using KCViewer.Avalonia.Dialogs.ShipSelector;
+using KCViewer.Core.Types;
+using KCViewer.Core.Types.Extensions;
+using KCViewer.Data;
+using KCViewer.Window.Dialog.QuestTrackerManager.Enums;
+using KCViewer.Window.Dialog.QuestTrackerManager.Models.Conditions;
+using KCViewer.Window.Wpf;
+
+namespace KCViewer.Window.Dialog.QuestTrackerManager.ViewModels.Conditions;
+
+public partial class GroupConditionViewModel : ObservableObject, IConditionViewModel
+{
+	private ShipSelectorFactory ShipSelectorFactory { get; }
+
+	public bool CanBeRemoved { get; set; } = true;
+	public Visibility RemoveButtonVisibility => CanBeRemoved.ToVisibility();
+
+	public GroupConditionModel Model { get; }
+	public IEnumerable<IConditionViewModel?> Conditions { get; set; }
+
+	public IEnumerable<Operator> Operators { get; }
+	public Operator GroupOperator { get; set; }
+
+	public IEnumerable<ConditionType> ConditionTypes { get; }
+	public ConditionType SelectedConditionType { get; set; } = ConditionType.ShipType;
+
+	public string Display => string.Join($"{Separator}{GroupOperator.Display()}{Separator}",
+		Conditions.Select(ConditionDisplay));
+
+	private string Separator => GroupOperator switch
+	{
+		// Operator.Or => "\n",
+		_ => " "
+	};
+
+	private string ConditionDisplay(IConditionViewModel? condition) => condition switch
+	{
+		null => QuestTrackerManagerResources.UnknownCondition,
+		GroupConditionViewModel => $"({condition.Display})",
+		_ => condition.Display
+	};
+
+	public GroupConditionViewModel(GroupConditionModel model, ShipSelectorFactory shipSelectorViewModel)
+	{
+		ShipSelectorFactory = shipSelectorViewModel;
+
+		Operators = Enum.GetValues<Operator>();
+
+#pragma warning disable CS0618 // Skip obsolete conditions
+		ConditionTypes = Enum
+			.GetValues<ConditionType>()
+			.Where(c => c is not ConditionType.Ship)
+			.Where(c => c is not ConditionType.PartialShip);
+#pragma warning restore CS0618 // 
+
+		Model = model;
+		GroupOperator = Model.GroupOperator;
+		Conditions = CreateViewModels(Model);
+
+		PropertyChanged += (_, args) =>
+		{
+			if (args.PropertyName is not nameof(GroupOperator)) return;
+
+			Model.GroupOperator = GroupOperator;
+		};
+
+		PropertyChanged += (_, args) =>
+		{
+			if (args.PropertyName is not nameof(Display)) return;
+
+			KCDatabase.Instance.Quest.OnQuestUpdated();
+		};
+
+		Model.Conditions.CollectionChanged += (_, _) =>
+		{
+			Conditions = CreateViewModels(Model);
+		};
+	}
+
+	private List<IConditionViewModel> CreateViewModels(GroupConditionModel model)
+	{
+		List<IConditionViewModel> conditions = model.Conditions
+			.Select(CreateViewModel)
+			.OfType<IConditionViewModel>()
+			.ToList();
+
+		foreach (IConditionViewModel condition in conditions)
+		{
+			condition.PropertyChanged += (_, args) =>
+			{
+				if (args.PropertyName is not nameof(IConditionViewModel.Display)) return;
+
+				OnPropertyChanged(nameof(Display));
+			};
+		}
+
+		return conditions;
+	}
+
+	private IConditionViewModel? CreateViewModel(ICondition? condition) => condition switch
+	{
+		GroupConditionModel g => new GroupConditionViewModel(g, ShipSelectorFactory),
+		ShipTypeConditionModel g => new ShipTypeConditionViewModel(g),
+		AllowedShipTypesConditionModel a => new AllowedShipTypesConditionViewModel(a),
+		ShipPositionConditionModel p => new ShipPositionConditionViewModel(p, ShipSelectorFactory),
+		ShipNationalityConditionModel n => new ShipNationalityConditionViewModel(n),
+		ShipConditionModelV2 s => new ShipConditionViewModelV2(s, ShipSelectorFactory),
+		PartialShipConditionModelV2 p => new PartialShipConditionViewModelV2(p, ShipSelectorFactory),
+
+#pragma warning disable CS0618 // needed for backward compatibility
+		ShipConditionModel s => new ShipConditionViewModel(s, ShipSelectorFactory),
+		PartialShipConditionModel p => new PartialShipConditionViewModel(p, ShipSelectorFactory),
+#pragma warning restore CS0618
+
+		_ => null,
+	};
+
+	[RelayCommand]
+	private void AddCondition()
+	{
+		Model.Conditions.Add(SelectedConditionType switch
+		{
+			ConditionType.Group => new GroupConditionModel(),
+			// ConditionType.Ship => new ShipConditionModel(),
+			ConditionType.ShipType => new ShipTypeConditionModel(),
+			// ConditionType.PartialShip => new PartialShipConditionModel(),
+			ConditionType.AllowedShipTypes => new AllowedShipTypesConditionModel(),
+			ConditionType.ShipPosition => new ShipPositionConditionModel(),
+			ConditionType.ShipNationality => new ShipNationalityConditionModel(),
+			ConditionType.ShipV2 => new ShipConditionModelV2(),
+			ConditionType.PartialShipV2 => new PartialShipConditionModelV2(),
+
+			_ => throw new NotImplementedException(),
+		});
+	}
+
+	[RelayCommand]
+	private void RemoveCondition(ICondition? condition)
+	{
+		if (condition is null) return;
+
+		Model.Conditions.Remove(condition);
+	}
+
+	public bool ConditionMet(IFleetData fleet)
+	{
+		List<IConditionViewModel> conditions = Conditions.Where(c => c is not null).ToList()!;
+
+		if (!conditions.Any()) return true;
+
+		return GroupOperator switch
+		{
+			Operator.And => conditions.All(c => c.ConditionMet(fleet)),
+			Operator.Or => conditions.Any(c => c.ConditionMet(fleet)),
+
+			_ => throw new NotImplementedException()
+		};
+	}
+}

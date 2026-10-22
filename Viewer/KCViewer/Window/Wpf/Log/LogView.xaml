@@ -1,0 +1,120 @@
+﻿<UserControl
+	x:Class="KCViewer.Window.Wpf.Log.LogView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:local="clr-namespace:KCViewer.Window.Wpf.Log"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:window="clr-namespace:KCViewer.Window"
+	d:DataContext="{d:DesignInstance Type=local:LogViewModel}"
+	d:DesignHeight="450"
+	d:DesignWidth="800"
+	TextElement.FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+	TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}"
+	mc:Ignorable="d"
+	>
+	<!--  Fork: KanColleViewer's font while its style is on, the layout and size stay (Fork/KcvViews/KcvFontConverter.cs)  -->
+	<TextElement.FontFamily>
+		<MultiBinding Converter="{x:Static kcv:KcvFontConverter.Instance}">
+			<Binding Path="FontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+			<Binding Path="Enabled" Source="{x:Static kcv:KcvViewState.Current}" />
+		</MultiBinding>
+	</TextElement.FontFamily>
+	<UserControl.Resources>
+		<Style
+			x:Key="DefaultListBoxItemStyleEO"
+			BasedOn="{StaticResource DefaultListBoxItemStyle}"
+			TargetType="ListBoxItem"
+			>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ListBoxItem">
+						<VirtualizingStackPanel>
+							<ContentPresenter
+								x:Name="ContentPresenter"
+								HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+								VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+								SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+								TextElement.FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}}"
+								TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}"
+								>
+								<TextElement.FontFamily>
+									<MultiBinding Converter="{x:Static kcv:KcvFontConverter.Instance}">
+										<Binding Path="FontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
+										<Binding Path="Enabled" Source="{x:Static kcv:KcvViewState.Current}" />
+									</MultiBinding>
+								</TextElement.FontFamily>
+							</ContentPresenter>
+						</VirtualizingStackPanel>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style BasedOn="{StaticResource DefaultListBoxItemStyleEO}" TargetType="ListBoxItem" />
+
+		<Style
+			x:Key="DefaultListBoxStyleEO"
+			BasedOn="{StaticResource DefaultListBoxStyle}"
+			TargetType="ListBox"
+			>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ListBox">
+						<Border
+							x:Name="LayoutRoot"
+							Background="{TemplateBinding Background}"
+							BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
+							SnapsToDevicePixels="true"
+							>
+							<ScrollViewer
+								x:Name="ScrollViewer"
+								Padding="{TemplateBinding Padding}"
+								ui:ScrollViewerHelper.AutoHideScrollBars="{TemplateBinding ui:ScrollViewerHelper.AutoHideScrollBars}"
+								Focusable="False"
+								HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+								VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+								>
+								<ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+							</ScrollViewer>
+						</Border>
+						<ControlTemplate.Triggers>
+							<MultiTrigger>
+								<MultiTrigger.Conditions>
+									<Condition Property="IsGrouping" Value="true" />
+									<Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false" />
+								</MultiTrigger.Conditions>
+								<Setter Property="ScrollViewer.CanContentScroll" Value="false" />
+							</MultiTrigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style BasedOn="{StaticResource DefaultListBoxStyleEO}" TargetType="ListBox" />
+	</UserControl.Resources>
+
+	<UserControl.ContextMenu>
+		<ContextMenu>
+			<MenuItem Command="{Binding ContextMenuLog_Clear_ClickCommand}" Header="{Binding FormLog.Clear}" />
+		</ContextMenu>
+	</UserControl.ContextMenu>
+
+	<ListBox
+		Width="Auto"
+		Padding="0 0 0 10"
+		Background="Transparent"
+		ItemsSource="{Binding LogList}"
+		ScrollViewer.HorizontalScrollBarVisibility="Auto"
+		ScrollViewer.ScrollChanged="ListBox_ScrollChanged"
+		ScrollViewer.VerticalScrollBarVisibility="Auto"
+		TextOptions.TextFormattingMode="Display"
+		VirtualizingStackPanel.IsVirtualizing="True"
+		VirtualizingStackPanel.VirtualizationMode="Recycling"
+		/>
+</UserControl>

@@ -1,0 +1,429 @@
+<common:WindowBase
+	x:Class="KCViewer.Fork.KcvViews.KcvShipTrainingPlanWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:KCViewer.Common"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:training="clr-namespace:KCViewer.Window.Wpf.ShipTrainingPlanner"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Width="452"
+	d:DataContext="{d:DesignInstance training:ShipTrainingPlanViewModel}"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	x:TypeArguments="training:ShipTrainingPlanViewModel"
+	Background="{DynamicResource Kcv.Background}"
+	SizeToContent="Height"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	WindowStartupLocation="CenterOwner"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the ship training plan editor in KanColleViewer's style (mockup 20261008-ship-training-edit-v2, approved
+		2026-10-08 "구현") with the viewer's view model: the banner, ship type, name and level; 목표 with a row each for
+		the level, HP and ASW (their modernization, as the viewer's) and luck: now, the goal's box (its least is the value
+		now, as the viewer's), the limit, and what is left or 「달성」; 개조 with the remodels and the level each needs,
+		「개조 가능」 or 「마지막 개조」, the alarm check; 우선 순위; [OK] and [취소].
+	-->
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="/KCViewer;component/Fork/KcvViews/KcvConfigurationStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<Style x:Key="Tr.Head" TargetType="TextBlock">
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="Margin" Value="6 0" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+			</Style>
+			<!--  one row of the goal table, with a line above it; its columns are shared with the head  -->
+			<Style x:Key="Tr.Row" TargetType="Border">
+				<Setter Property="MinHeight" Value="28" />
+				<Setter Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+				<Setter Property="BorderThickness" Value="0 1 0 0" />
+			</Style>
+			<Style x:Key="Tr.Label" TargetType="TextBlock">
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="Margin" Value="0 0 6 0" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			</Style>
+			<Style x:Key="Tr.Now" TargetType="TextBlock">
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="HorizontalAlignment" Value="Right" />
+				<Setter Property="Margin" Value="6 0" />
+			</Style>
+			<Style x:Key="Tr.Dim" TargetType="TextBlock">
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.InactiveForeground}" />
+			</Style>
+			<Style x:Key="Tr.Pre" TargetType="TextBlock">
+				<Setter Property="Width" Value="30" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="FontSize" Value="12" />
+				<Setter Property="Foreground" Value="{DynamicResource Kcv.SubForeground}" />
+			</Style>
+			<Style x:Key="Tr.Num" TargetType="kcv:KcvNumberBox">
+				<Setter Property="Width" Value="56" />
+				<Setter Property="TextAlignment" Value="Right" />
+			</Style>
+			<Style x:Key="Tr.Result" TargetType="TextBlock">
+				<Setter Property="Width" Value="46" />
+				<Setter Property="Margin" Value="6 0 0 0" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+			</Style>
+			<Style
+				x:Key="Tr.Max"
+				BasedOn="{StaticResource Tr.Dim}"
+				TargetType="TextBlock"
+				>
+				<Setter Property="Margin" Value="4 0 0 0" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+			</Style>
+			<Style x:Key="Tr.Left" TargetType="TextBlock">
+				<Setter Property="Margin" Value="6 0 0 0" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+			</Style>
+			<!--  「달성」 and 「개조 가능」: the panel's green badge  -->
+			<Style x:Key="Tr.Badge" TargetType="Border">
+				<Setter Property="Padding" Value="7 0" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="HorizontalAlignment" Value="Left" />
+				<Setter Property="Background" Value="{DynamicResource Kcv.BadgeBackground}" />
+				<Setter Property="TextElement.Foreground" Value="{DynamicResource Kcv.BadgeForeground}" />
+				<Setter Property="TextElement.FontSize" Value="11" />
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+
+	<DockPanel>
+		<Border
+			Padding="12 7"
+			BorderBrush="{DynamicResource Kcv.HeaderBackground}"
+			BorderThickness="0 1 0 0"
+			DockPanel.Dock="Bottom"
+			>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button
+					MinWidth="72"
+					Click="OnConfirmClick"
+					Content="{Binding ShipTrainingPlanner.OK}"
+					Style="{StaticResource KcvRec.PrimaryButton}"
+					/>
+				<Button
+					MinWidth="72"
+					Click="OnCancelClick"
+					Content="{Binding ShipTrainingPlanner.Cancel}"
+					Style="{StaticResource KcvRec.Button}"
+					/>
+			</StackPanel>
+		</Border>
+
+		<StackPanel Margin="14 6 14 10">
+			<!--  the ship  -->
+			<StackPanel Margin="0 0 0 10" Orientation="Horizontal">
+				<Image
+					Width="160"
+					Height="40"
+					Source="{Binding Ship.MasterShip.ShipId, Converter={StaticResource ShipToBannerImageConverter}}"
+					Stretch="Uniform"
+					/>
+				<StackPanel Margin="12 0 0 0" VerticalAlignment="Center">
+					<TextBlock
+						FontSize="12"
+						Foreground="{DynamicResource Kcv.SubForeground}"
+						Text="{Binding Ship.MasterShip.ShipTypeName}"
+						/>
+					<StackPanel Orientation="Horizontal">
+						<TextBlock FontSize="17" Text="{Binding Ship.MasterShip.NameWithClass}" />
+						<TextBlock
+							Margin="8 0 0 3"
+							VerticalAlignment="Bottom"
+							FontSize="12"
+							Foreground="{DynamicResource Kcv.SubForeground}"
+							Text="{Binding Ship.Level, StringFormat='Lv.{0}'}"
+							/>
+					</StackPanel>
+				</StackPanel>
+			</StackPanel>
+
+			<!--  목표: label, now, goal (prefix, box, result, limit), left  -->
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.KcvTrainingGoal}">
+				<StackPanel Grid.IsSharedSizeScope="True">
+					<Grid Margin="0 0 0 3">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" MinWidth="34" SharedSizeGroup="Label" />
+							<ColumnDefinition Width="Auto" MinWidth="62" SharedSizeGroup="Now" />
+							<ColumnDefinition Width="Auto" SharedSizeGroup="Goal" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock
+							Grid.Column="1"
+							HorizontalAlignment="Right"
+							Style="{StaticResource Tr.Head}"
+							Text="{x:Static fork:ForkStrings.KcvTrainingCurrent}"
+							/>
+						<TextBlock
+							Grid.Column="2"
+							Margin="14 0 0 0"
+							Style="{StaticResource Tr.Head}"
+							Text="{x:Static fork:ForkStrings.KcvTrainingGoal}"
+							/>
+						<TextBlock
+							Grid.Column="3"
+							Style="{StaticResource Tr.Head}"
+							Text="{x:Static fork:ForkStrings.KcvTrainingLeft}"
+							/>
+					</Grid>
+
+					<!--  레벨  -->
+					<Border Style="{StaticResource Tr.Row}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Now" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Goal" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Style="{StaticResource Tr.Label}" Text="{x:Static fork:ForkStrings.KcvTrainingLevel}" />
+							<TextBlock
+								Grid.Column="1"
+								Style="{StaticResource Tr.Now}"
+								Text="{Binding Ship.Level}"
+								/>
+							<StackPanel
+								Grid.Column="2"
+								Margin="14 0 0 0"
+								Orientation="Horizontal"
+								>
+								<TextBlock Style="{StaticResource Tr.Pre}" />
+								<kcv:KcvNumberBox
+									Maximum="{Binding MaximumLevel}"
+									Minimum="{Binding Ship.Level}"
+									Style="{StaticResource Tr.Num}"
+									Value="{Binding TargetLevel}"
+									/>
+								<TextBlock Style="{StaticResource Tr.Result}" />
+								<TextBlock Style="{StaticResource Tr.Max}" Text="{Binding ForkLevelMax}" />
+							</StackPanel>
+							<TextBlock
+								Grid.Column="3"
+								Style="{StaticResource Tr.Left}"
+								Text="{Binding ForkExpLeft}"
+								Visibility="{Binding ForkLevelDone, Converter={StaticResource Cfg.Collapsed}}"
+								/>
+							<Border
+								Grid.Column="3"
+								Margin="6 0 0 0"
+								Style="{StaticResource Tr.Badge}"
+								Visibility="{Binding ForkLevelDone, Converter={StaticResource KcvRec.Visible}}"
+								>
+								<TextBlock Text="{x:Static fork:ForkStrings.KcvTrainingDone}" />
+							</Border>
+						</Grid>
+					</Border>
+
+					<!--  내구: the modernization (0 to 2 as the viewer's) and the HP it makes  -->
+					<Border Style="{StaticResource Tr.Row}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Now" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Goal" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Style="{StaticResource Tr.Label}" Text="{Binding ShipTrainingPlanner.HPBonus}" />
+							<TextBlock Grid.Column="1" Style="{StaticResource Tr.Now}">
+								<Run Text="{Binding Ship.HPMax, Mode=OneWay}" /><Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding Ship.HPMaxModernized, Mode=OneWay, StringFormat=' (+{0})'}"
+									/>
+							</TextBlock>
+							<StackPanel
+								Grid.Column="2"
+								Margin="14 0 0 0"
+								Orientation="Horizontal"
+								>
+								<TextBlock Style="{StaticResource Tr.Pre}" Text="{x:Static fork:ForkStrings.KcvTrainingModernize}" />
+								<kcv:KcvNumberBox
+									Maximum="{Binding MaximumHPMod}"
+									Minimum="{Binding Ship.HPMaxModernized}"
+									Plus="True"
+									Style="{StaticResource Tr.Num}"
+									Value="{Binding TargetHPBonus}"
+									/>
+								<TextBlock Style="{StaticResource Tr.Result}" Text="{Binding TargetHP, StringFormat='→ {0}'}" />
+								<TextBlock Style="{StaticResource Tr.Max}" Text="{Binding ForkHPMax}" />
+							</StackPanel>
+							<TextBlock
+								Grid.Column="3"
+								Style="{StaticResource Tr.Left}"
+								Text="{Binding ForkHPLeft}"
+								Visibility="{Binding ForkHPDone, Converter={StaticResource Cfg.Collapsed}}"
+								/>
+							<Border
+								Grid.Column="3"
+								Margin="6 0 0 0"
+								Style="{StaticResource Tr.Badge}"
+								Visibility="{Binding ForkHPDone, Converter={StaticResource KcvRec.Visible}}"
+								>
+								<TextBlock Text="{x:Static fork:ForkStrings.KcvTrainingDone}" />
+							</Border>
+						</Grid>
+					</Border>
+
+					<!--  대잠: the modernization (to the ship's limit) and the ASW it makes; dimmed when the ship has none  -->
+					<Border Style="{StaticResource Tr.Row}">
+						<Grid>
+							<Grid.Style>
+								<Style TargetType="Grid">
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding ForkASWModernizable}" Value="False">
+											<Setter Property="Opacity" Value="0.45" />
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</Grid.Style>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Now" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Goal" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Style="{StaticResource Tr.Label}" Text="{Binding ShipTrainingPlanner.ASWBonus}" />
+							<TextBlock Grid.Column="1" Style="{StaticResource Tr.Now}">
+								<Run Text="{Binding Ship.ASWBase, Mode=OneWay}" /><Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.InactiveForeground}"
+									Text="{Binding Ship.ASWModernized, Mode=OneWay, StringFormat=' (+{0})'}"
+									/>
+							</TextBlock>
+							<StackPanel
+								Grid.Column="2"
+								Margin="14 0 0 0"
+								Orientation="Horizontal"
+								>
+								<TextBlock Style="{StaticResource Tr.Pre}" Text="{x:Static fork:ForkStrings.KcvTrainingModernize}" />
+								<kcv:KcvNumberBox
+									IsEnabled="{Binding ForkASWModernizable}"
+									Maximum="{Binding Ship.MasterShip.ASWModernizable}"
+									Minimum="{Binding Ship.ASWModernized}"
+									Plus="True"
+									Style="{StaticResource Tr.Num}"
+									Value="{Binding TargetASWBonus}"
+									/>
+								<TextBlock Style="{StaticResource Tr.Result}" Text="{Binding TargetASW, StringFormat='→ {0}'}" />
+								<TextBlock Style="{StaticResource Tr.Max}" Text="{Binding ForkASWMax}" />
+							</StackPanel>
+							<!--  nothing is left to show for a ship without ASW modernization  -->
+							<Grid Grid.Column="3" Visibility="{Binding ForkASWModernizable, Converter={StaticResource KcvRec.Visible}}">
+								<TextBlock
+									Style="{StaticResource Tr.Left}"
+									Text="{Binding ForkASWLeft}"
+									Visibility="{Binding ForkASWDone, Converter={StaticResource Cfg.Collapsed}}"
+									/>
+								<Border
+									Margin="6 0 0 0"
+									Style="{StaticResource Tr.Badge}"
+									Visibility="{Binding ForkASWDone, Converter={StaticResource KcvRec.Visible}}"
+									>
+									<TextBlock Text="{x:Static fork:ForkStrings.KcvTrainingDone}" />
+								</Border>
+							</Grid>
+						</Grid>
+					</Border>
+
+					<!--  운  -->
+					<Border Style="{StaticResource Tr.Row}">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Label" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Now" />
+								<ColumnDefinition Width="Auto" SharedSizeGroup="Goal" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Style="{StaticResource Tr.Label}" Text="{Binding ShipTrainingPlanner.Luck}" />
+							<TextBlock
+								Grid.Column="1"
+								Style="{StaticResource Tr.Now}"
+								Text="{Binding Ship.LuckBase}"
+								/>
+							<StackPanel
+								Grid.Column="2"
+								Margin="14 0 0 0"
+								Orientation="Horizontal"
+								>
+								<TextBlock Style="{StaticResource Tr.Pre}" />
+								<kcv:KcvNumberBox
+									Maximum="{Binding Ship.MasterShip.LuckMax}"
+									Minimum="{Binding Ship.LuckBase}"
+									Style="{StaticResource Tr.Num}"
+									Value="{Binding TargetLuck}"
+									/>
+								<TextBlock Style="{StaticResource Tr.Result}" />
+								<TextBlock Style="{StaticResource Tr.Max}" Text="{Binding ForkLuckMax}" />
+							</StackPanel>
+							<TextBlock
+								Grid.Column="3"
+								Style="{StaticResource Tr.Left}"
+								Text="{Binding ForkLuckLeft}"
+								Visibility="{Binding ForkLuckDone, Converter={StaticResource Cfg.Collapsed}}"
+								/>
+							<Border
+								Grid.Column="3"
+								Margin="6 0 0 0"
+								Style="{StaticResource Tr.Badge}"
+								Visibility="{Binding ForkLuckDone, Converter={StaticResource KcvRec.Visible}}"
+								>
+								<TextBlock Text="{x:Static fork:ForkStrings.KcvTrainingDone}" />
+							</Border>
+						</Grid>
+					</Border>
+				</StackPanel>
+			</ContentControl>
+
+			<!--  개조: choosing a remodel sets the goal's level to the one it needs (the viewer's)  -->
+			<ContentControl Style="{StaticResource Cfg.Box}" Tag="{x:Static fork:ForkStrings.KcvTrainingRemodel}">
+				<StackPanel>
+					<WrapPanel Style="{StaticResource Cfg.Row}">
+						<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{x:Static fork:ForkStrings.KcvTrainingRemodelGoal}" />
+						<ComboBox
+							MinWidth="150"
+							DisplayMemberPath="Text"
+							ItemsSource="{Binding ForkRemodels}"
+							SelectedValue="{Binding TargetRemodel}"
+							SelectedValuePath="Ship"
+							Style="{StaticResource Cfg.Combo}"
+							/>
+						<Border
+							Margin="8 0 0 0"
+							Style="{StaticResource Tr.Badge}"
+							Visibility="{Binding ForkRemodelReady, Converter={StaticResource KcvRec.Visible}}"
+							>
+							<TextBlock Text="{x:Static fork:ForkStrings.KcvTrainingRemodelReady}" />
+						</Border>
+						<TextBlock
+							Margin="8 0 0 0"
+							VerticalAlignment="Center"
+							Style="{StaticResource Tr.Dim}"
+							Text="{x:Static fork:ForkStrings.KcvTrainingLastRemodel}"
+							Visibility="{Binding ForkLastRemodel, Converter={StaticResource KcvRec.Visible}}"
+							/>
+					</WrapPanel>
+					<CheckBox
+						Content="{x:Static fork:ForkStrings.KcvTrainingNotifyAny}"
+						IsChecked="{Binding NotifyOnAnyRemodelReady}"
+						ToolTip="{x:Static fork:ForkStrings.KcvTrainingNotifyAnyToolTip}"
+						/>
+				</StackPanel>
+			</ContentControl>
+
+			<WrapPanel Style="{StaticResource Cfg.Row}">
+				<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{Binding ShipTrainingPlanner.Priority}" />
+				<kcv:KcvNumberBox Style="{StaticResource Tr.Num}" Value="{Binding Priority}" />
+			</WrapPanel>
+		</StackPanel>
+	</DockPanel>
+</common:WindowBase>

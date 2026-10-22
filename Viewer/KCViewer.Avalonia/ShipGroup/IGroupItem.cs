@@ -1,0 +1,8 @@
+﻿namespace KCViewer.Avalonia.ShipGroup;
+
+public interface IGroupItem : ICloneable
+{
+	int GroupID { get; }
+	string Name { get; set; }
+	int ScrollLockColumnCount { get; set; }
+}

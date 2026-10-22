@@ -1,0 +1,69 @@
+﻿<Window
+	x:Class="KCViewer.Window.Dialog.VersionInformation.VersionInformationWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="clr-namespace:KCViewer.Window.Dialog.VersionInformation"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	Title="VersionInformation"
+	ui:WindowHelper.UseModernWindowStyle="True"
+	ResizeMode="NoResize"
+	SizeToContent="WidthAndHeight"
+	mc:Ignorable="d"
+	>
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<StackPanel Grid.Row="0">
+			<TextBlock Name="TextVersion" d:Text="Electronic Observer 5.x.x.x" />
+			<!--  Fork: the fork's commit and build time, and the viewer it is based on (Fork/ForkVersion.cs)  -->
+			<TextBlock Name="ForkCommitText" d:Text="버전: 963beae9a (2026-10-05 커밋)" />
+			<TextBlock Name="ForkBuiltText" d:Text="빌드: 2026-10-05 02:40" />
+			<TextBlock Name="ForkBaseText" d:Text="기반: 74식 Electronic Observer 5.4.3.0" />
+			<TextBlock Name="RuntimeVersion" d:Text="dotnet 6.0.1" />
+			<TextBlock Margin="0 10 0 0">
+				<Run x:Name="TextAuthor" d:Text="Developed by:" />
+				<Hyperlink
+					x:Name="TextAuthorLink"
+					NavigateUri="https://twitter.com/andanteyk"
+					RequestNavigate="OpenHyperlink"
+					>
+					<d:Hyperlink.Inlines>
+						Andante, et al.
+					</d:Hyperlink.Inlines>
+				</Hyperlink>
+			</TextBlock>
+
+			<!--  Fork: hidden, the links go to the viewer's own project (VersionInformation.xaml.cs)  -->
+			<TextBlock x:Name="ProjectSiteLine">
+				<Run x:Name="TextProjectSite" Text="Project Site (Bug Reports,Suggestions)" />
+				<Hyperlink NavigateUri="https://github.com/ElectronicObserverEN/ElectronicObserver" RequestNavigate="OpenHyperlink">
+					github
+				</Hyperlink>
+				<Hyperlink NavigateUri="https://discord.gg/6ZvX8DG" RequestNavigate="OpenHyperlink">
+					discord
+				</Hyperlink>
+				<Hyperlink NavigateUri="https://twitter.com/74EOEN" RequestNavigate="OpenHyperlink">
+					twitter
+				</Hyperlink>
+			</TextBlock>
+
+			<TextBlock>
+				<Run x:Name="TextModifiedBy" Text="Modified by:" />
+				<Run x:Name="TextMaintainers" Text="MyAngelKamikaze, Jebzou" />
+			</TextBlock>
+		</StackPanel>
+
+		<StackPanel Grid.Row="1" HorizontalAlignment="Right">
+			<Button
+				x:Name="ButtonClose"
+				Click="ButtonClose_OnClick"
+				Content="Close"
+				/>
+		</StackPanel>
+	</Grid>
+</Window>

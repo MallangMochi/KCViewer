@@ -1,0 +1,460 @@
+<UserControl
+	x:Class="KCViewer.Fork.KcvViews.KcvQuestView"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:fork="clr-namespace:KCViewer.Fork"
+	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:quest="clr-namespace:KCViewer.Window.Wpf.Quest"
+	d:DesignHeight="300"
+	d:DesignWidth="500"
+	Background="{DynamicResource Kcv.Background}"
+	TextElement.FontFamily="{DynamicResource Kcv.FontFamily}"
+	TextElement.Foreground="{DynamicResource Kcv.Foreground}"
+	mc:Ignorable="d"
+	>
+	<!--
+		Fork: the quest panel drawn as KanColleViewer's 任務 tab (viewer-design/kcv-reference/07-quests.png):
+		a category colour square, the title, the description in small grey letters and the progress as a
+		badge. Filters, searches and the progress menu are the viewer's own. Fork additions (mockup v1,
+		2026-10-01): a header button for the "in progress only" filter and an orange 遂行中 badge on accepted quests;
+		(mockup 20261005-quest-filter-v2) the count of taken quests in the header and six category filters.
+	-->
+	<UserControl.Resources>
+		<quest:QuestViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
+
+		<ContextMenu x:Key="MainContextMenu" DataContext="{StaticResource Proxy}">
+			<MenuItem Header="{Binding DataContext.FormQuest.MenuMain_QuestFilter}">
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowInProgressOnly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowRunningOnly}"
+					/>
+				<Separator />
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowOneTime}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowOnce}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowDaily}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowDaily}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowWeekly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowWeekly}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowMonthly}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowMonthly}"
+					/>
+				<MenuItem
+					Header="{Binding DataContext.FormQuest.ShowOther}"
+					IsCheckable="True"
+					IsChecked="{Binding DataContext.MenuMain_ShowOther}"
+					/>
+			</MenuItem>
+			<Separator />
+			<MenuItem
+				Header="{Binding DataContext.FormQuest.ShowQuestCode}"
+				IsCheckable="True"
+				IsChecked="{Binding DataContext.ShowQuestCode}"
+				/>
+			<Separator />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestTitle_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTitle}" />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestDescription_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestDescription}" />
+			<MenuItem Command="{Binding DataContext.ManuMain_QuestTranslate_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTranslate}" />
+			<Separator />
+			<MenuItem
+				Command="{Binding DataContext.LookUpOnDuckDuckGoCommand}"
+				Header="{Binding DataContext.DuckDuckGoSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.LookUpOnStartpageCommand}"
+				Header="{Binding DataContext.StartpageSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.MenuMain_KcwikiQuest_ClickCommand}"
+				Header="{Binding DataContext.WikiSearchText}"
+				IsEnabled="{Binding DataContext.WikiSearchEnabled}"
+				/>
+			<Separator />
+			<MenuItem Command="{Binding DataContext.MenuMain_Initialize_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuMain_Initialize}" />
+		</ContextMenu>
+
+		<ContextMenu x:Key="ProgressContextMenu" DataContext="{StaticResource Proxy}">
+			<MenuItem Command="{Binding DataContext.MenuProgress_Increment_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Increment}" />
+			<MenuItem Command="{Binding DataContext.MenuProgress_Decrement_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Decrement}" />
+			<Separator />
+			<MenuItem Command="{Binding DataContext.MenuProgress_Reset_ClickCommand}" Header="{Binding DataContext.FormQuest.MenuProgress_Reset}" />
+			<Separator />
+			<MenuItem Command="{Binding DataContext.ManageTrackerCommand}" Header="{Binding DataContext.FormQuest.ModifyProgress}" />
+		</ContextMenu>
+
+		<!--  Flat rows: no selection chrome, a quiet highlight for the selected quest (the menu acts on it)  -->
+		<Style x:Key="Row" TargetType="ListBoxItem">
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="Focusable" Value="True" />
+			<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ListBoxItem">
+						<Border
+							x:Name="Back"
+							Background="Transparent"
+							BorderBrush="Transparent"
+							BorderThickness="1"
+							>
+							<ContentPresenter />
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.AlternateRow}" />
+							</Trigger>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.HeaderBackground}" />
+							</Trigger>
+							<!--
+								Done (the game's 達成) or its tracker full: the whole row green, the finished green of the
+								upgrade and training plans (mockup 20261007-quest-complete-rows-v1); darker under the mouse,
+								and chosen, darker with a grey border, so it stays green
+							-->
+							<DataTrigger Binding="{Binding ForkDone}" Value="True">
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.FinishedRow}" />
+							</DataTrigger>
+							<MultiDataTrigger>
+								<MultiDataTrigger.Conditions>
+									<Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+									<Condition Binding="{Binding ForkDone}" Value="True" />
+								</MultiDataTrigger.Conditions>
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.FinishedRowHover}" />
+							</MultiDataTrigger>
+							<MultiDataTrigger>
+								<MultiDataTrigger.Conditions>
+									<Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="True" />
+									<Condition Binding="{Binding ForkDone}" Value="True" />
+								</MultiDataTrigger.Conditions>
+								<Setter TargetName="Back" Property="Background" Value="{DynamicResource Kcv.FinishedRowHover}" />
+								<Setter TargetName="Back" Property="BorderBrush" Value="{DynamicResource Kcv.HeaderBackground}" />
+							</MultiDataTrigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</UserControl.Resources>
+
+	<Grid
+		Margin="10 6 10 0"
+		Background="Transparent"
+		ContextMenu="{StaticResource MainContextMenu}"
+		>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+
+		<!--
+			現在進行中の任務 (4/5), the category filters, and on the right the button for the menu's "in progress only"
+			filter (mockup v1, 2026-10-01; mockup 20261005-quest-filter-v2). The filters sit on the header line when it
+			has room for them, else on a line of their own under it (KcvQuestView.xaml.cs moves them).
+		-->
+		<Grid
+			x:Name="Header"
+			Grid.Row="0"
+			Margin="2 0 0 6"
+			SizeChanged="PlaceFilters"
+			>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+
+			<TextBlock
+				x:Name="HeaderTitle"
+				Grid.Column="0"
+				VerticalAlignment="Center"
+				FontSize="14"
+				Style="{StaticResource Kcv.Text}"
+				Text="{Binding ForkHeaderText}"
+				/>
+
+			<Border
+				x:Name="InlineFilters"
+				Grid.Column="1"
+				Margin="10 0 0 0"
+				VerticalAlignment="Center"
+				>
+				<!--  A chip: the category's colour square and name; the chosen one filled with the colour  -->
+				<ItemsControl
+					x:Name="Filters"
+					Focusable="False"
+					ItemsSource="{Binding ForkFilters}"
+					>
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel Orientation="Horizontal" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="{x:Type kcv:KcvQuestFilter}">
+							<Border
+								x:Name="Chip"
+								Margin="0 0 3 3"
+								Padding="5 1 6 1"
+								Background="{DynamicResource Kcv.ChipBackground}"
+								BorderBrush="{DynamicResource Kcv.Separator}"
+								BorderThickness="1"
+								CornerRadius="2"
+								Cursor="Hand"
+								ToolTip="{Binding ToolTip}"
+								>
+								<Border.InputBindings>
+									<MouseBinding Command="{Binding ToggleCommand}" MouseAction="LeftClick" />
+								</Border.InputBindings>
+								<StackPanel Orientation="Horizontal">
+									<Rectangle
+										x:Name="Square"
+										Width="8"
+										Height="8"
+										Margin="0 0 4 0"
+										VerticalAlignment="Center"
+										Fill="{Binding ColorCategory, Converter={StaticResource Kcv.QuestCategoryBrush}}"
+										/>
+									<TextBlock
+										x:Name="ChipText"
+										VerticalAlignment="Center"
+										FontSize="12"
+										Style="{StaticResource Kcv.Text}"
+										Text="{Binding Name}"
+										/>
+								</StackPanel>
+							</Border>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsSelected}" Value="True">
+									<Setter TargetName="Chip" Property="Background" Value="{Binding ColorCategory, Converter={StaticResource Kcv.QuestCategoryBrush}}" />
+									<Setter TargetName="Chip" Property="BorderBrush" Value="Transparent" />
+									<Setter TargetName="Square" Property="Fill" Value="White" />
+									<Setter TargetName="ChipText" Property="Foreground" Value="White" />
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</Border>
+
+			<Border
+				x:Name="FiltersBelow"
+				Grid.Row="1"
+				Grid.ColumnSpan="4"
+				Margin="0 5 0 0"
+				Visibility="Collapsed"
+				/>
+
+			<Button
+				x:Name="ToggleButton"
+				Grid.Column="3"
+				Padding="10 2"
+				VerticalAlignment="Center"
+				Click="ShowRunningOnly_Click"
+				FontSize="12"
+				>
+				<!--  The button keeps the style's button (KcvControls.xaml); only the text follows the filter  -->
+				<TextBlock>
+					<TextBlock.Style>
+						<Style TargetType="TextBlock">
+							<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvShowInProgressOnly}" />
+							<Style.Triggers>
+								<DataTrigger Binding="{Binding MenuMain_ShowRunningOnly}" Value="True">
+									<Setter Property="Text" Value="{x:Static fork:ForkStrings.KcvShowAllQuests}" />
+								</DataTrigger>
+							</Style.Triggers>
+						</Style>
+					</TextBlock.Style>
+				</TextBlock>
+			</Button>
+		</Grid>
+
+		<ListBox
+			Grid.Row="1"
+			Background="Transparent"
+			BorderThickness="0"
+			ItemContainerStyle="{StaticResource Row}"
+			ItemsSource="{Binding View}"
+			ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+			SelectedItem="{Binding SelectedQuest}"
+			>
+			<ListBox.ItemTemplate>
+				<DataTemplate DataType="{x:Type quest:QuestItemViewModel}">
+					<Grid Margin="2 5 4 6">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+
+						<Rectangle
+							Grid.Column="0"
+							Width="15"
+							Height="15"
+							Margin="0 4 12 0"
+							VerticalAlignment="Top"
+							Fill="{Binding QuestView_Category, Converter={StaticResource Kcv.QuestCategoryBrush}}"
+							ToolTip="{Binding QuestView_CategoryToolTip}"
+							/>
+
+						<StackPanel Grid.Column="1">
+							<StackPanel Orientation="Horizontal">
+								<TextBlock
+									FontSize="15"
+									Style="{StaticResource Kcv.Text}"
+									Text="{Binding QuestView_Name}"
+									TextTrimming="CharacterEllipsis"
+									>
+									<TextBlock.ToolTip>
+										<StackPanel>
+											<!--  Fork: wrap at the tool tip's 600px max width instead of cutting the line off  -->
+											<TextBlock TextWrapping="Wrap">
+												<Run Text="{Binding QuestView_NameToolTip}" /><Run FontStyle="Italic" Text="{Binding QuestView_NameToolTipExtra}" />
+											</TextBlock>
+
+											<!--  Fork: the rewards under a line (mockup 20261007-quest-rewards-v1)  -->
+											<Border
+												Margin="0 5 0 0"
+												Padding="0 4 0 0"
+												BorderBrush="{DynamicResource Kcv.Separator}"
+												BorderThickness="0 1 0 0"
+												>
+												<Border.Style>
+													<Style TargetType="Border">
+														<Style.Triggers>
+															<DataTrigger Binding="{Binding ForkRewardLines}" Value="{x:Null}">
+																<Setter Property="Visibility" Value="Collapsed" />
+															</DataTrigger>
+														</Style.Triggers>
+													</Style>
+												</Border.Style>
+												<ItemsControl ItemsSource="{Binding ForkRewardLines}">
+													<ItemsControl.ItemTemplate>
+														<DataTemplate>
+															<TextBlock Text="{Binding Text}" TextWrapping="Wrap">
+																<TextBlock.Style>
+																	<Style TargetType="TextBlock">
+																		<Setter Property="Margin" Value="10 0 0 0" />
+																		<Style.Triggers>
+																			<DataTrigger Binding="{Binding IsHeading}" Value="True">
+																				<Setter Property="Margin" Value="0 2 0 0" />
+																				<Setter Property="Opacity" Value="0.72" />
+																			</DataTrigger>
+																		</Style.Triggers>
+																	</Style>
+																</TextBlock.Style>
+															</TextBlock>
+														</DataTemplate>
+													</ItemsControl.ItemTemplate>
+												</ItemsControl>
+											</Border>
+										</StackPanel>
+									</TextBlock.ToolTip>
+								</TextBlock>
+
+								<!--  遂行中: an accepted quest (state 2; the viewer's QuestView_State is true), in orange  -->
+								<Border
+									Margin="10 1 0 1"
+									Padding="6 0"
+									VerticalAlignment="Center"
+									Background="{DynamicResource Kcv.InProgressBadgeBackground}"
+									>
+									<Border.Style>
+										<Style TargetType="Border">
+											<Setter Property="Visibility" Value="Collapsed" />
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding QuestView_State}" Value="True">
+													<Setter Property="Visibility" Value="Visible" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</Border.Style>
+									<TextBlock
+										FontSize="13"
+										Foreground="{DynamicResource Kcv.InProgressBadgeForeground}"
+										Text="{x:Static fork:ForkStrings.KcvQuestInProgress}"
+										/>
+								</Border>
+
+								<!--  80 %  -->
+								<Border
+									Margin="10 1 0 1"
+									Padding="6 0"
+									VerticalAlignment="Center"
+									Background="{DynamicResource Kcv.BadgeBackground}"
+									ContextMenu="{StaticResource ProgressContextMenu}"
+									ToolTip="{Binding QuestView_ProgressToolTip}"
+									>
+									<Border.Style>
+										<Style TargetType="Border">
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding QuestView_ProgressText}" Value="{x:Null}">
+													<Setter Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+												<DataTrigger Binding="{Binding QuestView_ProgressText}" Value="">
+													<Setter Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+												<!--  The viewer's "no progress known"  -->
+												<DataTrigger Binding="{Binding QuestView_ProgressText}" Value="-">
+													<Setter Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</Border.Style>
+									<TextBlock
+										FontSize="13"
+										Foreground="{DynamicResource Kcv.BadgeForeground}"
+										Text="{Binding QuestView_ProgressText}"
+										/>
+								</Border>
+							</StackPanel>
+
+							<TextBlock
+								Margin="0 0 0 0"
+								FontSize="11"
+								Style="{StaticResource Kcv.SubText}"
+								Text="{Binding QuestView_NameToolTip, Converter={StaticResource Kcv.QuestDescription}}"
+								TextTrimming="CharacterEllipsis"
+								/>
+
+							<!--  Fork: the rewards in one line (mockup 20261007-quest-rewards-v1, 안 B), the whole in the name's tooltip  -->
+							<TextBlock
+								Margin="0 1 0 0"
+								FontSize="11"
+								TextTrimming="CharacterEllipsis"
+								>
+								<TextBlock.Style>
+									<Style BasedOn="{StaticResource Kcv.SubText}" TargetType="TextBlock">
+										<Style.Triggers>
+											<DataTrigger Binding="{Binding ForkRewardSummary}" Value="{x:Null}">
+												<Setter Property="Visibility" Value="Collapsed" />
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</TextBlock.Style>
+								<Run Foreground="{DynamicResource Kcv.Foreground}" Text="{x:Static fork:ForkStrings.KcvQuestReward}" /><Run Text=" " /><Run Text="{Binding ForkRewardSummary, Mode=OneWay}" />
+							</TextBlock>
+						</StackPanel>
+					</Grid>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+	</Grid>
+</UserControl>

@@ -1,0 +1,11 @@
+﻿using KCViewer.Core.Types;
+
+namespace KCViewer.Window.Tools.SortieRecordViewer.Sortie.Battle.Phase;
+
+public class BattleBaseAirCorpsSquadron
+{
+	public IEquipmentDataMaster? Equipment { get; init; }
+	public int AircraftCount { get; init; }
+
+	public override string ToString() => $"{Equipment?.NameEN ?? "???"} x {AircraftCount}";
+}
