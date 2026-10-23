@@ -174,8 +174,3 @@ packages/
 
 *.bak
 /KCViewer/GPUCache
-
-# Plugins: kept here and built on their own (Plugins\build.ps1), not published yet
-/Plugins/
-# fork-portable.ps1's default output
-/dist/

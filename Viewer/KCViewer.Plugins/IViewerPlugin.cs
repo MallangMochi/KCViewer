@@ -11,7 +11,7 @@
 /// </remarks>
 public interface IViewerPlugin
 {
-	/// <summary>Stable identifier, for example "KCLocal.TestArea". Names the plugin's data folder and panels.</summary>
+	/// <summary>Stable identifier, for example "KCViewer.Plugin.TestArea". Names the plugin's data folder and panels.</summary>
 	string Id { get; }
 
 	/// <summary>Display name.</summary>

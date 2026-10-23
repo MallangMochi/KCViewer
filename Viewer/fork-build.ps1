@@ -1,6 +1,6 @@
 ﻿# Fork: builds the viewer into one folder.
 #   <Output>\                 KCViewer.exe, KCBrowser.exe and their files
-# The plugins build on their own into <Output>\Plugins\ (Plugins\build.ps1 next to them).
+# The plugins build on their own, each from its folder in ..\Plugins, into <Output>\Plugins\<Name>\ (..\Plugins\README.md).
 # Default output is KCViewer\bin\dev (kept apart from bin\<Platform>\Release, which may be running).
 param(
 	[string]$Output = (Join-Path $PSScriptRoot 'KCViewer\bin\dev'),
