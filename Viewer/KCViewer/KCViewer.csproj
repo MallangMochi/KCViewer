@@ -34,8 +34,8 @@
 		<!-- Fork: AssemblyVersion stays 74식's: saved window states (Settings\WindowStates) name the types with it, and
 		     the version window shows it as the base. The files' version is ours (fork-portable.ps1 sets a release's). -->
 		<AssemblyVersion>5.4.3.0</AssemblyVersion>
-		<FileVersion>1.0.1.0</FileVersion>
-		<Version>1.0.1</Version>
+		<FileVersion>1.0.2.0</FileVersion>
+		<Version>1.0.2</Version>
 		<AnalysisLevel>preview</AnalysisLevel>
 		<EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
 	</PropertyGroup>
