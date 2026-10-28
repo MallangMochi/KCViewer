@@ -81,6 +81,8 @@ public static class ForkMenuLayout
 		"FormMain.StripMenu_Tool_EquipmentList",
 		"ForkFleetDetailMenuHeader",
 		"ForkAirBaseDetailMenuHeader",
+		// the item details window (mockup 20261024-item-detail-v2)
+		"ForkItemDetailMenuHeader",
 		"ForkMapHpMenuHeader",
 		null,
 		"FormMain.SortieRecordViewer",
@@ -126,6 +128,7 @@ public static class ForkMenuLayout
 		["ForkShipListMenuHeader"] = 'L',
 		["ForkFleetDetailMenuHeader"] = 'T',
 		["ForkAirBaseDetailMenuHeader"] = 'B',
+		["ForkItemDetailMenuHeader"] = 'W',
 		["ForkMapHpMenuHeader"] = 'M',
 		["FormMain.SortieRecordViewer"] = 'O',
 		["FormMain.ExpeditionRecordViewer"] = 'P',

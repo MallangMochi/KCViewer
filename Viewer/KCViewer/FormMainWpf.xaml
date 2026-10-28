@@ -618,6 +618,12 @@
 						<common:IconContentIcon Type="FormBaseAirCorps" />
 					</MenuItem.Icon>
 				</MenuItem>
+				<!--  Fork: the items the admiral has (Fork/KcvViews), under the drop record's gift box (mockup 20261024-item-detail-v2)  -->
+				<MenuItem Command="{Binding ForkOpenItemDetailCommand}" Header="{Binding ForkItemDetailMenuHeader}">
+					<MenuItem.Icon>
+						<common:IconContentIcon Type="FormDropRecord" />
+					</MenuItem.Icon>
+				</MenuItem>
 				<!--  Fork: the gauges of the open maps, as KanColleViewer's MapHP (Fork/KcvViews)  -->
 				<MenuItem Command="{Binding ForkOpenMapHpCommand}" Header="{Binding ForkMapHpMenuHeader}">
 					<MenuItem.Icon>

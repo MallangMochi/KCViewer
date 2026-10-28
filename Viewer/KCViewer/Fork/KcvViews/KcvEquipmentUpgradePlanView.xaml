@@ -27,6 +27,8 @@
 		list; a plan that cannot be done (the viewer's red rows) gets a light red background and a red bar on the left,
 		a finished plan the same in green;
 		the equipment's tooltip (next step cost and helpers, only today's while 今日 is on) is drawn in the same style.
+		Added: 개수 계획 관리 at the top right, which opens the planner as the tools menu does (mockup
+		20261028-upgrade-plan-button-v1, approved "구현").
 	-->
 	<UserControl.Resources>
 		<viewer:EquipmentUpgradePlanViewerViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
@@ -255,8 +257,8 @@
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 
-		<!--  The viewer's day filters  -->
-		<WrapPanel Grid.Row="0" Margin="0 0 0 6">
+		<!--  The viewer's day filters, and 개수 계획 관리 at the top right (mockup 20261028-upgrade-plan-button-v1)  -->
+		<kcv:KcvCornerWrapPanel Grid.Row="0" Margin="0 0 0 6">
 			<CheckBox Content="{Binding Filters.TodayDisplay}" IsChecked="{Binding Filters.SelectToday}" />
 			<CheckBox Content="{Binding Translation.All}" IsChecked="{Binding Filters.SelectAllDay}" />
 			<ItemsControl ItemsSource="{Binding Filters.Days}">
@@ -271,7 +273,15 @@
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
-		</WrapPanel>
+			<!--  as the fleet panel's 함대 상세 button; the tools menu's command  -->
+			<Button
+				Padding="12 3"
+				VerticalAlignment="Top"
+				Click="OpenPlanner"
+				Content="{x:Static fork:ForkStrings.KcvUpgradePlanner}"
+				FontSize="12"
+				/>
+		</kcv:KcvCornerWrapPanel>
 
 		<DataGrid
 			Grid.Row="1"

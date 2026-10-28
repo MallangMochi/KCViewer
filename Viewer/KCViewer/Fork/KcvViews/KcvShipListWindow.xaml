@@ -280,7 +280,7 @@
 				</Grid>
 			</Border>
 
-			<!--  レベル / ロック / 遠征 | 速力 / 改造 / 近代化改修  -->
+			<!--  レベル / ロック / 補強増設 / 遠征 | 速力 / 改造 / 近代化改修 (補強増設: mockup 20261024-shiplist-exslot-v2)  -->
 			<Border Style="{StaticResource FilterBox}">
 				<Grid>
 					<Grid.ColumnDefinitions>
@@ -290,6 +290,7 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
@@ -309,8 +310,15 @@
 						<RadioButton Content="{x:Static fork:ForkStrings.KcvUnlockedShips}" IsChecked="{Binding LockFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
 					</StackPanel>
 
-					<TextBlock Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvExpedition}" />
-					<CheckBox Grid.Row="2" Grid.Column="1" Content="{x:Static fork:ForkStrings.KcvExcludeExpedition}" IsChecked="{Binding ExcludeExpedition}" />
+					<TextBlock Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvExpansionSlot}" />
+					<StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvAll}" IsChecked="{Binding ExpansionSlotFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=0}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvExpansionSlotOpen}" IsChecked="{Binding ExpansionSlotFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=1}" />
+						<RadioButton Content="{x:Static fork:ForkStrings.KcvExpansionSlotClosed}" IsChecked="{Binding ExpansionSlotFilter, Converter={StaticResource Kcv.Radio}, ConverterParameter=2}" />
+					</StackPanel>
+
+					<TextBlock Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvExpedition}" />
+					<CheckBox Grid.Row="3" Grid.Column="1" Content="{x:Static fork:ForkStrings.KcvExcludeExpedition}" IsChecked="{Binding ExcludeExpedition}" />
 
 					<TextBlock Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Style="{StaticResource FilterLabel}" Text="{x:Static fork:ForkStrings.KcvSpeed}" />
 					<StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal">

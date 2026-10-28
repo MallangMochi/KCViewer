@@ -225,6 +225,12 @@ public partial class FormMainViewModel
 	[RelayCommand]
 	private void ForkOpenAirBaseDetail() => KcvBaseAirCorpsDetailWindow.Open(0, Window);
 
+	public string ForkItemDetailMenuHeader => ForkStrings.KcvItemDetail;
+
+	/// <summary>The items the admiral has (Fork/KcvViews, mockup 20261024-item-detail-v2); always in the menu, as MapHP.</summary>
+	[RelayCommand]
+	private void ForkOpenItemDetail() => KcvItemDetailWindow.Open(Window);
+
 	public string ForkMapHpMenuHeader => ForkStrings.KcvMapHp;
 
 	/// <summary>The gauges of the open maps, as KanColleViewer's MapHP (Fork/KcvViews); always in the menu.</summary>

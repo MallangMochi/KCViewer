@@ -181,6 +181,10 @@ public static partial class ForkStrings
 	public static string KcvLock => T("잠금:", "ロック:", "Lock:");
 	public static string KcvLockedShips => T("잠금", "ロックしている", "Locked");
 	public static string KcvUnlockedShips => T("잠금 안 함", "ロックしていない", "Unlocked");
+	// the reinforcement expansion slot (mockup 20261024-shiplist-exslot-v2, approved "구현")
+	public static string KcvExpansionSlot => T("보강 증설:", "補強増設:", "Expansion slot:");
+	public static string KcvExpansionSlotOpen => T("개방", "開放", "Open");
+	public static string KcvExpansionSlotClosed => T("미개방", "未開放", "Not open");
 	public static string KcvExpedition => T("원정:", "遠征:", "Expedition:");
 	public static string KcvExcludeExpedition => T("원정 중인 함선 제외", "遠征中の艦を除外する", "Exclude ships on expedition");
 	public static string KcvSpeed => T("속력:", "速力:", "Speed:");
@@ -257,6 +261,10 @@ public static partial class ForkStrings
 	public static string KcvMapHpHeader => T("공략 중인 해역", "攻略中マップ", "Maps in progress");
 	public static string KcvMapHpTransport => T("함대 수송력", "艦隊の輸送力", "Fleet transport");
 	public static string KcvMapHpNote => T("※ 출격(해역 선택) 화면을 열 때 갱신됩니다.", "※出撃(海域選択)画面を開いた際に更新されます。", "* Updated when the sortie (map selection) screen is opened.");
+	// The item details window (tools menu, mockup 20261024-item-detail-v2)
+	public static string KcvItemDetail => T("아이템 상세", "アイテム詳細", "Item details");
+	public static string KcvItemDetailItem => T("아이템", "アイテム", "Item");
+	public static string KcvItemDetailCount => T("보유 수", "保有数", "Owned");
 	// The land base panel and the land base details window (KcvBaseAirCorpsView, KcvBaseAirCorpsDetailWindow, mockup 5)
 	public static string KcvAirBaseDetail => T("기지 항공대 상세", "基地航空隊詳細", "Land base details");
 	public static string KcvAirBaseNone => T("기지 항공대가 없습니다", "基地航空隊はありません", "No land base");
@@ -308,6 +316,8 @@ public static partial class ForkStrings
 	public static string KcvUpgradeNextCost => T("다음 단계 필요 자재", "次の改修に必要な資材", "Next step cost");
 	public static string KcvUpgradeHelpers => T("보조함", "二番艦", "Helpers");
 	public static string KcvUpgradeHelpersToday => T("보조함 (오늘 개수 가능)", "二番艦 (本日改修可能)", "Helpers (today)");
+	// the panel's button to the planner window: the window's name, as the tools menu has it (mockup 20261028-upgrade-plan-button-v1)
+	public static string KcvUpgradePlanner => EquipmentUpgradePlannerResources.Title;
 	public static string KcvUpgradeDayHelpers(string day) => T($"{day} 보조함", $"{day}の二番艦", $"{day} helpers");
 	public static string KcvTotalLevel => T("합계 레벨", "合計レベル", "Total level");
 	public static string KcvAverageLevel => T("평균 레벨", "平均レベル", "Average level");

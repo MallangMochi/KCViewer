@@ -91,6 +91,7 @@ public sealed partial class KcvShipListViewModel : WindowViewModelBase
 			if (TypeFilters.Any(t => !t.IsChecked)) applied.Add(ForkStrings.KcvShipType);
 			if (LevelFilter is not 0) applied.Add(ForkStrings.KcvLevel);
 			if (LockFilter is not 0) applied.Add(ForkStrings.KcvLock);
+			if (ExpansionSlotFilter is not 0) applied.Add(ForkStrings.KcvExpansionSlot);
 			if (ExcludeExpedition) applied.Add(ForkStrings.KcvExpedition);
 			if (SpeedFilter is not 0) applied.Add(ForkStrings.KcvSpeed);
 			if (RemodelFilter is not 0) applied.Add(ForkStrings.KcvRemodel);
@@ -113,6 +114,8 @@ public sealed partial class KcvShipListViewModel : WindowViewModelBase
 	// 0: all, then the choices in the order of the radio buttons
 	public int LevelFilter { get; set; }
 	public int LockFilter { get; set; }
+	/// <summary>The reinforcement expansion slot: 1 open (equipped or empty), 2 not open (mockup 20261024-shiplist-exslot-v2).</summary>
+	public int ExpansionSlotFilter { get; set; }
 	public bool ExcludeExpedition { get; set; }
 	public int SpeedFilter { get; set; }
 	public int RemodelFilter { get; set; }
@@ -146,7 +149,7 @@ public sealed partial class KcvShipListViewModel : WindowViewModelBase
 
 		PropertyChanged += (_, args) =>
 		{
-			if (args.PropertyName is nameof(LevelFilter) or nameof(LockFilter) or nameof(ExcludeExpedition)
+			if (args.PropertyName is nameof(LevelFilter) or nameof(LockFilter) or nameof(ExpansionSlotFilter) or nameof(ExcludeExpedition)
 				or nameof(SpeedFilter) or nameof(RemodelFilter) or nameof(ModernizationFilter) or nameof(NameFilter))
 			{
 				Update();
@@ -225,6 +228,8 @@ public sealed partial class KcvShipListViewModel : WindowViewModelBase
 			.Where(ship => types.Contains((int)ship.MasterShip.ShipType))
 			.Where(ship => LevelFilter switch { 1 => ship.Level >= 2, 2 => ship.Level == 1, _ => true })
 			.Where(ship => LockFilter switch { 1 => ship.IsLocked, 2 => !ship.IsLocked, _ => true })
+			// open: the game's api_slot_ex is not 0 (-1 open and empty, else the equipment), as the ship selector's 보강
+			.Where(ship => ExpansionSlotFilter switch { 1 => ship.IsExpansionSlotAvailable, 2 => !ship.IsExpansionSlotAvailable, _ => true })
 			.Where(ship => !ExcludeExpedition || !onExpedition.Contains(ship.MasterID))
 			.Where(ship => SpeedFilter switch { 1 => ship.Speed >= 10, 2 => ship.Speed < 10, _ => true })
 			.Where(ship => RemodelFilter switch { 1 => IsRemodelDone(ship), 2 => !IsRemodelDone(ship), _ => true })
