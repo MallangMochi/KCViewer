@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using CommunityToolkit.Mvvm.Input;
 using KCViewer.Avalonia.Translation.Quest;
 using KCViewer.Data;
 using KCViewer.Fork;
 using KCViewer.Fork.KcvViews;
 using KCViewer.Observer;
+using KCViewer.Utility;
 using KCViewer.Window.Dialog.QuestTrackerManager.ViewModels;
 
 namespace KCViewer.Window.Wpf.Quest;
@@ -111,6 +115,68 @@ public partial class QuestViewModel
 
 	private static bool ForkTasksDone(TrackerViewModel tracker) =>
 		tracker.Model.Tasks.All(task => task is not null && task.Progress >= task.Count);
+
+	// The menu's copy and searches by the game's title (mockup 20261111-quest-menu-v5, approved 2026-11-11 "구현"):
+	// 임무 제목을 복사 (원문)(O); zekamashi (Z, its own search, the title alone), Google (G), DuckDuckGo (D), Startpage (S)
+	// by the code, the title and 艦これ; wikiwiki by the code as the viewer, a quest without one by its title. Bound by
+	// both quest panels (Fork/KcvViews/KcvQuestView.xaml, QuestView.xaml) in place of the viewer's searches.
+
+	public string ForkCopyTitleJpText => ForkStrings.KcvQuestCopyTitleJp;
+	public string ForkZekamashiSearchText => ForkStrings.KcvQuestSearchZekamashi(ForkSearchKey(SelectedQuest));
+	public string ForkGoogleSearchText => ForkStrings.KcvQuestSearchGoogle(ForkSearchKey(SelectedQuest));
+	public string ForkDuckDuckGoSearchText => ForkStrings.KcvQuestSearchDuckDuckGo(ForkSearchKey(SelectedQuest));
+	public string ForkStartpageSearchText => ForkStrings.KcvQuestSearchStartpage(ForkSearchKey(SelectedQuest));
+
+	/// <summary>The title in a menu header, shortened as the viewer's own searches do, its underscores kept as text.</summary>
+	private static string? ForkSearchKey(QuestItemViewModel? quest) => quest?.ForkQuestNameJp switch
+	{
+		null => null,
+		{ Length: > 25 } name => name[..22].Replace("_", "__") + "...",
+		var name => name.Replace("_", "__"),
+	};
+
+	[RelayCommand]
+	private void ForkCopyTitleJp()
+	{
+		if (SelectedQuest is null) return;
+
+		ClipboardService.SetTextAndLogErrors(SelectedQuest.ForkQuestNameJp);
+	}
+
+	[RelayCommand]
+	private void ForkLookUpOnZekamashi() => ForkOpenSearch(q => "https://zekamashi.net/?s=" + Uri.EscapeDataString(q.ForkQuestNameJp));
+
+	[RelayCommand]
+	private void ForkLookUpOnGoogle() => ForkOpenSearch(q => "https://www.google.com/search?q=" + ForkQuery(q));
+
+	[RelayCommand]
+	private void ForkLookUpOnDuckDuckGo() => ForkOpenSearch(q => "https://www.duckduckgo.com/?q=" + ForkQuery(q));
+
+	[RelayCommand]
+	private void ForkLookUpOnStartpage() => ForkOpenSearch(q => "https://www.startpage.com/do/metasearch.pl?query=" + ForkQuery(q));
+
+	[RelayCommand]
+	private void ForkLookUpOnWiki() => ForkOpenSearch(q => string.IsNullOrEmpty(q.QuestCode)
+		? "https://www.duckduckgo.com/?q=" + Uri.EscapeDataString($"{q.ForkQuestNameJp} {QuestResources.SearchOnWikiQuery}")
+		: string.Format(QuestResources.SearchLinkWiki, Uri.EscapeDataString(q.QuestCode)));
+
+	/// <summary>The code, the game's title and 艦これ (the title's language, not the screen's 칸코레).</summary>
+	private static string ForkQuery(QuestItemViewModel quest) => Uri.EscapeDataString(string.Join(" ",
+		new[] { quest.QuestCode, quest.ForkQuestNameJp, "艦これ" }.Where(part => !string.IsNullOrEmpty(part))));
+
+	private void ForkOpenSearch(Func<QuestItemViewModel, string> url)
+	{
+		if (SelectedQuest is null) return;
+
+		try
+		{
+			Process.Start(new ProcessStartInfo { FileName = url(SelectedQuest), UseShellExecute = true });
+		}
+		catch (Exception ex)
+		{
+			ErrorReporter.SendErrorReport(ex, ForkStrings.KcvQuestSearchFailed);
+		}
+	}
 
 	/// <summary>
 	/// The rewards (mockup 20261007-quest-rewards-v1, user's decision 2026-10-07 "둘다 넣음"): a line under the

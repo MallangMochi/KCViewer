@@ -120,21 +120,33 @@
 			</MenuItem>
 			<Separator />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestTitle_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTitle}" />
+			<!--  Fork: the game's title copied, and the searches by it (mockup 20261111-quest-menu-v5, QuestViewModel.Fork.cs)  -->
+			<MenuItem Command="{Binding DataContext.ForkCopyTitleJpCommand}" Header="{Binding DataContext.ForkCopyTitleJpText}" />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestDescription_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestDescription}" />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestTranslate_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTranslate}" />
 			<Separator />
 			<MenuItem
-				Command="{Binding DataContext.LookUpOnDuckDuckGoCommand}"
-				Header="{Binding DataContext.DuckDuckGoSearchText}"
+				Command="{Binding DataContext.ForkLookUpOnZekamashiCommand}"
+				Header="{Binding DataContext.ForkZekamashiSearchText}"
 				IsEnabled="{Binding DataContext.WebSearchEnabled}"
 				/>
 			<MenuItem
-				Command="{Binding DataContext.LookUpOnStartpageCommand}"
-				Header="{Binding DataContext.StartpageSearchText}"
+				Command="{Binding DataContext.ForkLookUpOnGoogleCommand}"
+				Header="{Binding DataContext.ForkGoogleSearchText}"
 				IsEnabled="{Binding DataContext.WebSearchEnabled}"
 				/>
 			<MenuItem
-				Command="{Binding DataContext.MenuMain_KcwikiQuest_ClickCommand}"
+				Command="{Binding DataContext.ForkLookUpOnDuckDuckGoCommand}"
+				Header="{Binding DataContext.ForkDuckDuckGoSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.ForkLookUpOnStartpageCommand}"
+				Header="{Binding DataContext.ForkStartpageSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.ForkLookUpOnWikiCommand}"
 				Header="{Binding DataContext.WikiSearchText}"
 				IsEnabled="{Binding DataContext.WikiSearchEnabled}"
 				/>

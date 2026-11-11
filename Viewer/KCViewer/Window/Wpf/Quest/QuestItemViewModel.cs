@@ -13,6 +13,7 @@ public class QuestItemViewModel
 	public string QuestCode => Quest.Code;
 	public string QuestName => Quest.Name;
 	public string QuestDescription => Quest.Description;
+	public string ForkQuestNameJp => Quest.NameJP; // Fork: the game's title, copied and searched from the menu (QuestViewModel.Fork.cs)
 
 	public bool? QuestView_State { get; set; }
 	public int StateSort => QuestView_State switch

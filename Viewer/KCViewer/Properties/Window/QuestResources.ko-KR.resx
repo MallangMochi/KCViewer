@@ -177,7 +177,7 @@
     <value>임무 제목을 복사(&amp;T)</value>
   </data>
   <data name="ManuMain_QuestDescription" xml:space="preserve">
-    <value>임무 설명을 복사(&amp;D)</value>
+    <value>임무 설명을 복사(&amp;U)</value>
   </data>
   <data name="ManuMain_QuestTranslate" xml:space="preserve">
     <value>번역되지 않은 임무 데이터를 복사(&amp;N)</value>

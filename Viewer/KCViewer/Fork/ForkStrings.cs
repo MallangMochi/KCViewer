@@ -103,6 +103,17 @@ public static partial class ForkStrings
 	public static string KcvQuestInProgress => T("수행 중", "遂行中", "In progress");
 	// The quest panel's rewards (mockup 20261007-quest-rewards-v1): a line under the description and the name's tooltip
 	public static string KcvQuestReward => T("보상", "報酬", "Rewards");
+	// The quest menu's copy and searches by the game's title (mockup 20261111-quest-menu-v5, approved "구현"); without a
+	// chosen quest the searches read as the viewer's 「임무명으로 … 검색」
+	public static string KcvQuestCopyTitleJp => T("임무 제목을 복사 (원문)(_O)", "任務タイトルをコピー (原文)(_O)", "Copy quest title (_original)");
+	public static string KcvQuestSearchZekamashi(string? name) => KcvQuestSearch(name, "zekamashi", 'Z');
+	public static string KcvQuestSearchGoogle(string? name) => KcvQuestSearch(name, "Google", 'G');
+	public static string KcvQuestSearchDuckDuckGo(string? name) => KcvQuestSearch(name, "DuckDuckGo", 'D');
+	public static string KcvQuestSearchStartpage(string? name) => KcvQuestSearch(name, "Startpage", 'S');
+	private static string KcvQuestSearch(string? name, string site, char key) => name is null
+		? T($"임무명으로 {site} 검색(_{key})", $"任務名で{site}検索(_{key})", $"Search on {site} (_{key})")
+		: T($"『{name}』으로 {site} 검색(_{key})", $"『{name}』で{site}検索(_{key})", $"Search {site} for \"{name}\" (_{key})");
+	public static string KcvQuestSearchFailed => T("검색 페이지를 열지 못했습니다.", "検索ページを開けませんでした。", "Failed to open the search page.");
 	// how many choice groups, in the line under the description (user's decision 2026-10-07: 「선택 보상 2개」)
 	public static string KcvQuestRewardChoices(int count) => T($"선택 보상 {count}개", $"選択報酬 {count}件", $"{count} choice rewards");
 	// the tooltip's headings, without 「(하나 고름)」 (user's decisions 2026-10-07 "괄호는 없애버려줄래", "선택 문구는 선택 보상

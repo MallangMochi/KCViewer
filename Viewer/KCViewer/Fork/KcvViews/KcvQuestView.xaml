@@ -17,9 +17,10 @@
 	<!--
 		Fork: the quest panel drawn as KanColleViewer's 任務 tab (viewer-design/kcv-reference/07-quests.png):
 		a category colour square, the title, the description in small grey letters and the progress as a
-		badge. Filters, searches and the progress menu are the viewer's own. Fork additions (mockup v1,
+		badge. Filters and the progress menu are the viewer's own. Fork additions (mockup v1,
 		2026-10-01): a header button for the "in progress only" filter and an orange 遂行中 badge on accepted quests;
-		(mockup 20261005-quest-filter-v2) the count of taken quests in the header and six category filters.
+		(mockup 20261005-quest-filter-v2) the count of taken quests in the header and six category filters;
+		(mockup 20261111-quest-menu-v5) the menu's copy of the game's title and its searches by it.
 	-->
 	<UserControl.Resources>
 		<quest:QuestViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
@@ -66,21 +67,33 @@
 				/>
 			<Separator />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestTitle_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTitle}" />
+			<!--  Fork: the game's title copied, and the searches by it (mockup 20261111-quest-menu-v5, QuestViewModel.Fork.cs)  -->
+			<MenuItem Command="{Binding DataContext.ForkCopyTitleJpCommand}" Header="{Binding DataContext.ForkCopyTitleJpText}" />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestDescription_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestDescription}" />
 			<MenuItem Command="{Binding DataContext.ManuMain_QuestTranslate_ClickCommand}" Header="{Binding DataContext.FormQuest.ManuMain_QuestTranslate}" />
 			<Separator />
 			<MenuItem
-				Command="{Binding DataContext.LookUpOnDuckDuckGoCommand}"
-				Header="{Binding DataContext.DuckDuckGoSearchText}"
+				Command="{Binding DataContext.ForkLookUpOnZekamashiCommand}"
+				Header="{Binding DataContext.ForkZekamashiSearchText}"
 				IsEnabled="{Binding DataContext.WebSearchEnabled}"
 				/>
 			<MenuItem
-				Command="{Binding DataContext.LookUpOnStartpageCommand}"
-				Header="{Binding DataContext.StartpageSearchText}"
+				Command="{Binding DataContext.ForkLookUpOnGoogleCommand}"
+				Header="{Binding DataContext.ForkGoogleSearchText}"
 				IsEnabled="{Binding DataContext.WebSearchEnabled}"
 				/>
 			<MenuItem
-				Command="{Binding DataContext.MenuMain_KcwikiQuest_ClickCommand}"
+				Command="{Binding DataContext.ForkLookUpOnDuckDuckGoCommand}"
+				Header="{Binding DataContext.ForkDuckDuckGoSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.ForkLookUpOnStartpageCommand}"
+				Header="{Binding DataContext.ForkStartpageSearchText}"
+				IsEnabled="{Binding DataContext.WebSearchEnabled}"
+				/>
+			<MenuItem
+				Command="{Binding DataContext.ForkLookUpOnWikiCommand}"
 				Header="{Binding DataContext.WikiSearchText}"
 				IsEnabled="{Binding DataContext.WikiSearchEnabled}"
 				/>
