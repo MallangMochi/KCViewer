@@ -28,7 +28,9 @@
 		a finished plan the same in green;
 		the equipment's tooltip (next step cost and helpers, only today's while 今日 is on) is drawn in the same style.
 		Added: 개수 계획 관리 at the top right, which opens the planner as the tools menu does (mockup
-		20261028-upgrade-plan-button-v1, approved "구현").
+		20261028-upgrade-plan-button-v1, approved "구현"); a plan row's own menu with 편집 first, which opens that plan
+		in the plan editor as the planner's [편집] does, then the table's menu (mockup 20261121-upgrade-plan-menu-v2,
+		approved "구현").
 	-->
 	<UserControl.Resources>
 		<viewer:EquipmentUpgradePlanViewerViewBindingProxy x:Key="Proxy" DataContext="{Binding}" />
@@ -146,6 +148,23 @@
 		</Style>
 
 		<!--
+			A plan row's menu: 편집 (that row's plan in the plan editor, EditPlan), then the table's menu. One per row
+			(x:Shared), and its DataContext is the row's plan wherever it opens; empty space keeps the table's menu.
+		-->
+		<ContextMenu x:Key="RowMenu" x:Shared="False" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+			<MenuItem Click="EditPlan" Header="{x:Static fork:ForkStrings.KcvUpgradePlanRowEdit}" />
+			<Separator />
+			<MenuItem
+				Header="{Binding DataContext.Translation.DisplayFinished, Source={StaticResource Proxy}}"
+				IsCheckable="True"
+				IsChecked="{Binding DataContext.Filters.DisplayFinished, Source={StaticResource Proxy}}"
+				/>
+			<Separator />
+			<MenuItem Command="{Binding DataContext.DataGridViewModel.OpenColumnSelectorCommand, Source={StaticResource Proxy}}" Header="{Binding DataContext.DataGridViewModel.DataGrid.OpenColumnSelector, Source={StaticResource Proxy}}" />
+			<MenuItem Command="{Binding DataContext.DataGridViewModel.ClearSortingCommand, Source={StaticResource Proxy}}" Header="{Binding DataContext.DataGridViewModel.DataGrid.ClearSorting, Source={StaticResource Proxy}}" />
+		</ContextMenu>
+
+		<!--
 			A plan that cannot be done, with the conditions of the viewer's red rows (Kcv.UpgradePlanBlocked): the next
 			step is short of something, or no helper is owned (today, while 今日 is on). The colours are set on the row
 			template's border, not on the row's Background: DataGridRow coerces that to the grid's row background, so
@@ -154,6 +173,7 @@
 		<Style x:Key="Row" TargetType="DataGridRow">
 			<Setter Property="MinHeight" Value="27" />
 			<Setter Property="FocusVisualStyle" Value="{x:Null}" />
+			<Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="DataGridRow">

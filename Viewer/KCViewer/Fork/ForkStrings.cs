@@ -329,6 +329,8 @@ public static partial class ForkStrings
 	public static string KcvUpgradeHelpersToday => T("보조함 (오늘 개수 가능)", "二番艦 (本日改修可能)", "Helpers (today)");
 	// the panel's button to the planner window: the window's name, as the tools menu has it (mockup 20261028-upgrade-plan-button-v1)
 	public static string KcvUpgradePlanner => EquipmentUpgradePlannerResources.Title;
+	// the plan row menu's 편집: the viewer's word, as the planner's [편집] tooltip (mockup 20261121-upgrade-plan-menu-v2)
+	public static string KcvUpgradePlanRowEdit => GeneralRes.Edit;
 	public static string KcvUpgradeDayHelpers(string day) => T($"{day} 보조함", $"{day}の二番艦", $"{day} helpers");
 	public static string KcvTotalLevel => T("합계 레벨", "合計レベル", "Total level");
 	public static string KcvAverageLevel => T("평균 레벨", "平均レベル", "Average level");

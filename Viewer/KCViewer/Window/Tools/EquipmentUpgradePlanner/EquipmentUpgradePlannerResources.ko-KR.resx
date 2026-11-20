@@ -124,7 +124,7 @@
     <value>소지 장비에서 선택</value>
   </data>
   <data name="DisplayFinished" xml:space="preserve">
-    <value>표시 완료</value>
+    <value>완료 항목 표시</value>
   </data>
   <data name="Goal" xml:space="preserve">
     <value>목표</value>
@@ -154,7 +154,7 @@
     <value>필요 자재</value>
   </data>
   <data name="UseSliderFromLevel" xml:space="preserve">
-    <value>확실화 (레벨에서 슬라이더 사용)</value>
+    <value>확정개수</value>
   </data>
   <data name="Helper" xml:space="preserve">
     <value>2번 함</value>

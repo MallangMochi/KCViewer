@@ -1,4 +1,6 @@
 using System.Windows;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using KCViewer.Window.Tools.EquipmentUpgradePlanner;
 
 namespace KCViewer.Fork.KcvViews;
 
@@ -19,5 +21,17 @@ public partial class KcvEquipmentUpgradePlanView
 		if (Application.Current.MainWindow is not FormMainWpf { ViewModel: { } main }) return;
 
 		main.OpenEquipmentUpgradePlannerCommand.Execute(null);
+	}
+
+	/// <summary>
+	/// 편집 of a plan row's menu: that plan in the plan editor and saved on [OK], as the planner's [편집]
+	/// (<see cref="EquipmentUpgradePlannerViewModel"/>'s OpenEditDialog); the planner window does not open.
+	/// </summary>
+	private void EditPlan(object sender, RoutedEventArgs e)
+	{
+		if (sender is not FrameworkElement { DataContext: EquipmentUpgradePlanItemViewModel plan }) return;
+		if (!plan.OpenPlanDialog()) return;
+
+		Ioc.Default.GetRequiredService<EquipmentUpgradePlanManager>().Save();
 	}
 }
