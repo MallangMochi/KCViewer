@@ -32,8 +32,7 @@ namespace KCViewer.Fork.KcvViews;
 // KanColleViewer's style (mockup 20261010-battle-sortie-detail-v2, approved 2026-10-10 "1. 가 2. 넣음 3. 둠 4. 요약 없이
 // 5. 구현"). Both read the battles as the sortie record does (Window/Tools/SortieRecordViewer/Sortie): the sortie detail
 // its saved answers, the battle detail the answers of the battle in progress, which the viewer keeps (Data/Battle). The
-// phases become folding boxes, all folded at first; the attacks a table, the fleets a table with equipment icons. While
-// the style is off, and from the viewer's own windows, the viewer's text stays.
+// phases become folding boxes, all folded at first; the attacks a table, the fleets a table with equipment icons.
 
 /// <summary>
 /// The items of the boxes compare by reference, not by value as records do: a ship with the same equipment twice keeps
@@ -1012,23 +1011,11 @@ public sealed class KcvSortieDetailViewModel : WindowViewModelBase
 	}
 }
 
-/// <summary>Where the viewer opens its battle detail and sortie detail; true when the window in KanColleViewer's style opened instead.</summary>
+/// <summary>Where the viewer opens its battle detail and sortie detail: the windows in KanColleViewer's style.</summary>
 public static class KcvBattleDetailWindows
 {
-	public static bool TryShow(LiveBattle.BattleManager bm)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
+	public static void Show(LiveBattle.BattleManager bm) =>
+		new KcvBattleDetailWindow(new KcvBattleDetailViewModel(bm)).Show(App.Current!.MainWindow!);
 
-		KcvBattleDetailWindow window = new(new KcvBattleDetailViewModel(bm));
-		window.Show(App.Current!.MainWindow!);
-		return true;
-	}
-
-	public static bool TryShow(SortieDetailViewModel detail)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		new KcvSortieDetailWindow(new KcvSortieDetailViewModel(detail)).Show();
-		return true;
-	}
+	public static void Show(SortieDetailViewModel detail) => new KcvSortieDetailWindow(new KcvSortieDetailViewModel(detail)).Show();
 }

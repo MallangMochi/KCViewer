@@ -295,7 +295,6 @@
 								Margin="0 0 4 0"
 								VerticalAlignment="Center"
 								Text="{Binding ForkZoomText}"
-								Visibility="{Binding ForkZoomTextVisibility}"
 								/>
 							<Path Style="{DynamicResource DownArrow}" />
 						</StackPanel>

@@ -162,8 +162,7 @@ public class ToolService(DataSerializationService dataSerializationService, ICli
 
 		model.DeckBuilderData = data;
 
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(model)) return; // Fork: the KanColleViewer style window while the style is on
-		new FleetImageGeneratorWindow(model).Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvCalcWindows.Show(model); // Fork: the KanColleViewer style window
 	}
 
 	public void FleetImageGenerator(SortieRecordViewModel selectedSortie, int hqLevel)
@@ -243,8 +242,7 @@ public class ToolService(DataSerializationService dataSerializationService, ICli
 
 		viewModel ??= new();
 
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(viewModel)) return; // Fork: KanColleViewer's style while it is on
-		new ExpCheckerWindow(viewModel).Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvCalcWindows.Show(viewModel); // Fork: KanColleViewer's style
 	}
 
 	public void EquipmentUpgradePlanner(EquipmentUpgradePlannerViewModel? viewModel = null)
@@ -259,7 +257,8 @@ public class ToolService(DataSerializationService dataSerializationService, ICli
 
 		viewModel ??= new();
 
-		new EquipmentUpgradePlannerWindow(viewModel).Show(App.Current.MainWindow);
+		// Fork: KanColleViewer's style, with the viewer's view model (Fork/KcvViews)
+		new Fork.KcvViews.KcvEquipmentUpgradePlannerWindow(viewModel).Show(App.Current.MainWindow);
 	}
 
 	public void OpenSortieDetail(KCViewerContext db, SortieRecord sortie)
@@ -268,10 +267,8 @@ public class ToolService(DataSerializationService dataSerializationService, ICli
 
 		if (sortieDetail is null) return;
 
-		// Fork: the sortie detail in KanColleViewer's style while the style is on
-		if (Fork.KcvViews.KcvBattleDetailWindows.TryShow(sortieDetail)) return;
-
-		new SortieDetailWindow(sortieDetail).Show();
+		// Fork: the sortie detail in KanColleViewer's style
+		Fork.KcvViews.KcvBattleDetailWindows.Show(sortieDetail);
 	}
 
 	private static string CsvSeparator => ";";

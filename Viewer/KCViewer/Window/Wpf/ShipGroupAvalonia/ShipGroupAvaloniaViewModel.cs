@@ -22,15 +22,12 @@ using KCViewer.Utility;
 using KCViewer.Utility.Mathematics;
 using KCViewer.ViewModels;
 using KCViewer.Window.Dialog;
-using HanumanInstitute.MvvmDialogs;
 using ShipGroupResources = KCViewer.Avalonia.ShipGroup.ShipGroupResources;
 
 namespace KCViewer.Window.Wpf.ShipGroupAvalonia;
 
 public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 {
-	private IDialogService DialogService { get; }
-
 	public WpfAvaloniaHost WpfAvaloniaHost { get; }
 	private ShipGroupView ShipGroupView { get; }
 	private ShipGroupViewModel ShipGroupViewModel { get; }
@@ -39,8 +36,6 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 
 	public ShipGroupAvaloniaViewModel() : base("Group", "ShipGroup", IconContent.FormShipGroup)
 	{
-		DialogService = Ioc.Default.GetRequiredService<IDialogService>();
-
 		ShipGroupViewModel.SpeedToDisplayConverter = new(Constants.GetSpeed);
 		ShipGroupViewModel.RangeToDisplayConverter = new(Constants.GetRange);
 
@@ -183,7 +178,9 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		ShipGroupViewModel.FrozenColumns = groupData.ScrollLockColumnCount;
 	}
 
-	private async Task AddGroup()
+	// Fork: the names in KanColleViewer's style (Fork/KcvViews/KcvTableDialogs.cs); the actions stay asynchronous for
+	// the ship group view
+	private Task AddGroup()
 	{
 		TextInputViewModel textInput = new()
 		{
@@ -191,10 +188,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 			Description = ShipGroupResources.DialogGroupAddDescription,
 		};
 
-		// Fork: the name in KanColleViewer's style while the style is on
-		bool? result = Fork.KcvViews.KcvTableDialogs.TryShowTextInput(textInput) ?? await DialogService.ShowDialogAsync(App.MainViewModel, textInput);
-
-		if (result is not true) return;
+		if (!Fork.KcvViews.KcvTableDialogs.ShowTextInput(textInput)) return Task.CompletedTask;
 
 		ShipGroupData group = KCDatabase.Instance.ShipGroup.Add();
 		group.Name = textInput.Text.Trim();
@@ -208,9 +202,10 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		}
 
 		ShipGroupViewModel.Groups.Add(MakeGroupItem(group));
+		return Task.CompletedTask;
 	}
 
-	private async Task CopyGroup(ShipGroupItem group)
+	private Task CopyGroup(ShipGroupItem group)
 	{
 		TextInputViewModel textInput = new()
 		{
@@ -218,10 +213,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 			Description = ShipGroupResources.DialogGroupCopyDescription,
 		};
 
-		// Fork: the name in KanColleViewer's style while the style is on
-		bool? result = Fork.KcvViews.KcvTableDialogs.TryShowTextInput(textInput) ?? await DialogService.ShowDialogAsync(App.MainViewModel, textInput);
-
-		if (result is not true) return;
+		if (!Fork.KcvViews.KcvTableDialogs.ShowTextInput(textInput)) return Task.CompletedTask;
 
 		ShipGroupData newGroup = (ShipGroupData)group.Group.Clone();
 
@@ -231,9 +223,10 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		KCDatabase.Instance.ShipGroup.ShipGroups.Add(newGroup);
 
 		ShipGroupViewModel.Groups.Add(MakeGroupItem(newGroup));
+		return Task.CompletedTask;
 	}
 
-	private async Task RenameGroup(ShipGroupItem group)
+	private Task RenameGroup(ShipGroupItem group)
 	{
 		TextInputViewModel textInput = new()
 		{
@@ -242,12 +235,9 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 			Text = group.Name,
 		};
 
-		// Fork: the name in KanColleViewer's style while the style is on
-		bool? result = Fork.KcvViews.KcvTableDialogs.TryShowTextInput(textInput) ?? await DialogService.ShowDialogAsync(App.MainViewModel, textInput);
+		if (Fork.KcvViews.KcvTableDialogs.ShowTextInput(textInput)) group.Name = textInput.Text.Trim();
 
-		if (result is not true) return;
-
-		group.Name = textInput.Text.Trim();
+		return Task.CompletedTask;
 	}
 
 	private void DeleteGroup(ShipGroupItem group)
@@ -294,13 +284,13 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		}
 	}
 
-	private async Task CreateGroup()
+	private Task CreateGroup()
 	{
-		if (SelectedGroup is null) return;
+		if (SelectedGroup is null) return Task.CompletedTask;
 
 		List<int> ships = GetSelectedShipIds();
 
-		if (ships.Count is 0) return;
+		if (ships.Count is 0) return Task.CompletedTask;
 
 		TextInputViewModel textInput = new()
 		{
@@ -308,10 +298,8 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 			Description = ShipGroupResources.DialogGroupAddDescription,
 		};
 
-		// Fork: the name in KanColleViewer's style while the style is on
-		bool? result = Fork.KcvViews.KcvTableDialogs.TryShowTextInput(textInput) ?? await DialogService.ShowDialogAsync(App.MainViewModel, textInput);
-
-		if (result is not true) return;
+		// Fork: the name in KanColleViewer's style
+		if (!Fork.KcvViews.KcvTableDialogs.ShowTextInput(textInput)) return Task.CompletedTask;
 
 		ShipGroupData group = KCDatabase.Instance.ShipGroup.Add();
 		group.Name = textInput.Text.Trim();
@@ -329,6 +317,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		group.AddInclusionFilter(ships);
 
 		ShipGroupViewModel.Groups.Add(MakeGroupItem(group));
+		return Task.CompletedTask;
 	}
 
 	private void ExcludeFromGroup()
@@ -352,23 +341,8 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		{
 			group.Expressions ??= new ExpressionManager();
 
-			ShipGroupData edited;
-
-			// Fork: KanColleViewer's style while it is on (and for a group with its blocks); null is 취소
-			if (Fork.KcvViews.KcvShipGroupFilterWindow.TryEdit(group, out ShipGroupData? forkEdited))
-			{
-				if (forkEdited is null) return;
-
-				edited = forkEdited;
-			}
-			else
-			{
-				using DialogShipGroupFilter dialog = new(group);
-
-				if (dialog.ShowDialog(App.Current!.MainWindow!) != DialogResult.OK) return;
-
-				edited = dialog.ExportGroupData();
-			}
+			// Fork: KanColleViewer's style (with its blocks); null is 취소
+			if (Fork.KcvViews.KcvShipGroupFilterWindow.Edit(group) is not { } edited) return;
 
 			// replace
 			int id = group.GroupID;
@@ -406,8 +380,8 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 			FrozenColumns = SelectedGroup.FrozenColumns,
 		};
 
-		// Fork: 열 표시 설정 in KanColleViewer's style while the style is on
-		if ((Fork.KcvViews.KcvTableDialogs.TryShowColumnSelector(selector) ?? new ColumnSelectorView(selector).ShowDialog()) != true) return;
+		// Fork: 열 표시 설정 in KanColleViewer's style
+		if (!Fork.KcvViews.KcvTableDialogs.ShowColumnSelector(selector)) return;
 
 		foreach (ColumnViewModel column in columns)
 		{
@@ -446,21 +420,15 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 				.Select(s => KCDatabase.Instance.Ships[s.MasterId]),
 		};
 
-		// Fork: the dialog in KanColleViewer's style while it is on (KcvShipGroupCsvWindow): with no ship selected the
-		// group's ships in the table's order, 열람 용's header in Korean on a Korean screen
-		Fork.KcvViews.KcvShipGroupCsvChoice? fork = Fork.KcvViews.KcvShipGroupCsvWindow.TryAsk(SelectedGroup is not null, ShipGroupViewModel);
-		if (fork is { Cancelled: true }) return;
-		ships = fork?.Ships ?? ships;
+		// Fork: the dialog in KanColleViewer's style (KcvShipGroupCsvWindow): with no ship selected the group's ships in
+		// the table's order, 열람 용's header in Korean on a Korean screen. The viewer's dialog only holds the choice.
+		Fork.KcvViews.KcvShipGroupCsvChoice fork = Fork.KcvViews.KcvShipGroupCsvWindow.Ask(SelectedGroup is not null, ShipGroupViewModel);
+		if (fork.Cancelled) return;
+		ships = fork.Ships ?? ships;
 
 		using DialogShipGroupCSVOutput dialog = new();
-
-		if (fork is null && dialog.ShowDialog(App.Current!.MainWindow!) != DialogResult.OK) return;
-
-		if (fork is not null)
-		{
-			dialog.OutputPath = fork.OutputPath;
-			dialog.OutputFormat = fork.OutputFormat;
-		}
+		dialog.OutputPath = fork.OutputPath;
+		dialog.OutputFormat = fork.OutputFormat;
 
 		try
 		{
@@ -468,7 +436,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 
 			string header = dialog.OutputFormat switch
 			{
-				DialogShipGroupCSVOutput.OutputFormatConstants.User => fork?.UserHeader ?? shipCsvHeaderUser, // Fork
+				DialogShipGroupCSVOutput.OutputFormatConstants.User => fork.UserHeader ?? shipCsvHeaderUser, // Fork
 				_ => shipCsvHeaderData,
 			};
 
@@ -641,14 +609,11 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		};
 	}
 
-	private async Task OpenDataGridSettings(DataGridSettingsModel settings)
+	private Task OpenDataGridSettings(DataGridSettingsModel settings)
 	{
-		DataGridSettingsViewModel viewModel = new(settings);
-
-		// Fork: 데이터 그리드 설정 in KanColleViewer's style while the style is on
-		if (Fork.KcvViews.KcvTableDialogs.TryShowDataGridSettings(viewModel)) return;
-
-		await DialogService.ShowDialogAsync(App.MainViewModel, viewModel);
+		// Fork: 데이터 그리드 설정 in KanColleViewer's style
+		Fork.KcvViews.KcvTableDialogs.ShowDataGridSettings(new DataGridSettingsViewModel(settings));
+		return Task.CompletedTask;
 	}
 
 	private static ShipGroupData.ViewColumnData MakeColumnData(ColumnModel column) => new(column.Name)

@@ -127,13 +127,8 @@ public partial class EquipmentUpgradePlannerViewModel : WindowViewModelBase
 	[RelayCommand]
 	private void OpenTreeDialog(EquipmentUpgradePlanItemViewModel plan)
 	{
-		UpgradeTreeViewModel tree = new(plan);
-
-		// Fork: the tree in KanColleViewer's style while the style is on
-		if (KcvCalcWindows.TryShowUpgradeTree(tree)) return;
-
-		UpgradeTreeView view = new(tree);
-		view.ShowDialog();
+		// Fork: the tree in KanColleViewer's style
+		KcvCalcWindows.ShowUpgradeTree(new UpgradeTreeViewModel(plan));
 	}
 
 	private void UpdateTotalCost()

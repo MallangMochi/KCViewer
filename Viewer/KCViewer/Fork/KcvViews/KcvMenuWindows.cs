@@ -16,54 +16,42 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: the windows the menus open directly, in KanColleViewer's style (mockup 20261018-menu-windows-v2, approved
-/// 2026-10-18 "구현"): 도구 › 자동 재로딩, 도구 › UI 차단기 and 도움말 › 버전 정보. Each returns false while the style
-/// is off, so the viewer opens its own. 자동 재로딩 and UI 차단기 are one window each (the open one comes to the front).
+/// 2026-10-18 "구현"): 도구 › 자동 재로딩, 도구 › UI 차단기 and 도움말 › 버전 정보. 자동 재로딩 and UI 차단기 are one
+/// window each (the open one comes to the front).
 /// </summary>
 public static class KcvMenuWindows
 {
 	private static KcvAutoRefreshWindow? AutoRefresh { get; set; }
 	private static KcvUiBlockerWindow? UiBlocker { get; set; }
 
-	public static bool TryShowAutoRefresh(AutoRefreshViewModel viewModel, System.Windows.Window owner)
+	public static void ShowAutoRefresh(AutoRefreshViewModel viewModel, System.Windows.Window owner)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		if (AutoRefresh is { } open)
 		{
 			open.Activate();
-			return true;
+			return;
 		}
 
 		AutoRefresh = new(viewModel) { Owner = owner };
 		AutoRefresh.Closed += (_, _) => AutoRefresh = null;
 		AutoRefresh.Show();
-		return true;
 	}
 
-	public static bool TryShowUiBlocker(UiBlockerManagerViewModel viewModel, System.Windows.Window owner)
+	public static void ShowUiBlocker(UiBlockerManagerViewModel viewModel, System.Windows.Window owner)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		if (UiBlocker is { } open)
 		{
 			open.Activate();
-			return true;
+			return;
 		}
 
 		UiBlocker = new(viewModel) { Owner = owner };
 		UiBlocker.Closed += (_, _) => UiBlocker = null;
 		UiBlocker.Show();
-		return true;
 	}
 
 	/// <summary>버전 정보, modal as the viewer's.</summary>
-	public static bool TryShowVersion(System.Windows.Window owner)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		new KcvVersionWindow { Owner = owner }.ShowDialog();
-		return true;
-	}
+	public static void ShowVersion(System.Windows.Window owner) => new KcvVersionWindow { Owner = owner }.ShowDialog();
 
 	/// <summary>The viewer's icon (the windows' title bars and the tray show it) at a size; null without one.</summary>
 	public static ImageSource? AppIcon(int size)

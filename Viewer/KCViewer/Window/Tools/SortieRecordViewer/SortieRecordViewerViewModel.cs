@@ -519,13 +519,11 @@ public partial class SortieRecordViewerViewModel : WindowViewModelBase
 		if (SelectedSorties.Count <= 0) return;
 
 		// Fork: the sorties selected now (the selection may change while their costs are calculated), and the window in
-		// KanColleViewer's style while the style is on
+		// KanColleViewer's style
 		ObservableCollection<SortieRecordViewModel> sorties = new(SelectedSorties);
 		SortieCostViewerViewModel sortieCost = new(Db, ToolService, SortieRecordMigrationService, sorties, SortieCostConfiguration);
 
-		if (Fork.KcvViews.KcvSortieCostWindows.TryShow(sortieCost, sorties)) return;
-
-		new SortieCostViewerWindow(sortieCost).Show();
+		Fork.KcvViews.KcvSortieCostWindows.Show(sortieCost, sorties);
 	}
 
 	[RelayCommand]

@@ -6,9 +6,6 @@ namespace KCViewer.Window;
 /// <summary>Fork: the KanColleViewer style's accent for the browser process (Fork/KcvStyle.cs).</summary>
 public partial class BrowserHostHub
 {
-	public Task<string?> KcvAccentColor()
-	{
-		ForkSettings.KcvStyleSettings style = ForkSettings.Current.KcvStyle;
-		return Task.FromResult(style.Enabled ? KcvStyle.Hex(KcvStyle.ColorsOf(style.AccentValue).Accent) : null);
-	}
+	public Task<string?> KcvAccentColor() =>
+		Task.FromResult<string?>(KcvStyle.Hex(KcvStyle.ColorsOf(ForkSettings.Current.KcvStyle.AccentValue).Accent));
 }

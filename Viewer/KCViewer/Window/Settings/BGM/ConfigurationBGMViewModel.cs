@@ -62,9 +62,7 @@ public partial class ConfigurationBGMViewModel : ConfigurationViewModelBase
 	{
 		if (handle is null) return;
 
-		// Fork: the KanColleViewer style editor while the style is on
-		if (Fork.KcvViews.KcvCalcWindows.TryShowSoundHandleEdit(handle)) return;
-
-		new SoundHandleEditDialog(handle).ShowDialog(App.Current!.MainWindow!);
+		// Fork: the KanColleViewer style editor
+		Fork.KcvViews.KcvCalcWindows.ShowSoundHandleEdit(handle);
 	}
 }

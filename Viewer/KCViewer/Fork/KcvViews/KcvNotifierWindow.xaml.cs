@@ -14,7 +14,7 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: the notification window in KanColleViewer's style (see the XAML), shown instead of the viewer's
-/// DialogNotifier while the style is on. It follows the notification's settings as the viewer's: the place, closing
+/// DialogNotifier. It follows the notification's settings as the viewer's: the place, closing
 /// after the time, the clicks that close it, closing when the mouse moves over it, on top, activated, the image and
 /// the border; Enter and Esc close it. The message's colours are the theme's while the settings keep their first
 /// values (the system's control colours), else the two set colours (one of them alone could hide the text).
@@ -24,11 +24,9 @@ public partial class KcvNotifierWindow
 	private NotifierDialogData Data { get; }
 	private DispatcherTimer? CloseTimer { get; }
 
-	/// <summary>The notification in this style; false while the style is off (the caller shows the viewer's).</summary>
-	public static bool TryShow(NotifierDialogData data, Action closed, System.Windows.Forms.FormClosingEventHandler? closing)
+	/// <summary>The notification in this style.</summary>
+	public static void ShowNotification(NotifierDialogData data, Action closed, System.Windows.Forms.FormClosingEventHandler? closing)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		Application.Current.Dispatcher.Invoke(() =>
 		{
 			KcvNotifierWindow window = new(data);
@@ -39,7 +37,6 @@ public partial class KcvNotifierWindow
 			};
 			window.Show();
 		});
-		return true;
 	}
 
 	private KcvNotifierWindow(NotifierDialogData data)

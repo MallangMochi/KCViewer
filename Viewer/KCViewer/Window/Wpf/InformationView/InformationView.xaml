@@ -4,7 +4,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:controls="http://schemas.modernwpf.com/2019"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:kcv="clr-namespace:KCViewer.Fork.KcvViews"
 	xmlns:local="clr-namespace:KCViewer.Window.Wpf.InformationView"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:ui="http://schemas.modernwpf.com/2019"
@@ -16,21 +15,15 @@
 	TextElement.Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Window}}"
 	mc:Ignorable="d"
 	>
-	<!--  Fork: KanColleViewer's font while its style is on, the layout and size stay (Fork/KcvViews/KcvFontConverter.cs)  -->
+	<!--  Fork: KanColleViewer's font (Kcv.FontFamily), the layout and size stay  -->
 	<TextElement.FontFamily>
-		<MultiBinding Converter="{x:Static kcv:KcvFontConverter.Instance}">
-			<Binding Path="FontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-			<Binding Path="Enabled" Source="{x:Static kcv:KcvViewState.Current}" />
-		</MultiBinding>
+		<DynamicResource ResourceKey="Kcv.FontFamily" />
 	</TextElement.FontFamily>
 	<UserControl.Resources>
 		<Style BasedOn="{StaticResource DefaultTextBoxStyle}" TargetType="{x:Type TextBox}">
 			<Setter Property="FontFamily">
 				<Setter.Value>
-					<MultiBinding Converter="{x:Static kcv:KcvFontConverter.Instance}">
-						<Binding Path="FontFamily" RelativeSource="{RelativeSource AncestorType=Window}" />
-						<Binding Path="Enabled" Source="{x:Static kcv:KcvViewState.Current}" />
-					</MultiBinding>
+					<DynamicResource ResourceKey="Kcv.FontFamily" />
 				</Setter.Value>
 			</Setter>
 			<Setter Property="FontSize" Value="{Binding FontSize, RelativeSource={RelativeSource AncestorType=Window}}" />

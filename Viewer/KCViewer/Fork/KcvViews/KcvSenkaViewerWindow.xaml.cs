@@ -6,7 +6,7 @@ using KCViewer.Window.Tools.SenkaViewer;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the senka viewer in KanColleViewer's style (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: the senka viewer in KanColleViewer's style (see the XAML), from the tools menu.</summary>
 public partial class KcvSenkaViewerWindow
 {
 	private KcvConditionSnapshot Conditions { get; }

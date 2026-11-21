@@ -4,9 +4,9 @@
 	>
 	<!--
 		Fork: KanColleViewer's common controls (MetroRadiance), measured on viewer-design/kcv-reference/02-ship-list.png
-		and 03-equipment-list.png. While the style is on, KcvPanels.Apply puts them into the application resources as
-		the implicit styles and under ModernWpf's base keys (DefaultButtonStyle, ...), which the viewer's own styles are
-		based on; turning the style off puts the originals back. Windows opened later pick them up; the layout values
+		and 03-equipment-list.png. KcvPanels.Apply puts them into the application resources as the implicit styles and
+		under ModernWpf's base keys (DefaultButtonStyle, ...), which the viewer's own styles are based on. Windows
+		opened later pick them up; the layout values
 		(alignment, margins) follow ModernWpf and App.xaml so windows keep their layout.
 		- Button: flat, square corners, dark fill with a 1 px border; the accent on hover (border) and press (fill)
 		- CheckBox, RadioButton: a grey square or circle without a border, a white check or dot

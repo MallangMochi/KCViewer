@@ -11,8 +11,8 @@ using KCViewer.Window.Tools.DialogAlbumMasterShip;
 namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
-/// Fork: opens the ship and equipment albums. While the KanColleViewer style is on they open in its style
-/// (KcvAlbumShipWindow, KcvAlbumEquipmentWindow, mockup v5 approved 2026-10-05), otherwise the viewer's own windows.
+/// Fork: opens the ship and equipment albums in KanColleViewer's style (KcvAlbumShipWindow, KcvAlbumEquipmentWindow,
+/// mockup v5 approved 2026-10-05).
 /// </summary>
 public static class KcvAlbums
 {
@@ -22,27 +22,10 @@ public static class KcvAlbums
 	{
 		if (ship is null) return;
 
-		if (KcvViewState.Current.Enabled)
-		{
-			new KcvAlbumShipWindow(ship).Show(App.Current!.MainWindow!);
-		}
-		else
-		{
-			new DialogAlbumMasterShipWpf(ship).Show(App.Current!.MainWindow!);
-		}
+		new KcvAlbumShipWindow(ship).Show(App.Current!.MainWindow!);
 	}
 
-	public static void ShowEquipment(int equipmentId)
-	{
-		if (KcvViewState.Current.Enabled)
-		{
-			new KcvAlbumEquipmentWindow(equipmentId).Show(App.Current!.MainWindow!);
-		}
-		else
-		{
-			new DialogAlbumMasterEquipmentWpf(equipmentId).Show(App.Current!.MainWindow!);
-		}
-	}
+	public static void ShowEquipment(int equipmentId) => new KcvAlbumEquipmentWindow(equipmentId).Show(App.Current!.MainWindow!);
 }
 
 /// <summary>

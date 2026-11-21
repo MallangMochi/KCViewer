@@ -17,8 +17,7 @@ namespace KCViewer.Fork.KcvViews;
 /// side by side in a fleet panel's size under one header (연합함대, the kind, 제공 · 색적 · TP · 속력, [함대 상세]) and
 /// the worse fleet's status bar. The rows are the fleet panels' own (FleetViewModel.ControlMember), so their tooltips,
 /// menus, heavy damage and docking follow; the values are the fleet overview's combined card's (same calculation, same
-/// tooltip, the 색적 click cycles both). Closed at first; a KanColleViewer style panel only: closed when the style
-/// is turned off, and its menu item shows only while the style is on.
+/// tooltip, the 색적 click cycles both). Closed at first; the panel menu opens it.
 /// </summary>
 public sealed partial class KcvCombinedFleetViewModel : AnchorableViewModel
 {
@@ -47,7 +46,6 @@ public sealed partial class KcvCombinedFleetViewModel : AnchorableViewModel
 		WorseFleet = fleet1;
 
 		SystemEvents.UpdateTimerTick += Refresh;
-		Configuration.Instance.ConfigurationChanged += FollowStyle;
 		Refresh();
 	}
 
@@ -60,9 +58,6 @@ public sealed partial class KcvCombinedFleetViewModel : AnchorableViewModel
 
 	private void Refresh()
 	{
-		// also when the saved layout opens it while the style is off
-		FollowStyle();
-
 		KCDatabase db = KCDatabase.Instance;
 		FleetType kind = db.Fleet.CombinedFlag;
 
@@ -85,11 +80,5 @@ public sealed partial class KcvCombinedFleetViewModel : AnchorableViewModel
 			.ToList();
 		SpeedText = Constants.GetSpeed(ships.Select(ship => ship.Speed).DefaultIfEmpty(20).Min());
 		SpeedToolTip = string.Join("\r\n", ships.Select(ship => $"{ship.Name}：{Constants.GetSpeed(ship.Speed)}"));
-	}
-
-	// A KanColleViewer style panel: turning the style off closes it (its menu item hides then).
-	private void FollowStyle()
-	{
-		if (!ForkSettings.Current.KcvStyle.Enabled && Visibility == Visibility.Visible) Visibility = Visibility.Collapsed;
 	}
 }

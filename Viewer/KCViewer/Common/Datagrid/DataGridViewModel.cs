@@ -83,8 +83,8 @@ public partial class DataGridViewModel<T> : ObservableObject
 
 		ColumnSelectorViewModel selector = new() { Columns = columns };
 
-		// Fork: 열 표시 설정 in KanColleViewer's style while the style is on
-		if (Fork.KcvViews.KcvTableDialogs.TryShowColumnSelector(selector) ?? new ColumnSelectorView(selector).ShowDialog() == true)
+		// Fork: 열 표시 설정 in KanColleViewer's style
+		if (Fork.KcvViews.KcvTableDialogs.ShowColumnSelector(selector))
 		{
 			// Apply changes
 			foreach (ColumnViewModel column in columns)

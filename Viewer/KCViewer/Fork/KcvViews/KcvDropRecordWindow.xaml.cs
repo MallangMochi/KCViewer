@@ -6,7 +6,7 @@ using KCViewer.Window.Tools.DropRecordViewer;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the drop record in KanColleViewer's style (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: the drop record in KanColleViewer's style (see the XAML), from the tools menu.</summary>
 public partial class KcvDropRecordWindow
 {
 	private KcvConditionSnapshot Conditions { get; }

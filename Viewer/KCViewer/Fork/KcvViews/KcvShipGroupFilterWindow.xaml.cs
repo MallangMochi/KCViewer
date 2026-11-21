@@ -14,24 +14,14 @@ public partial class KcvShipGroupFilterWindow
 {
 	private KcvShipGroupFilterViewModel ViewModel { get; }
 
-	/// <summary>
-	/// The group's filter edited in a copy: false while the style is off and the group has no blocks (the caller opens
-	/// the viewer's window), else true with the edited copy, or null for 취소. A group with blocks opens here with the
-	/// style off too: the viewer's window cannot edit them.
-	/// </summary>
-	public static bool TryEdit(ShipGroupData group, out ShipGroupData? edited)
+	/// <summary>The group's filter edited in a copy: the edited copy, or null for 취소.</summary>
+	public static ShipGroupData? Edit(ShipGroupData group)
 	{
-		edited = null;
-
-		if (!KcvViewState.Current.Enabled && group.Expressions?.ForkBlocks is null) return false;
-
 		ShipGroupData copy = group.Clone();
 		KcvShipGroupFilterWindow window = new(new KcvShipGroupFilterViewModel(copy));
 		if (KcvCalcWindows.FrontWindow() is { } owner) window.Owner = owner;
 
-		if (window.ShowDialog() is true) edited = window.ViewModel.WriteTo(copy);
-
-		return true;
+		return window.ShowDialog() is true ? window.ViewModel.WriteTo(copy) : null;
 	}
 
 	private KcvShipGroupFilterWindow(KcvShipGroupFilterViewModel viewModel)

@@ -6,7 +6,7 @@ using KCViewer.Window.Tools.ConstructionRecordViewer;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the construction record in KanColleViewer's style (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: the construction record in KanColleViewer's style (see the XAML), from the tools menu.</summary>
 public partial class KcvConstructionRecordWindow
 {
 	private KcvConditionSnapshot Conditions { get; }

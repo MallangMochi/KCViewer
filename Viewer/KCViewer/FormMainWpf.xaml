@@ -110,14 +110,9 @@
 			<Style BasedOn="{StaticResource DefaultStatusBarStyle}" TargetType="StatusBar">
 				<Setter Property="FontFamily" Value="{Binding DataContext.Font, Source={StaticResource Proxy}}" />
 				<Setter Property="FontSize" Value="{Binding DataContext.FontSize, Source={StaticResource Proxy}}" />
-				<Setter Property="Foreground" Value="{Binding DataContext.FontBrush, Source={StaticResource Proxy}}" />
 				<!-- Fork: KanColleViewer style, the status bar in the accent colour (FormMainViewModel.Fork.cs) -->
-				<Style.Triggers>
-					<DataTrigger Binding="{Binding DataContext.ForkKcvStatusBarActive, Source={StaticResource Proxy}}" Value="True">
-						<Setter Property="Background" Value="{Binding DataContext.ForkKcvAccentBrush, Source={StaticResource Proxy}}" />
-						<Setter Property="Foreground" Value="White" />
-					</DataTrigger>
-				</Style.Triggers>
+				<Setter Property="Background" Value="{Binding DataContext.ForkKcvAccentBrush, Source={StaticResource Proxy}}" />
+				<Setter Property="Foreground" Value="White" />
 			</Style>
 
 			<ControlTemplate x:Key="AutoHideButtonTemplate" d:DataContext="{d:DesignInstance LayoutAnchorable}">
@@ -327,12 +322,11 @@
 						CommandParameter="{Binding Fleets[3]}"
 						Header="{Binding FormMain.StripMenu_View_Fleet_4}"
 						/>
-					<!--  Fork: the combined fleet panel while the KanColleViewer style is on (Fork/KcvViews/KcvCombinedFleetView.xaml)  -->
+					<!--  Fork: the combined fleet panel (Fork/KcvViews/KcvCombinedFleetView.xaml)  -->
 					<MenuItem
 						Command="{Binding OpenViewCommand}"
 						CommandParameter="{Binding ForkCombinedFleet}"
 						Header="{Binding ForkCombinedFleetMenuHeader}"
-						Visibility="{Binding ForkKcvStyleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
 						/>
 				</MenuItem>
 				<MenuItem
@@ -579,11 +573,10 @@
 				d:Header="Tools"
 				Header="{Binding FormMain.StripMenu_Tool}"
 				>
-				<!--  Fork: KanColleViewer's 所属艦娘一覧 while its style is on (Fork/KcvViews)  -->
+				<!--  Fork: KanColleViewer's 所属艦娘一覧 (Fork/KcvViews)  -->
 				<MenuItem
 					Command="{Binding ForkOpenShipListCommand}"
 					Header="{Binding ForkShipListMenuHeader}"
-					Visibility="{Binding ForkKcvStyleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
 					>
 					<MenuItem.Icon>
 						<common:IconContentIcon Type="FormShipGroup" />
@@ -598,12 +591,11 @@
 						<common:IconContentIcon Type="FormEquipmentList" />
 					</MenuItem.Icon>
 				</MenuItem>
-				<!--  Fork: the fleet and land base details windows while the KanColleViewer style is on (Fork/KcvViews),
-				     after the equipment list (tool menu mockup 3, user's order 2026-10-03)  -->
+				<!--  Fork: the fleet and land base details windows (Fork/KcvViews), after the equipment list (tool menu
+				     mockup 3, user's order 2026-10-03)  -->
 				<MenuItem
 					Command="{Binding ForkOpenFleetDetailCommand}"
 					Header="{Binding ForkFleetDetailMenuHeader}"
-					Visibility="{Binding ForkKcvStyleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
 					>
 					<MenuItem.Icon>
 						<common:IconContentIcon Type="FormFleet" />
@@ -612,7 +604,6 @@
 				<MenuItem
 					Command="{Binding ForkOpenAirBaseDetailCommand}"
 					Header="{Binding ForkAirBaseDetailMenuHeader}"
-					Visibility="{Binding ForkKcvStyleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
 					>
 					<MenuItem.Icon>
 						<common:IconContentIcon Type="FormBaseAirCorps" />
@@ -823,7 +814,8 @@
 					/>
 			</MenuItem>
 			<!--  Fork: the skin menu (VIEWER-PLAN "상단 메뉴 개편", menu check of 2026-10-05): the viewer's light and dark
-				themes (Configuration > UI, so also with the style off), the KanColleViewer style, the local skin of the game  -->
+				themes (Configuration > UI), the KanColleViewer style's accent colour (VIEWER-PLAN "제독업무 스타일 단일화"),
+				the local skin of the game  -->
 			<MenuItem
 				Grid.Column="3"
 				Height="Auto"
@@ -840,14 +832,8 @@
 					IsChecked="{Binding ForkThemeDark, Mode=TwoWay}"
 					/>
 				<Separator />
-				<!--  Fork: KanColleViewer style (FormMainViewModel.Fork.cs, Fork/KcvStyle.cs)  -->
-				<MenuItem Header="{Binding ForkKcvStyleMenuHeader}">
-					<MenuItem
-						Header="{Binding ForkKcvStyleEnabledHeader}"
-						IsCheckable="True"
-						IsChecked="{Binding ForkKcvStyleEnabled, Mode=TwoWay}"
-						/>
-					<Separator />
+				<!--  Fork: KanColleViewer style's accent colour (FormMainViewModel.Fork.cs, Fork/KcvStyle.cs)  -->
+				<MenuItem Header="{Binding ForkKcvAccentMenuHeader}">
 					<MenuItem
 						Header="{Binding ForkKcvAccentPurpleHeader}"
 						IsCheckable="True"

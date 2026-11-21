@@ -171,8 +171,8 @@ public partial class ShipTrainingPlanViewerViewModel : AnchorableViewModel
 	{
 		ShipTrainingPlanViewModel viewModel = new(plan.Model);
 
-		// Fork: the editor in KanColleViewer's style while the style is on
-		if (KcvCalcWindows.TryShowShipTrainingPlan(viewModel, adding: false) ?? (new ShipTrainingPlanView(viewModel).ShowDialog() is true))
+		// Fork: the editor in KanColleViewer's style
+		if (KcvCalcWindows.ShowShipTrainingPlan(viewModel, adding: false))
 		{
 			viewModel.Save();
 			DatabaseContext.SaveChanges();
@@ -204,7 +204,7 @@ public partial class ShipTrainingPlanViewerViewModel : AnchorableViewModel
 		ShipSelectorViewModel = new(TransliterationService, ImageLoadService, [.. pickableShips]);
 
 		// Fork: the KanColleViewer-style selector opens with 최종 개조 off for training (user's decision 2026-10-08 "끔")
-		if (KcvViewState.Current.Enabled) ShipSelectorViewModel.ShipFilter.FinalRemodel = false;
+		ShipSelectorViewModel.ShipFilter.FinalRemodel = false;
 
 		ShipSelectorViewModel.ShowDialog();
 
@@ -229,8 +229,8 @@ public partial class ShipTrainingPlanViewerViewModel : AnchorableViewModel
 	{
 		ShipTrainingPlanViewModel newPlan = NewPlan(ship);
 
-		// Fork: the editor in KanColleViewer's style while the style is on
-		if (KcvCalcWindows.TryShowShipTrainingPlan(newPlan, adding: true) ?? (new ShipTrainingPlanView(newPlan).ShowDialog() is true))
+		// Fork: the editor in KanColleViewer's style
+		if (KcvCalcWindows.ShowShipTrainingPlan(newPlan, adding: true))
 		{
 			newPlan.Save();
 			newPlan.UpdateFromModel();

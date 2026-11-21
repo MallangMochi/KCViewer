@@ -26,59 +26,59 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: the tool menu's calculators in KanColleViewer's style (mockup 20261006-calc-windows-v2, approved 2026-10-06
-/// "구현"): 대공 포화 상세 and 필요 경험치 계산 open as these windows while the style is on, from every place that opens
+/// "구현"): 대공 포화 상세 and 필요 경험치 계산 open as these windows, from every place that opens
 /// them (the tool menu, the fleet panel's menus), 원정 계산기 (mockup 20261006-expedition-calculator-v2, approved
 /// "1번 수정 반영해서 구현"), 퀘스트 추적 매니저 (mockup 20261006-quest-tracker-v2, approved "구현") and 칸무스 수집 진행도
 /// (mockup 20261006-kancolle-progress-v3, approved "구현"), 편성 이미지 출력 (mockup 20261007-fleet-image-v2, approved
 /// "구현") and 이벤트 딱지 플래너 (mockup 20261007-event-lock-v2, approved "구현"), the ship training plan editor
 /// (mockup 20261008-ship-training-edit-v2, approved "구현"), the ship selector (mockup 20261008-ship-selector-v2,
 /// approved "구현") and 개수 계획 관리's plan editor, upgrade tree and equipment selector (mockup
-/// 20261009-upgrade-plan-windows-v2, approved "구현"). With the style off the viewer's windows open.
+/// 20261009-upgrade-plan-windows-v2, approved "구현"). They open in place of the viewer's (VIEWER-PLAN "제독업무 스타일
+/// 단일화").
 /// </summary>
 public static class KcvCalcWindows
 {
 	private static KcvEventLockPlannerWindow? EventLockPlanner { get; set; }
 
-	/// <summary>Called where the viewer opens its anti-air defense window; true when this one opened instead.</summary>
-	public static bool TryShow(AirDefenseViewModel viewModel) => TryShow(() => new KcvAirDefenseWindow(viewModel));
+	/// <summary>Called where the viewer opens its anti-air defense window.</summary>
+	public static void Show(AirDefenseViewModel viewModel) => Show(() => new KcvAirDefenseWindow(viewModel));
 
-	/// <summary>Called where the viewer opens its exp checker; true when this one opened instead.</summary>
-	public static bool TryShow(ExpCheckerViewModel viewModel) => TryShow(() => new KcvExpCheckerWindow(viewModel));
-
-	/// <summary>
-	/// Called where the viewer opens its expedition calculator (an Avalonia window, which the style does not reach);
-	/// true when this one opened instead (mockup 20261006-expedition-calculator-v2).
-	/// </summary>
-	public static bool TryShow(ExpeditionCalculatorViewModel viewModel) => TryShow(() => new KcvExpeditionCalculatorWindow(viewModel));
+	/// <summary>Called where the viewer opens its exp checker.</summary>
+	public static void Show(ExpCheckerViewModel viewModel) => Show(() => new KcvExpCheckerWindow(viewModel));
 
 	/// <summary>
-	/// Called where the viewer opens its quest tracker manager (the tool menu, the quest panel's 추적기 관리); true when
-	/// this one opened instead (mockup 20261006-quest-tracker-v2).
+	/// Called where the viewer opens its expedition calculator (an Avalonia window, which the style does not reach)
+	/// (mockup 20261006-expedition-calculator-v2).
 	/// </summary>
-	public static bool TryShow(QuestTrackerManagerViewModel viewModel) => TryShow(() => new KcvQuestTrackerManagerWindow(viewModel));
+	public static void Show(ExpeditionCalculatorViewModel viewModel) => Show(() => new KcvExpeditionCalculatorWindow(viewModel));
 
 	/// <summary>
-	/// Called where the viewer opens 칸무스 수집 진행도; true when this one opened instead (mockup
-	/// 20261006-kancolle-progress-v3). Its view model reads the ships when it is made, so only when the window opens.
+	/// Called where the viewer opens its quest tracker manager (the tool menu, the quest panel's 추적기 관리) (mockup
+	/// 20261006-quest-tracker-v2).
 	/// </summary>
-	public static bool TryShowKancolleProgress() => TryShow(() => new KcvKancolleProgressWindow(new KcvKancolleProgressViewModel()));
+	public static void Show(QuestTrackerManagerViewModel viewModel) => Show(() => new KcvQuestTrackerManagerWindow(viewModel));
+
+	/// <summary>
+	/// Called where the viewer opens 칸무스 수집 진행도 (mockup 20261006-kancolle-progress-v3). Its view model reads the
+	/// ships when it is made, so only when the window opens.
+	/// </summary>
+	public static void ShowKancolleProgress() => Show(() => new KcvKancolleProgressWindow(new KcvKancolleProgressViewModel()));
 
 	/// <summary>
 	/// Called where the viewer opens 편성 이미지 출력 (the tool menu, the fleet panel's menu, the sortie and expedition
-	/// records all go through ToolService); true when this one opened instead (mockup 20261007-fleet-image-v2).
+	/// records all go through ToolService) (mockup 20261007-fleet-image-v2).
 	/// </summary>
-	public static bool TryShow(FleetImageGeneratorImageDataModel model) => TryShow(() => new KcvFleetImageGeneratorWindow(model));
+	public static void Show(FleetImageGeneratorImageDataModel model) => Show(() => new KcvFleetImageGeneratorWindow(model));
 
 	/// <summary>
-	/// Called where the viewer opens its event lock planner; true when this one opened instead or is open already
-	/// (mockup 20261007-event-lock-v2). Each window saves the plan when it closes, so one planner is open at a time
-	/// (the viewer keeps its own window single the same way).
+	/// Called where the viewer opens its event lock planner; nothing happens while one is open (mockup
+	/// 20261007-event-lock-v2). Each window saves the plan when it closes, so one planner is open at a time.
 	/// </summary>
-	public static bool TryShowEventLockPlanner(Func<EventLockPlannerViewModel> createViewModel)
+	public static void ShowEventLockPlanner(Func<EventLockPlannerViewModel> createViewModel)
 	{
-		if (EventLockPlanner is not null) return true;
+		if (EventLockPlanner is not null) return;
 
-		return TryShow(() =>
+		Show(() =>
 		{
 			EventLockPlanner = new(createViewModel());
 			EventLockPlanner.Closed += (_, _) => EventLockPlanner = null;
@@ -86,41 +86,24 @@ public static class KcvCalcWindows
 		});
 	}
 
-	/// <summary>
-	/// Called where the viewer opens 파일 › 설정; true when this one opened instead (mockup 20261007-settings-v2,
-	/// approved "구현"). Modal, as the viewer's.
-	/// </summary>
-	public static bool TryShowConfiguration(System.Windows.Window owner)
+	/// <summary>Called where the viewer opens 파일 › 설정 (mockup 20261007-settings-v2, approved "구현"). Modal, as the viewer's.</summary>
+	public static void ShowConfiguration(System.Windows.Window owner) => new KcvConfigurationWindow(new()).ShowDialog(owner);
+
+	/// <summary>Called where the BGM page opens a scene's editor, over the settings window.</summary>
+	public static void ShowSoundHandleEdit(SoundHandleViewModel handle)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		new KcvConfigurationWindow(new()).ShowDialog(owner);
-		return true;
-	}
-
-	/// <summary>Called where the BGM page opens a scene's editor; true when this one opened instead, over the settings window.</summary>
-	public static bool TryShowSoundHandleEdit(SoundHandleViewModel handle)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		System.Windows.Window? owner = Application.Current?.Windows.OfType<KcvConfigurationWindow>().FirstOrDefault()
 			?? Application.Current?.MainWindow;
 
-		if (owner is null) return false;
-
-		new KcvSoundHandleEditDialog(handle).ShowDialog(owner);
-		return true;
+		new KcvSoundHandleEditDialog(handle) { Owner = owner }.ShowDialog();
 	}
 
 	/// <summary>
 	/// Called where the viewer opens its ship training plan editor (the panel's 추가 after the ship picker, 계획 편집);
-	/// null while the style is off, else whether [OK] closed this one (mockup 20261008-ship-training-edit-v2, approved
-	/// "구현"). Modal, as the viewer's.
+	/// whether [OK] closed it (mockup 20261008-ship-training-edit-v2, approved "구현"). Modal, as the viewer's.
 	/// </summary>
-	public static bool? TryShowShipTrainingPlan(ShipTrainingPlanViewModel plan, bool adding)
+	public static bool ShowShipTrainingPlan(ShipTrainingPlanViewModel plan, bool adding)
 	{
-		if (!KcvViewState.Current.Enabled) return null;
-
 		KcvShipTrainingPlanWindow window = new(plan, adding);
 		if (Application.Current?.MainWindow is { IsLoaded: true } owner) window.Owner = owner;
 
@@ -129,13 +112,11 @@ public static class KcvCalcWindows
 
 	/// <summary>
 	/// Called where the viewer opens its ship selector (칸무스 레벨링's 추가, the quest tracker's ship conditions, the
-	/// Discord ship of the settings); true when this one opened instead (mockup 20261008-ship-selector-v2, approved
-	/// "구현"). Modal over the window in front, as the selector is opened from the settings and tool windows too.
+	/// Discord ship of the settings) (mockup 20261008-ship-selector-v2, approved "구현"). Modal over the window in
+	/// front, as the selector is opened from the settings and tool windows too.
 	/// </summary>
-	public static bool TryShowShipSelector(ShipSelectorViewModel selector)
+	public static void ShowShipSelector(ShipSelectorViewModel selector)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		System.Windows.Window? owner = Application.Current?.Windows.OfType<System.Windows.Window>().FirstOrDefault(w => w.IsActive)
 			?? Application.Current?.MainWindow;
 
@@ -143,50 +124,40 @@ public static class KcvCalcWindows
 		if (owner is { IsLoaded: true }) window.Owner = owner;
 
 		window.ShowDialog();
-		return true;
 	}
 
 	/// <summary>
 	/// Called where the viewer opens its equipment selector (the upgrade planner's two adds, the plan editor's
-	/// equipment, the upgrade tree's assignments, the quest tracker's scrap condition); true when this one opened
-	/// instead (mockup 20261009-upgrade-plan-windows-v2, approved "구현"). Modal over the window in front.
+	/// equipment, the upgrade tree's assignments, the quest tracker's scrap condition) (mockup
+	/// 20261009-upgrade-plan-windows-v2, approved "구현"). Modal over the window in front.
 	/// </summary>
-	public static bool TryShowEquipmentSelector(EquipmentSelectorViewModel selector)
+	public static void ShowEquipmentSelector(EquipmentSelectorViewModel selector)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		KcvEquipmentSelectorWindow window = new(new(selector));
 		if (FrontWindow() is { } owner) window.Owner = owner;
 
 		window.ShowDialog();
-		return true;
 	}
 
 	/// <summary>
-	/// Called where the viewer opens a plan's upgrade tree; true when this one opened instead (mockup
-	/// 20261009-upgrade-plan-windows-v2). Modal, as the viewer's.
+	/// Called where the viewer opens a plan's upgrade tree (mockup 20261009-upgrade-plan-windows-v2). Modal, as the
+	/// viewer's.
 	/// </summary>
-	public static bool TryShowUpgradeTree(UpgradeTreeViewModel tree)
+	public static void ShowUpgradeTree(UpgradeTreeViewModel tree)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		KcvUpgradeTreeWindow window = new(tree);
 		if (FrontWindow() is { } owner) window.Owner = owner;
 
 		window.ShowDialog();
-		return true;
 	}
 
 	/// <summary>
 	/// Called where the viewer opens its upgrade plan editor (<see cref="EquipmentUpgradePlanItemViewModel.OpenPlanDialog"/>);
-	/// null while the style is off, else whether [OK] closed this one (mockup 20261009-upgrade-plan-windows-v2). The
-	/// editor writes each change into the plan at once (the viewer's), so a cancel puts the plan back as it was (user's
-	/// decision 2026-10-09 "남지 않게 함").
+	/// whether [OK] closed it (mockup 20261009-upgrade-plan-windows-v2). The editor writes each change into the plan at
+	/// once (the viewer's), so a cancel puts the plan back as it was (user's decision 2026-10-09 "남지 않게 함").
 	/// </summary>
-	public static bool? TryShowUpgradePlanEditor(EquipmentUpgradePlanItemViewModel editor)
+	public static bool ShowUpgradePlanEditor(EquipmentUpgradePlanItemViewModel editor)
 	{
-		if (!KcvViewState.Current.Enabled) return null;
-
 		EquipmentUpgradePlanItemModel plan = editor.Plan;
 		EquipmentUpgradePlanItemModel before = new()
 		{
@@ -228,12 +199,11 @@ public static class KcvCalcWindows
 			? window
 			: null;
 
-	private static bool TryShow(Func<System.Windows.Window> create)
+	private static void Show(Func<System.Windows.Window> create)
 	{
-		if (!KcvViewState.Current.Enabled || Application.Current?.MainWindow is not { } owner) return false;
-
-		create().Show(owner);
-		return true;
+		System.Windows.Window window = create();
+		window.Owner = Application.Current?.MainWindow;
+		window.Show();
 	}
 }
 

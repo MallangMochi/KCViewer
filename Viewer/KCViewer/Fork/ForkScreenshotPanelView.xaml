@@ -16,8 +16,7 @@
 	<!--
 		Fork: the screenshot panel (mockup 20261009-screenshot-capture-v2): the whole panel is one button, 4 px inside its
 		edges, the camera icon and 「스크린샷」 in the middle; narrower than 90 px, the icon alone. The button takes the
-		page's button style: KanColleViewer's while its style is on (accent border on hover, accent fill when pressed),
-		the viewer's otherwise. Dimmed while the browser is not running (ForkScreenshotPanelViewModel.CanTake).
+		page's button style: KanColleViewer's (accent border on hover, accent fill when pressed). Dimmed while the browser is not running (ForkScreenshotPanelViewModel.CanTake).
 	-->
 	<Button
 		x:Name="TakeButton"

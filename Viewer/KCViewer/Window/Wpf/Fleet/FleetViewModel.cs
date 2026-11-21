@@ -637,8 +637,7 @@ public partial class FleetViewModel : AnchorableViewModel
 			}
 		};
 
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(viewModel)) return; // Fork: KanColleViewer's style while it is on
-		new AirDefenseWindow(viewModel).Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvCalcWindows.Show(viewModel); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]

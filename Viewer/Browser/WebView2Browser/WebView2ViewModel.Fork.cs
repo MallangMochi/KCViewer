@@ -15,29 +15,25 @@ public partial class WebView2ViewModel
 {
 	private LocalSkin? LocalSkin { get; set; }
 
-	private Color? OriginalAccentColor { get; set; }
-	private bool OriginalAccentColorSaved { get; set; }
-
 	/// <summary>Zoom menu item (BrowserView.xaml); bound, as the window is built before the culture is set.</summary>
 	public string ForkZoomClassicHeader => ForkBrowserStrings.ZoomClassic;
 
-	/// <summary>Whether the host's KanColleViewer style is on (it sends an accent colour then).</summary>
+	/// <summary>Whether the host's KanColleViewer style colours arrived (the tool strip keeps ModernWpf's until then).</summary>
 	public bool ForkKcvStyle { get; private set; }
 
 	/// <summary>The tool strip's background in the style: the window colour of the style's panels (Kcv.Background).</summary>
 	public Brush ForkKcvBackground { get; private set; } = Brushes.Transparent;
 
-	/// <summary>The zoom in use, next to the zoom icon in the style, as KanColleViewer shows it by its zoom button.</summary>
+	/// <summary>The zoom in use, next to the zoom icon, as KanColleViewer shows it by its zoom button.</summary>
 	public string ForkZoomText { get; private set; } = "";
-	public Visibility ForkZoomTextVisibility => ForkKcvStyle ? Visibility.Visible : Visibility.Collapsed;
 
-	// The tool strip's tooltips in the style: the viewer has the texts but no tooltips (null leaves none)
-	public string? ForkTipScreenshot => ForkKcvStyle ? FormBrowser.Strip_ScreenShot : null;
-	public string? ForkTipZoom => ForkKcvStyle ? FormBrowser.Strip_Zoom : null;
-	public string? ForkTipMute => ForkKcvStyle ? FormBrowser.Strip_Mute : null;
-	public string? ForkTipRefresh => ForkKcvStyle ? FormBrowser.Strip_Refresh : null;
-	public string? ForkTipLogin => ForkKcvStyle ? ForkBrowserStrings.LoginPageTip : null;
-	public string? ForkTipOther => ForkKcvStyle ? ForkBrowserStrings.OtherMenuTip : null;
+	// The tool strip's tooltips: the viewer has the texts but no tooltips
+	public string ForkTipScreenshot => FormBrowser.Strip_ScreenShot;
+	public string ForkTipZoom => FormBrowser.Strip_Zoom;
+	public string ForkTipMute => FormBrowser.Strip_Mute;
+	public string ForkTipRefresh => FormBrowser.Strip_Refresh;
+	public string ForkTipLogin => ForkBrowserStrings.LoginPageTip;
+	public string ForkTipOther => ForkBrowserStrings.OtherMenuTip;
 
 	/// <summary>Called by ApplyZoom with the zoom it set.</summary>
 	private void OnForkZoomApplied(double zoomFactor) => ForkZoomText = $"{Math.Round(zoomFactor * 100)}%";
@@ -98,18 +94,12 @@ public partial class WebView2ViewModel
 			bool dark = (ApplicationTheme)await BrowserHost.GetTheme() == ApplicationTheme.Dark;
 			await App.Current.Dispatcher.InvokeAsync(() =>
 			{
-				ForkKcvStyle = accent is not null;
 				SolidColorBrush background = new(dark ? Color.FromRgb(0x2D, 0x2D, 0x30) : Color.FromRgb(0xEF, 0xEF, 0xF2));
 				background.Freeze();
 				ForkKcvBackground = background;
+				ForkKcvStyle = true;
 
-				if (!OriginalAccentColorSaved)
-				{
-					OriginalAccentColor = ThemeManager.Current.AccentColor;
-					OriginalAccentColorSaved = true;
-				}
-
-				ThemeManager.Current.AccentColor = accent is null ? OriginalAccentColor : (Color)ColorConverter.ConvertFromString(accent);
+				if (accent is not null) ThemeManager.Current.AccentColor = (Color)ColorConverter.ConvertFromString(accent);
 			});
 		}
 		catch (Exception ex)

@@ -1,6 +1,4 @@
-﻿using KCViewer.Dialogs.DataGridSettings;
-using KCViewer.Dialogs.TextInput;
-using KCViewer.ViewModels;
+﻿using KCViewer.ViewModels;
 using HanumanInstitute.MvvmDialogs.Wpf;
 
 namespace KCViewer.Dialogs;
@@ -9,9 +7,7 @@ public class ViewLocator : StrongViewLocator
 {
 	public ViewLocator()
 	{
-		Register<TextInputViewModel, TextInputDialog>();
-		Register<DataGridSettingsViewModel, DataGridSettingsDialog>();
-
+		// Fork: the text input and data grid settings dialogs open in KanColleViewer's style (Fork/KcvViews/KcvTableDialogs.cs)
 		Register<FormMainViewModel, FormMainWpf>();
 	}
 }

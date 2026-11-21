@@ -5,7 +5,7 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: the land base details window (see the XAML). One window: opening it again selects the area and brings it
-/// to the front. Opened from the land base panel's button and from the tools menu while the style is on.
+/// to the front. Opened from the land base panel's button and from the tools menu.
 /// </summary>
 public partial class KcvBaseAirCorpsDetailWindow
 {

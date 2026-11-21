@@ -240,22 +240,9 @@ public abstract class NotifierBase
 
 		if (ShowsDialog)
 		{
-			// Fork: the notification window in KanColleViewer's style while the style is on
-			if (Fork.KcvViews.KcvNotifierWindow.TryShow(DialogData, () => Sound.Stop(), customClosingHandler)) return;
-
-			var dialog = new DialogNotifier(DialogData);
-			dialog.FormClosing += dialog_FormClosing;
-			if (customClosingHandler != null)
-			{
-				dialog.FormClosing += customClosingHandler;
-			}
-			NotifierManager.Instance.ShowNotifier(dialog);
+			// Fork: the notification window in KanColleViewer's style (in place of DialogNotifier)
+			Fork.KcvViews.KcvNotifierWindow.ShowNotification(DialogData, () => Sound.Stop(), customClosingHandler);
 		}
-	}
-
-	void dialog_FormClosing(object? sender, System.Windows.Forms.FormClosingEventArgs e)
-	{
-		Sound.Stop();
 	}
 
 	/// <summary>

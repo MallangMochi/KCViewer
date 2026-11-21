@@ -207,11 +207,12 @@ public sealed class ForkSettings
 		}
 	}
 
-	/// <summary>KanColleViewer's look (<see cref="Fork.KcvStyle"/>). On by default, with its default purple accent.</summary>
+	/// <summary>
+	/// KanColleViewer's look (<see cref="Fork.KcvStyle"/>), the viewer's only one: its accent (purple by default) and
+	/// the panels' options. The old "Enabled" of files before 2026-11-21 is no longer read (VIEWER-PLAN "제독업무 스타일 단일화").
+	/// </summary>
 	public sealed class KcvStyleSettings
 	{
-		public bool Enabled { get; set; } = true;
-
 		/// <summary>Purple, Blue or Orange, the accents KanColleViewer offers.</summary>
 		public string Accent { get; set; } = nameof(KcvAccent.Purple);
 

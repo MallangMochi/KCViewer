@@ -484,6 +484,10 @@ public sealed class ResourceManager
 
 				if (convertEncoding && Utility.Configuration.Config.Log.FileEncodingID != 4)
 				{
+					// Fork: Shift-JIS needs the code page provider, which Config.Log.FileEncoding registers only when it is
+					// first read; at start-up this copy came first and a new profile never got ShipParameterRecord.csv
+					// ("No data is available for encoding 932", 2026-11-21)
+					Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 					using (var filetoconvert = GetStreamFromArchive(source))
 					{
 						filetoconvert.Position = 0;

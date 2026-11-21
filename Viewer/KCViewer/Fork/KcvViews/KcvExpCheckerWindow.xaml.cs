@@ -5,7 +5,7 @@ using KCViewer.Window.Tools.ExpChecker;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: 필요 경험치 계산 in KanColleViewer's style (see the XAML), opened through <see cref="KcvCalcWindows"/> while the style is on.</summary>
+/// <summary>Fork: 필요 경험치 계산 in KanColleViewer's style (see the XAML), opened through <see cref="KcvCalcWindows"/>.</summary>
 public partial class KcvExpCheckerWindow
 {
 	public KcvExpCheckerWindow(ExpCheckerViewModel viewModel) : base(viewModel)

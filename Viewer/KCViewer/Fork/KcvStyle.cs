@@ -145,22 +145,6 @@ public static class KcvStyle
 		window.BorderBrush = window.IsActive ? state.Active : state.Inactive;
 	}
 
-	/// <summary>Back to the viewer's own look.</summary>
-	public static void RestoreWindow(WpfWindow window)
-	{
-		if (Windows.Remove(window))
-		{
-			window.Activated -= OnActivationChanged;
-			window.Deactivated -= OnActivationChanged;
-		}
-
-		window.ClearValue(TitleBar.BackgroundProperty);
-		window.ClearValue(TitleBar.InactiveBackgroundProperty);
-		window.ClearValue(WpfWindow.BackgroundProperty);
-		window.ClearValue(WpfWindow.BorderBrushProperty);
-		window.ClearValue(WpfWindow.BorderThicknessProperty);
-	}
-
 	private static void OnActivationChanged(object? sender, EventArgs e)
 	{
 		if (sender is WpfWindow window && Windows.TryGetValue(window, out WindowState? state))

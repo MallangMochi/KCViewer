@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KCViewer.Window.Wpf;
@@ -13,14 +12,12 @@ namespace KCViewer.Fork.KcvViews;
 /// <summary>
 /// Fork: KanColleViewer's panel designs (VIEWER-PLAN.md, stage 6). The panels keep the viewer's view models; only
 /// the XAML inside each docking panel is drawn anew (Fork/KcvViews/*.xaml). Where the panels go is still up to the
-/// docking layout. Each replaced panel switches between its original template and the KanColleViewer one with
-/// <see cref="Enabled"/>, so the style can be turned off at run time.
+/// docking layout. The viewer has only this style since 2026-11-21 (VIEWER-PLAN "제독업무 스타일 단일화"): the
+/// replaced panels no longer switch back to the original templates.
 /// </summary>
 public sealed class KcvViewState : ObservableObject
 {
 	public static KcvViewState Current { get; } = new();
-
-	public bool Enabled { get; set; }
 
 	public bool Dark { get; set; }
 }
@@ -39,30 +36,30 @@ public static class KcvPanels
 		};
 		Application.Current.Resources.MergedDictionaries.Add(views);
 
-		selector.Fleet = Switch(selector.Fleet, (DataTemplate)views["Kcv.FleetTemplate"]);
-		selector.Headquarters = Switch(selector.Headquarters, (DataTemplate)views["Kcv.HeadquartersTemplate"]);
-		selector.Dock = Switch(selector.Dock, (DataTemplate)views["Kcv.DockTemplate"]);
-		selector.Arsenal = Switch(selector.Arsenal, (DataTemplate)views["Kcv.ArsenalTemplate"]);
-		selector.Quest = Switch(selector.Quest, (DataTemplate)views["Kcv.QuestTemplate"]);
-		selector.FleetOverview = Switch(selector.FleetOverview, (DataTemplate)views["Kcv.FleetOverviewTemplate"]);
-		selector.Battle = Switch(selector.Battle, (DataTemplate)views["Kcv.BattleTemplate"]);
-		selector.Compass = Switch(selector.Compass, (DataTemplate)views["Kcv.CompassTemplate"]);
-		selector.EquipmentUpgradePlanViewer = Switch(selector.EquipmentUpgradePlanViewer, (DataTemplate)views["Kcv.EquipmentUpgradePlanTemplate"]);
-		selector.BaseAirCorps = Switch(selector.BaseAirCorps, (DataTemplate)views["Kcv.BaseAirCorpsTemplate"]);
-		selector.FleetPreset = Switch(selector.FleetPreset, (DataTemplate)views["Kcv.FleetPresetTemplate"]);
-		selector.ShipTrainingPlanViewer = Switch(selector.ShipTrainingPlanViewer, (DataTemplate)views["Kcv.ShipTrainingTemplate"]);
+		selector.Fleet = (DataTemplate)views["Kcv.FleetTemplate"];
+		selector.Headquarters = (DataTemplate)views["Kcv.HeadquartersTemplate"];
+		selector.Dock = (DataTemplate)views["Kcv.DockTemplate"];
+		selector.Arsenal = (DataTemplate)views["Kcv.ArsenalTemplate"];
+		selector.Quest = (DataTemplate)views["Kcv.QuestTemplate"];
+		selector.FleetOverview = (DataTemplate)views["Kcv.FleetOverviewTemplate"];
+		selector.Battle = (DataTemplate)views["Kcv.BattleTemplate"];
+		selector.Compass = (DataTemplate)views["Kcv.CompassTemplate"];
+		selector.EquipmentUpgradePlanViewer = (DataTemplate)views["Kcv.EquipmentUpgradePlanTemplate"];
+		selector.BaseAirCorps = (DataTemplate)views["Kcv.BaseAirCorpsTemplate"];
+		selector.FleetPreset = (DataTemplate)views["Kcv.FleetPresetTemplate"];
+		selector.ShipTrainingPlanViewer = (DataTemplate)views["Kcv.ShipTrainingTemplate"];
 		// The viewer sends every WinForms panel to its WinformsHost template (its Json template is unset), so the JSON
-		// panel gets one of its own: the viewer's WinForms panel, or the style's WPF one.
-		selector.Json = Switch(selector.WinformsHost, (DataTemplate)views["Kcv.JsonTemplate"]);
-		selector.GroupAvalonia = Switch(selector.GroupAvalonia, (DataTemplate)views["Kcv.ShipGroupTemplate"]);
+		// panel gets the style's WPF one of its own.
+		selector.Json = (DataTemplate)views["Kcv.JsonTemplate"];
+		selector.GroupAvalonia = (DataTemplate)views["Kcv.ShipGroupTemplate"];
 
 		KcvWinForms.Install();
 	}
 
 	/// <summary>
-	/// Where the common control styles (KcvControls.xaml) go while enabled: the implicit style of each control type and
-	/// ModernWpf's base key that the viewer's own styles use (BasedOn DefaultCheckBoxStyle, ...). They are entries of
-	/// the application resources themselves, because an entry there wins over merged dictionaries (App.xaml defines an
+	/// Where the common control styles (KcvControls.xaml) go: the implicit style of each control type and ModernWpf's
+	/// base key that the viewer's own styles use (BasedOn DefaultCheckBoxStyle, ...). They are entries of the
+	/// application resources themselves, because an entry there wins over merged dictionaries (App.xaml defines an
 	/// implicit check box style of its own).
 	/// </summary>
 	private static readonly (object Key, string Style)[] ControlStyles =
@@ -106,44 +103,19 @@ public static class KcvPanels
 
 	private static ResourceDictionary? Controls { get; set; }
 
-	/// <summary>The application's own entries that were replaced (null: there was none), to put back when turned off.</summary>
-	private static Dictionary<object, object?>? Replaced { get; set; }
-
 	/// <summary>
-	/// Puts the common control styles and the theme brushes into the application resources while enabled (again at
-	/// each theme change, as the brushes depend on it), and the original entries back when turned off.
+	/// Puts the common control styles and the theme brushes into the application resources (again at each theme
+	/// change, as the brushes depend on it).
 	/// </summary>
-	private static void ApplyControls(ResourceDictionary resources, bool enabled, bool dark)
+	private static void ApplyControls(ResourceDictionary resources, bool dark)
 	{
-		if (enabled)
+		Controls ??= new ResourceDictionary
 		{
-			Controls ??= new ResourceDictionary
-			{
-				Source = new Uri("/KCViewer;component/Fork/KcvViews/KcvControls.xaml", UriKind.Relative),
-			};
+			Source = new Uri("/KCViewer;component/Fork/KcvViews/KcvControls.xaml", UriKind.Relative),
+		};
 
-			IEnumerable<(object Key, object Value)> entries = ControlStyles
-				.Select(s => (s.Key, Controls[s.Style]))
-				.Concat(ThemeBrushes(dark).Select(b => ((object)b.Key, (object)Frozen(b.Color))));
-
-			Replaced ??= new();
-			List<object> ownKeys = resources.Keys.Cast<object>().ToList();
-			foreach ((object key, object value) in entries)
-			{
-				if (!Replaced.ContainsKey(key)) Replaced[key] = ownKeys.Contains(key) ? resources[key] : null;
-				resources[key] = value;
-			}
-		}
-		else if (Replaced is not null)
-		{
-			foreach ((object key, object? original) in Replaced)
-			{
-				if (original is null) resources.Remove(key);
-				else resources[key] = original;
-			}
-
-			Replaced = null;
-		}
+		foreach ((object key, string style) in ControlStyles) resources[key] = Controls[style];
+		foreach ((string key, Color color) in ThemeBrushes(dark)) resources[key] = Frozen(color);
 	}
 
 	private static SolidColorBrush Frozen(Color color)
@@ -154,9 +126,8 @@ public static class KcvPanels
 	}
 
 	/// <summary>Called with every theme change (FormMainViewModel.ApplyForkTheme).</summary>
-	public static void Apply(bool enabled, bool dark, KcvStyle.AccentColors accent)
+	public static void Apply(bool dark, KcvStyle.AccentColors accent)
 	{
-		KcvViewState.Current.Enabled = enabled;
 		KcvViewState.Current.Dark = dark;
 
 		ResourceDictionary resources = Application.Current.Resources;
@@ -168,8 +139,8 @@ public static class KcvPanels
 			resources[key] = Frozen(color);
 		}
 
-		ApplyControls(resources, enabled, dark);
-		KcvWinForms.Apply(enabled, dark, accent.Accent);
+		ApplyControls(resources, dark);
+		KcvWinForms.Apply(dark, accent.Accent);
 	}
 
 	/// <summary>
@@ -361,29 +332,6 @@ public static class KcvPanels
 			("Kcv.ChartTick", Rgb(0x505055)),
 			("Kcv.Link", Rgb(0x1F5F9F)),
 		];
-
-	/// <summary>A template that shows <paramref name="original"/> or <paramref name="kcv"/> by <see cref="KcvViewState.Enabled"/>.</summary>
-	private static DataTemplate? Switch(DataTemplate? original, DataTemplate kcv)
-	{
-		if (original is null) return null;
-
-		Style style = new(typeof(ContentControl));
-		style.Setters.Add(new Setter(ContentControl.ContentTemplateProperty, original));
-		DataTrigger enabled = new()
-		{
-			Binding = new Binding(nameof(KcvViewState.Enabled)) { Source = KcvViewState.Current },
-			Value = true,
-		};
-		enabled.Setters.Add(new Setter(ContentControl.ContentTemplateProperty, kcv));
-		style.Triggers.Add(enabled);
-
-		FrameworkElementFactory content = new(typeof(ContentControl));
-		content.SetBinding(ContentControl.ContentProperty, new Binding());
-		content.SetValue(UIElement.FocusableProperty, false);
-		content.SetValue(FrameworkElement.StyleProperty, style);
-
-		return new DataTemplate { VisualTree = content };
-	}
 
 	internal static Color Rgb(int rgb) => Color.FromRgb((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
 }

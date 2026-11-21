@@ -50,21 +50,11 @@ public partial class QuestViewModel
 		];
 
 		APIObserver.Instance.ApiPort_Port.ResponseReceived += ForkPort;
-
-		// The style turned off or on: the list again, with or without the chosen category
-		KcvViewState.Current.PropertyChanged += (_, e) =>
-		{
-			if (e.PropertyName is nameof(KcvViewState.Enabled)) Updated();
-		};
 	}
 
-	/// <summary>
-	/// In <see cref="Updated"/>: a quest outside the chosen category is left out, only while the style is on (the
-	/// viewer's own quest panel, shown with the style off, has no chips to undo it).
-	/// </summary>
+	/// <summary>In <see cref="Updated"/>: a quest outside the chosen category is left out.</summary>
 	private bool ForkFilteredOut(QuestData quest) =>
-		KcvViewState.Current.Enabled
-		&& ForkFilter is not KcvQuestFilterKind.None
+		ForkFilter is not KcvQuestFilterKind.None
 		&& KcvQuestFilter.KindOf(quest.Category) != ForkFilter;
 
 	/// <summary>At the end of <see cref="Updated"/>: the taken quests, whatever the filters show.</summary>
@@ -119,7 +109,7 @@ public partial class QuestViewModel
 	// The menu's copy and searches by the game's title (mockup 20261111-quest-menu-v5, approved 2026-11-11 "구현"):
 	// 임무 제목을 복사 (원문)(O); zekamashi (Z, its own search, the title alone), Google (G), DuckDuckGo (D), Startpage (S)
 	// by the code, the title and 艦これ; wikiwiki by the code as the viewer, a quest without one by its title. Bound by
-	// both quest panels (Fork/KcvViews/KcvQuestView.xaml, QuestView.xaml) in place of the viewer's searches.
+	// the quest panel (Fork/KcvViews/KcvQuestView.xaml) in place of the viewer's searches.
 
 	public string ForkCopyTitleJpText => ForkStrings.KcvQuestCopyTitleJp;
 	public string ForkZekamashiSearchText => ForkStrings.KcvQuestSearchZekamashi(ForkSearchKey(SelectedQuest));

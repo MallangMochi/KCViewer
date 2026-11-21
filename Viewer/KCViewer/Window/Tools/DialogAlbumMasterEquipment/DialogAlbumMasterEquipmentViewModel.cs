@@ -88,9 +88,8 @@ public partial class DialogAlbumMasterEquipmentViewModel : WindowViewModelBase
 	[RelayCommand]
 	private void OpenShipEncyclopedia(IShipDataMaster? ship)
 	{
-		if (ship is null) return;
-
-		new DialogAlbumMasterShipWpf(ship).Show(App.Current.MainWindow);
+		// Fork: the albums in KanColleViewer's style
+		Fork.KcvViews.KcvAlbums.ShowShip(ship);
 	}
 
 	[RelayCommand]
@@ -98,7 +97,7 @@ public partial class DialogAlbumMasterEquipmentViewModel : WindowViewModelBase
 	{
 		if (equip is null) return;
 
-		new DialogAlbumMasterEquipmentWpf(equip.ID).Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvAlbums.ShowEquipment(equip.ID);
 	}
 
 	[RelayCommand]

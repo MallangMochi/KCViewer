@@ -50,13 +50,13 @@ public static partial class ForkStrings
 	public static string LocalSkinReload => T("스킨 파일 다시 읽기", "Reload skin files");
 	public static string LocalSkinOpenFolder => T("스킨 폴더 열기", "Open skin folder");
 
-	public static string KcvStyle => T("제독업무 스타일", "KanColleViewer style");
-	public static string KcvStyleEnabled => T("제독업무 스타일 사용", "Use KanColleViewer style");
 	public static string ThemeLight => T("라이트", "Light");
 	public static string ThemeDark => T("다크", "Dark");
-	public static string AccentPurple => T("강조색: 보라", "Accent: purple");
-	public static string AccentBlue => T("강조색: 파랑", "Accent: blue");
-	public static string AccentOrange => T("강조색: 주황", "Accent: orange");
+	// the skin menu's accent colours (mockup 20261121-kcv-only-v1, user's choice: the colour names only)
+	public static string AccentMenu => T("강조색 설정", "Accent color");
+	public static string AccentPurple => T("보라", "Purple");
+	public static string AccentBlue => T("파랑", "Blue");
+	public static string AccentOrange => T("주황", "Orange");
 
 	public static string LocalSkinTurnedOn(string folder) => T(
 		$"로컬 스킨을 켰습니다({folder}). 게임을 새로 고치면 적용됩니다.",

@@ -577,7 +577,7 @@ public partial class HeadquartersViewModel : AnchorableViewModel
 	[RelayCommand]
 	private void ShowResourceChart()
 	{
-		new ResourceChartWPF().Show(App.Current.MainWindow);
+		new Fork.KcvViews.KcvResourceChartWindow().Show(App.Current.MainWindow); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]

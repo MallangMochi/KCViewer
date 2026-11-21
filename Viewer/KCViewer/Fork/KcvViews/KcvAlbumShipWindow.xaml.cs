@@ -9,7 +9,7 @@ using KCViewer.Window.Tools.DialogAlbumMasterShip;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the ship album in KanColleViewer's style (see the XAML), opened through <see cref="KcvAlbums"/> while the style is on.</summary>
+/// <summary>Fork: the ship album in KanColleViewer's style (see the XAML), opened through <see cref="KcvAlbums"/>.</summary>
 public partial class KcvAlbumShipWindow
 {
 	public KcvAlbumShipWindow() : base(new DialogAlbumMasterShipViewModel { ForkJapaneseNameSearch = true })

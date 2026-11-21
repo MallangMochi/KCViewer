@@ -1,6 +1,6 @@
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: 출격 코스트 in KanColleViewer's style (see the XAML), from the sortie record's row menu while the style is on.</summary>
+/// <summary>Fork: 출격 코스트 in KanColleViewer's style (see the XAML), from the sortie record's row menu.</summary>
 public partial class KcvSortieCostWindow
 {
 	private KcvSortieRoutes Routes { get; }

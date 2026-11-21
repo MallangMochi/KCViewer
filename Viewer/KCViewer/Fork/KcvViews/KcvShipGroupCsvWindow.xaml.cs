@@ -18,20 +18,18 @@ public sealed record KcvShipGroupCsvChoice(
 	string? UserHeader);
 
 /// <summary>
-/// Fork: the ship group's CSV output in KanColleViewer's style (see the XAML), opened through <see cref="TryAsk"/>, modal
+/// Fork: the ship group's CSV output in KanColleViewer's style (see the XAML), opened through <see cref="Ask"/>, modal
 /// over the window in front. The viewer writes the file as before.
 /// </summary>
 public partial class KcvShipGroupCsvWindow
 {
 	/// <summary>
-	/// Null while the style is off (the caller opens the viewer's dialog), else the choice. The ships are the selected
-	/// rows as the viewer's, or with none selected the group's in the table's order (the table keeps the model's
-	/// collection view sorted as itself; the user's answer 2026-10-19 "1.나"); with no group, the viewer's (every ship).
+	/// The choice. The ships are the selected rows as the viewer's, or with none selected the group's in the table's
+	/// order (the table keeps the model's collection view sorted as itself; the user's answer 2026-10-19 "1.나"); with
+	/// no group, the viewer's (every ship).
 	/// </summary>
-	public static KcvShipGroupCsvChoice? TryAsk(bool groupSelected, ShipGroupViewModel table)
+	public static KcvShipGroupCsvChoice Ask(bool groupSelected, ShipGroupViewModel table)
 	{
-		if (!KcvViewState.Current.Enabled) return null;
-
 		KcvShipGroupCsvWindow window = new();
 		if (KcvCalcWindows.FrontWindow() is { } owner) window.Owner = owner;
 

@@ -23,7 +23,7 @@
 	>
 	<!--
 		Fork: the upgrade planner in KanColleViewer's style (mockups v1-v2, user's approval 2026-10-02), opened instead
-		of the viewer's window while the style is on. The viewer's view model and its commands stay (add from owned or
+		of the viewer's window. The viewer's view model and its commands stay (add from owned or
 		all equipment, compact mode, finished plans, day filters, pages, edit, remove, upgrade tree, total cost). Each
 		plan is a card with a header line as the fleet overview's: icon, name and the buttons. Under it the level,
 		goal (★+n / ★max), priority and finished, the cost, and the helpers: one line per helper group with its days,

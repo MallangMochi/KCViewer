@@ -33,7 +33,6 @@ using KCViewer.Window;
 using KCViewer.Window.Dialog;
 using KCViewer.Window.Dialog.QuestTrackerManager;
 using KCViewer.Window.Dialog.ResourceChartWPF;
-using KCViewer.Window.Dialog.VersionInformation;
 using KCViewer.Window.Integrate;
 using KCViewer.Window.Settings;
 using KCViewer.Window.Tools.AirDefense;
@@ -44,7 +43,6 @@ using KCViewer.Window.Tools.DevelopmentRecordViewer;
 using KCViewer.Window.Tools.DialogAlbumMasterEquipment;
 using KCViewer.Window.Tools.DialogAlbumMasterShip;
 using KCViewer.Window.Tools.DropRecordViewer;
-using KCViewer.Window.Tools.EquipmentList;
 using KCViewer.Window.Tools.EventLockPlanner;
 using KCViewer.Window.Tools.ExpeditionRecordViewer;
 using KCViewer.Window.Tools.SenkaViewer;
@@ -136,9 +134,7 @@ public partial class FormMainViewModel : ObservableObject
 	public Color BackgroundColor { get; set; }
 
 	private WindowPosition Position { get; set; } = new();
-	// single instance hack
-	private EventLockPlannerWindow? EventLockPlannerWindow { get; set; }
-	private AutoRefreshWindow? AutoRefreshWindow { get; set; }
+	// Fork: the event lock planner and auto refresh windows keep themselves single (Fork/KcvViews)
 
 	public ObservableCollection<AnchorableViewModel> Views { get; } = new();
 
@@ -556,11 +552,8 @@ public partial class FormMainViewModel : ObservableObject
 	{
 		UpdatePlayTime();
 
-		// Fork: the KanColleViewer style window while the style is on
-		if (!Fork.KcvViews.KcvCalcWindows.TryShowConfiguration(Window))
-		{
-			new ConfigurationWindow(new()).ShowDialog(Window);
-		}
+		// Fork: the KanColleViewer style window
+		Fork.KcvViews.KcvCalcWindows.ShowConfiguration(Window);
 
 		// Fork: a notification part changed in the viewer's own dialogs no longer follows the common settings
 		Fork.ForkNotifierDefaults.Reconcile();
@@ -642,8 +635,7 @@ public partial class FormMainViewModel : ObservableObject
 	[RelayCommand]
 	private void OpenEquipmentList()
 	{
-		if (ForkOpenEquipmentList()) return;
-		new EquipmentListWindow().Show(Window);
+		ForkOpenEquipmentList();
 	}
 
 	[RelayCommand]
@@ -656,8 +648,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenSortieRecord()) return;
-		new SortieRecordViewerWindow().Show(Window);
+		ForkOpenSortieRecord();
 	}
 
 	[RelayCommand]
@@ -670,8 +661,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenExpeditionRecord()) return;
-		new ExpeditionRecordViewerWindow().Show(Window);
+		ForkOpenExpeditionRecord();
 	}
 
 	[RelayCommand]
@@ -692,8 +682,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenDropRecord()) return;
-		new DropRecordViewerWindow().Show(Window);
+		ForkOpenDropRecord();
 	}
 
 	[RelayCommand]
@@ -713,8 +702,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenDevelopmentRecord()) return;
-		new DevelopmentRecordViewerWindow().Show(Window);
+		ForkOpenDevelopmentRecord();
 	}
 
 	[RelayCommand]
@@ -734,22 +722,19 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenConstructionRecord()) return;
-		new ConstructionRecordViewerWindow().Show(Window);
+		ForkOpenConstructionRecord();
 	}
 
 	[RelayCommand]
 	private void OpenResourceChart()
 	{
-		if (ForkOpenResourceChart()) return;
-		new ResourceChartWPF().Show(Window);
+		ForkOpenResourceChart();
 	}
 
 	[RelayCommand]
 	private void OpenSenkaViewer()
 	{
-		if (ForkOpenSenkaViewer()) return;
-		new SenkaViewerWindow().Show(Window);
+		ForkOpenSenkaViewer();
 	}
 
 	[RelayCommand]
@@ -763,11 +748,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenAlbumMasterShip()) return;
-
-		DialogAlbumMasterShipWpf albumMasterShip = new();
-		RefreshTopMost();
-		albumMasterShip.Show(Window);
+		ForkOpenAlbumMasterShip();
 	}
 
 	[RelayCommand]
@@ -781,11 +762,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (ForkOpenAlbumMasterEquipment()) return;
-
-		DialogAlbumMasterEquipmentWpf dialogAlbumMasterEquipment = new();
-		RefreshTopMost();
-		dialogAlbumMasterEquipment.Show(Window);
+		ForkOpenAlbumMasterEquipment();
 	}
 
 	[RelayCommand]
@@ -803,8 +780,7 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(new AirDefenseViewModel())) return; // Fork: KanColleViewer's style while it is on
-		new AirDefenseWindow(new()).Show(Window);
+		Fork.KcvViews.KcvCalcWindows.Show(new AirDefenseViewModel()); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
@@ -840,8 +816,7 @@ public partial class FormMainViewModel : ObservableObject
 	[RelayCommand]
 	private void OpenKancolleProgress()
 	{
-		if (Fork.KcvViews.KcvCalcWindows.TryShowKancolleProgress()) return; // Fork: KanColleViewer's style while it is on
-		new DialogKancolleProgressWpf().Show(Window);
+		Fork.KcvViews.KcvCalcWindows.ShowKancolleProgress(); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
@@ -860,14 +835,13 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(KCDatabase.Instance.QuestTrackerManagers)) return; // Fork: KanColleViewer's style while it is on
-		new QuestTrackerManagerWindow().Show(Window);
+		Fork.KcvViews.KcvCalcWindows.Show(KCDatabase.Instance.QuestTrackerManagers); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
 	private void OpenEquipmentUpgradePlanner()
 	{
-		if (ForkOpenEquipmentUpgradePlanner()) return;
+		// Fork: KanColleViewer's style (ToolService); without equipment data it shows the viewer's message
 		ToolService.EquipmentUpgradePlanner();
 	}
 
@@ -881,57 +855,30 @@ public partial class FormMainViewModel : ObservableObject
 			return;
 		}
 
-		if (EventLockPlannerWindow is not null) return;
-
-		// Fork: the KanColleViewer style window while the style is on (one planner open at a time)
-		if (Fork.KcvViews.KcvCalcWindows.TryShowEventLockPlanner(() => new(KCDatabase.Instance.Ships.Values, KCDatabase.Instance.Translation.Lock))) return;
-
-		EventLockPlannerViewModel viewModel = new(KCDatabase.Instance.Ships.Values, KCDatabase.Instance.Translation.Lock);
-		EventLockPlannerWindow = new(viewModel);
-
-		EventLockPlannerWindow.Closed += (sender, args) =>
-		{
-			EventLockPlannerWindow = null;
-		};
-
-		EventLockPlannerWindow.Show(Window);
+		// Fork: the KanColleViewer style window (one planner open at a time)
+		Fork.KcvViews.KcvCalcWindows.ShowEventLockPlanner(() => new(KCDatabase.Instance.Ships.Values, KCDatabase.Instance.Translation.Lock));
 	}
 
 	[RelayCommand]
 	private void OpenAutoRefresh()
 	{
-		if (AutoRefreshWindow is not null) return;
-
 		AutoRefreshViewModel viewModel = Ioc.Default.GetRequiredService<AutoRefreshViewModel>();
 		viewModel.Areas = KCDatabase.Instance.MapArea.Values.ToList();
 		viewModel.Infos = KCDatabase.Instance.MapInfo.Values.ToList();
 
-		if (Fork.KcvViews.KcvMenuWindows.TryShowAutoRefresh(viewModel, Window)) return; // Fork: KanColleViewer's style while it is on
-
-		AutoRefreshWindow = new(viewModel);
-
-		AutoRefreshWindow.Closed += (sender, args) =>
-		{
-			AutoRefreshWindow = null;
-		};
-
-		AutoRefreshWindow.Show(Window);
+		Fork.KcvViews.KcvMenuWindows.ShowAutoRefresh(viewModel, Window); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
 	private void OpenExpeditionCalculator()
 	{
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(new ExpeditionCalculatorViewModel())) return; // Fork: KanColleViewer's style while it is on
-		new ExpeditionCalculatorWindow(new()).Show();
+		Fork.KcvViews.KcvCalcWindows.Show(new ExpeditionCalculatorViewModel()); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
 	private void OpenUiBlockerManager()
 	{
-		if (Fork.KcvViews.KcvMenuWindows.TryShowUiBlocker(UiBlockerManager, Window)) return; // Fork: KanColleViewer's style while it is on
-
-		UiBlockerWindow blocker = new(UiBlockerManager);
-		blocker.Show(Window);
+		Fork.KcvViews.KcvMenuWindows.ShowUiBlocker(UiBlockerManager, Window); // Fork: KanColleViewer's style
 	}
 
 	[RelayCommand]
@@ -1710,10 +1657,7 @@ public partial class FormMainViewModel : ObservableObject
 	[RelayCommand]
 	private void ViewVersion()
 	{
-		if (Fork.KcvViews.KcvMenuWindows.TryShowVersion(Window)) return; // Fork: KanColleViewer's style while it is on
-
-		VersionInformationWindow? window = new VersionInformationWindow();
-		window.ShowDialog(Window);
+		Fork.KcvViews.KcvMenuWindows.ShowVersion(Window); // Fork: KanColleViewer's style
 	}
 
 	#endregion

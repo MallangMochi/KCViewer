@@ -61,7 +61,6 @@ using KCViewer.Window.Tools.DialogAlbumMasterEquipment;
 using KCViewer.Window.Tools.DialogAlbumMasterEquipment.EquipmentUpgrade;
 using KCViewer.Window.Tools.DialogAlbumMasterShip;
 using KCViewer.Window.Tools.DropRecordViewer;
-using KCViewer.Window.Tools.EquipmentList;
 using KCViewer.Window.Tools.EquipmentUpgradePlanner;
 using KCViewer.Window.Tools.EventLockPlanner;
 using KCViewer.Window.Tools.ExpChecker;
@@ -382,30 +381,6 @@ public partial class App
 			.PersistOn(nameof(System.Windows.Window.Closed))
 			.StopTrackingOn(nameof(System.Windows.Window.Closed));
 
-		// EventLockPlannerWindow extends System.Windows.Window so the config above applies to it
-		tracker
-			.Configure<EventLockPlannerWindow>()
-			.Property(w => w.ViewModel.ShowFinishedPhases)
-			.Property(w => w.ViewModel.DisplayToolTips);
-
-		tracker
-			.Configure<DialogAlbumMasterShipWpf>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<DialogAlbumMasterEquipmentWpf>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<EquipmentListWindow>()
-			.Property(w => w.ViewModel.EquipmentGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.EquipmentGridViewModel.SortDescriptions)
-			.Property(w => w.ViewModel.EquipmentGridWidth)
-			.Property(w => w.ViewModel.EquipmentDetailGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.EquipmentDetailGridViewModel.SortDescriptions);
-
 		tracker
 			.Configure<ExpeditionCheckView>()
 			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
@@ -426,76 +401,9 @@ public partial class App
 			.Property(w => w.DisplayFinished);
 
 		tracker
-			.Configure<EquipmentUpgradePlannerWindow>()
-			.Property(w => w.ViewModel.Filters.DisplayFinished)
-			.Property(w => w.ViewModel.Filters.SelectAllDay)
-			.Property(w => w.ViewModel.Filters.SelectToday)
-			.Property(w => w.ViewModel.EquipmentUpgradePlanManager.CompactMode)
-			.Property(w => w.ViewModel.PlanListWidth)
-			.Property(w => w.ViewModel.PlannedUpgradesPager.ItemsPerPage);
-
-		tracker
-			.Configure<ExpCheckerWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
 			.Configure<BaseAirCorpsSimulationContentDialog>()
 			.Property(w => w.ViewModel.MaxAircraftLevelFleet)
 			.Property(w => w.ViewModel.MaxAircraftLevelAirBase);
-
-		tracker
-			.Configure<AirDefenseWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<ConfigurationWindow>()
-			.Property(w => w.ViewModel.BGM.ColumnProperties)
-			.Property(w => w.ViewModel.BGM.SortDescriptions);
-
-		tracker
-			.Configure<ConstructionRecordViewerWindow>()
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.SortDescriptions)
-			.Property(w => w.ViewModel.DataGridMergedRowsAllViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridMergedRowsAllViewModel.SortDescriptions)
-			.Property(w => w.ViewModel.DataGridMergedRowsFilteredByShipViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridMergedRowsFilteredByShipViewModel.SortDescriptions);
-
-		tracker
-			.Configure<DevelopmentRecordViewerWindow>()
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.SortDescriptions)
-			.Property(w => w.ViewModel.DataGridMergedRowsViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridMergedRowsViewModel.SortDescriptions);
-
-		tracker
-			.Configure<DropRecordViewerWindow>()
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridRawRowsViewModel.SortDescriptions)
-			.Property(w => w.ViewModel.DataGridMergedRowsViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridMergedRowsViewModel.SortDescriptions);
-
-		tracker
-			.Configure<EventLockPlannerWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<SenkaViewerWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<SortieRecordViewerWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
-
-		tracker
-			.Configure<ExpeditionRecordViewerWindow>()
-			.Property(w => w.ViewModel.DataGridViewModel.ColumnProperties)
-			.Property(w => w.ViewModel.DataGridViewModel.SortDescriptions);
 
 		tracker
 			.Configure<SenkaLeaderboardManager>()
@@ -503,7 +411,8 @@ public partial class App
 			.Property(w => w.CurrentCutoffData.DataGridViewModel.SortDescriptions)
 			.Property(w => w.CurrentCutoffData.PagingViewModel.ItemsPerPage);
 
-		// Fork: the column settings of the KanColleViewer style record windows
+		// Fork: the column settings of the KanColleViewer style windows (their originals were removed, VIEWER-PLAN
+		// "제독업무 스타일 단일화")
 		Fork.KcvViews.KcvRecordWindows.ConfigureTracker(tracker);
 
 		return tracker;

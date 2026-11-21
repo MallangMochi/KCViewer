@@ -39,7 +39,7 @@
 			<Setter Property="Padding" Value="10 6" />
 			<Setter Property="Margin" Value="0 0 0 6" />
 		</Style>
-		<!--  based on the button style in effect (KanColleViewer's while the style is on)  -->
+		<!--  based on the button style in effect (KanColleViewer's, KcvControls.xaml)  -->
 		<Style x:Key="Preset" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
 			<Setter Property="MinWidth" Value="92" />
 			<Setter Property="Margin" Value="0 4 6 0" />

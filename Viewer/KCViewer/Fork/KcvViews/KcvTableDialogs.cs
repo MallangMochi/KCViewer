@@ -14,32 +14,20 @@ namespace KCViewer.Fork.KcvViews;
 /// Fork: the table dialogs in KanColleViewer's style (mockup 20261017-table-dialogs-v2, approved 2026-10-17 "목록에 넣고
 /// 구현"): 열 표시 설정 from the tables' menus and the ship group's, 데이터 그리드 설정 and the ship group's name (add,
 /// copy, rename, a new group of the selected ships). Each is modal over the window in front; Enter is OK and Esc is
-/// 취소. With the style off the viewer's dialogs open.
+/// 취소.
 /// </summary>
 public static class KcvTableDialogs
 {
-	/// <summary>열 표시 설정; null while the style is off (the caller opens the viewer's), else whether OK was pressed.</summary>
-	public static bool? TryShowColumnSelector(ColumnSelectorViewModel selector)
+	/// <summary>열 표시 설정; whether OK was pressed.</summary>
+	public static bool ShowColumnSelector(ColumnSelectorViewModel selector) =>
+		ShowModal(new KcvColumnSelectorWindow(new KcvColumnSelectorViewModel(selector)));
+
+	/// <summary>데이터 그리드 설정. The view model applies and undoes the changes itself.</summary>
+	public static void ShowDataGridSettings(DataGridSettingsViewModel settings) => ShowModal(new KcvDataGridSettingsWindow(settings));
+
+	/// <summary>The group's name; whether OK was pressed (closing the window is 취소).</summary>
+	public static bool ShowTextInput(TextInputViewModel input)
 	{
-		if (!KcvViewState.Current.Enabled) return null;
-
-		return ShowModal(new KcvColumnSelectorWindow(new KcvColumnSelectorViewModel(selector)));
-	}
-
-	/// <summary>데이터 그리드 설정; false while the style is off. The view model applies and undoes the changes itself.</summary>
-	public static bool TryShowDataGridSettings(DataGridSettingsViewModel settings)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		ShowModal(new KcvDataGridSettingsWindow(settings));
-		return true;
-	}
-
-	/// <summary>The group's name; null while the style is off, else whether OK was pressed (closing the window is 취소).</summary>
-	public static bool? TryShowTextInput(TextInputViewModel input)
-	{
-		if (!KcvViewState.Current.Enabled) return null;
-
 		ShowModal(new KcvTextInputWindow(input));
 		return input.DialogResult is true;
 	}

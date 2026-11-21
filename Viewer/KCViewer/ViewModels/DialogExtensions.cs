@@ -27,20 +27,8 @@ public static class DialogExtensions
 	{
 		viewModel.SelectedShip = null;
 
-		// Fork: the selector in KanColleViewer's style while the style is on
-		if (KcvCalcWindows.TryShowShipSelector(viewModel)) return viewModel.SelectedShip is not null;
-
-		ShipSelectorView view = new()
-		{
-			DataContext = viewModel,
-		};
-
-		Window.Dialog.ShipSelector.ShipSelectorWindow dialog = new(viewModel)
-		{
-			WpfAvaloniaHost = { Content = view },
-		};
-
-		dialog.ShowDialog(MainWindow);
+		// Fork: the selector in KanColleViewer's style
+		KcvCalcWindows.ShowShipSelector(viewModel);
 
 		return viewModel.SelectedShip is not null;
 	}
@@ -69,20 +57,8 @@ public static class DialogExtensions
 	{
 		viewModel.SelectedEquipment = null;
 
-		// Fork: the selector in KanColleViewer's style while the style is on
-		if (KcvCalcWindows.TryShowEquipmentSelector(viewModel)) return viewModel.SelectedEquipment is not null;
-
-		EquipmentSelectorView view = new()
-		{
-			DataContext = viewModel,
-		};
-
-		Window.Dialog.EquipmentSelector.EquipmentSelectorWindow dialog = new(viewModel)
-		{
-			WpfAvaloniaHost = { Content = view },
-		};
-
-		dialog.ShowDialog(MainWindow);
+		// Fork: the selector in KanColleViewer's style
+		KcvCalcWindows.ShowEquipmentSelector(viewModel);
 
 		return viewModel.SelectedEquipment is not null;
 	}

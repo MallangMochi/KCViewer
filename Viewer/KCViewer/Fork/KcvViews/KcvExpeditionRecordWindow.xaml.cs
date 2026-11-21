@@ -4,7 +4,7 @@ using KCViewer.Window.Tools.ExpeditionRecordViewer;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the expedition record in KanColleViewer's style (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: the expedition record in KanColleViewer's style (see the XAML), from the tools menu.</summary>
 public partial class KcvExpeditionRecordWindow
 {
 	private KcvConditionSnapshot Conditions { get; }

@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: KanColleViewer's 所属艦娘一覧 (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: KanColleViewer's 所属艦娘一覧 (see the XAML), from the tools menu.</summary>
 public partial class KcvShipListWindow
 {
 	/// <summary>

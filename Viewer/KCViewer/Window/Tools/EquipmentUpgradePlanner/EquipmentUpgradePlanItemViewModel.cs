@@ -276,8 +276,8 @@ public partial class EquipmentUpgradePlanItemViewModel : WindowViewModelBase, IE
 	{
 		EquipmentUpgradePlanItemViewModel editVm = new(Plan);
 
-		// Fork: the editor in KanColleViewer's style while the style is on (a cancel there puts the plan back)
-		if ((KcvCalcWindows.TryShowUpgradePlanEditor(editVm) ?? (new EquipmentUpgradePlanItemWindow(editVm).ShowDialog() is true)) is not true)
+		// Fork: the editor in KanColleViewer's style (a cancel there puts the plan back)
+		if (!KcvCalcWindows.ShowUpgradePlanEditor(editVm))
 		{
 			return false;
 		}

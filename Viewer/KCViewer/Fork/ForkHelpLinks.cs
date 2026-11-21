@@ -8,7 +8,7 @@ namespace KCViewer.Fork;
 /// <summary>
 /// Fork: the help menu's links lead to our repository instead of 74식's (user's decision 2026-10-22 "우리 링크로",
 /// mockup 20261022-program-update-v5 ①). As 74식 did, 「온라인 도움말」 and 「문제 보고」 ask before the browser opens
-/// (KanColleViewer's small window; the viewer's message box while the style is off) and the release page opens at once.
+/// (KanColleViewer's small window) and the release page opens at once.
 /// </summary>
 public static class ForkHelpLinks
 {
@@ -38,16 +38,8 @@ public static class ForkHelpLinks
 		return true;
 	}
 
-	private static bool Ask(System.Windows.Window owner, string title)
-	{
-		if (!KcvViewState.Current.Enabled)
-		{
-			return MessageBox.Show(owner, ForkStrings.OpenInBrowserQuestion, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes)
-				== MessageBoxResult.Yes;
-		}
-
-		return KcvUpdateDialog.Ask(owner, title, ForkStrings.OpenInBrowserQuestion, null, [ForkStrings.Yes, ForkStrings.No], 340) == 0;
-	}
+	private static bool Ask(System.Windows.Window owner, string title) =>
+		KcvUpdateDialog.Ask(owner, title, ForkStrings.OpenInBrowserQuestion, null, [ForkStrings.Yes, ForkStrings.No], 340) == 0;
 
 	/// <summary>A page in the user's browser; a failure goes to the log.</summary>
 	public static void Open(string url)

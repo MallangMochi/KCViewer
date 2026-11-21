@@ -834,7 +834,6 @@ public partial class QuestViewModel : AnchorableViewModel
 		if (SelectedQuest is null) return;
 
 		KCDatabase.Instance.QuestTrackerManagers.ManageTracker(SelectedQuest.QuestId);
-		if (Fork.KcvViews.KcvCalcWindows.TryShow(KCDatabase.Instance.QuestTrackerManagers)) return; // Fork: KanColleViewer's style while it is on
-		new QuestTrackerManagerWindow().Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvCalcWindows.Show(KCDatabase.Instance.QuestTrackerManagers); // Fork: KanColleViewer's style
 	}
 }

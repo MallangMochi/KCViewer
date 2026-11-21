@@ -65,7 +65,7 @@ public sealed class KcvShipTypeFilter(int id, string name) : ObservableObject
 /// Fork: KanColleViewer's 所属艦娘一覧 (viewer-design/kcv-reference/02-ship-list.png): the ship list with its filters
 /// (ship types with presets, level, lock, expedition, speed, remodel, modernization) and the table (ID, type, name,
 /// level, condition, firepower / torpedo / AA / armor with MAX, luck, LoS, equipment). The viewer's ship groups stay
-/// in their own panel; this is a separate window, opened from the tools menu while the style is on.
+/// in their own panel; this is a separate window, opened from the tools menu.
 /// </summary>
 public sealed partial class KcvShipListViewModel : WindowViewModelBase
 {

@@ -18,7 +18,6 @@ using KCViewer.Resource;
 using KCViewer.Utility;
 using KCViewer.ViewModels;
 using KCViewer.ViewModels.Translations;
-using KCViewer.Window.Dialog.BattleDetail;
 using KCViewer.Window.Wpf.Battle.ViewModels;
 using Color = System.Drawing.Color;
 
@@ -224,15 +223,8 @@ public partial class BattleViewModel : AnchorableViewModel
 
 		if (bm == null || bm.BattleMode == BattleManager.BattleModes.Undefined) return;
 
-		// Fork: the battle detail in KanColleViewer's style while the style is on
-		if (Fork.KcvViews.KcvBattleDetailWindows.TryShow(bm)) return;
-
-		BattleDetailView dialog = new(new BattleDetailViewModel
-		{
-			BattleDetailText = BattleDetailDescriptor.GetBattleDetail(bm),
-		});
-
-		dialog.Show(App.Current!.MainWindow!);
+		// Fork: the battle detail in KanColleViewer's style
+		Fork.KcvViews.KcvBattleDetailWindows.Show(bm);
 	}
 
 	[RelayCommand]

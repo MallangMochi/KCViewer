@@ -130,9 +130,8 @@ public partial class DialogAlbumMasterShipViewModel : WindowViewModelBase
 	[RelayCommand]
 	private void OpenShipEncyclopedia(IShipDataMaster? ship)
 	{
-		if (ship is null) return;
-
-		new DialogAlbumMasterShipWpf(ship).Show(App.Current.MainWindow);
+		// Fork: the albums in KanColleViewer's style
+		Fork.KcvViews.KcvAlbums.ShowShip(ship);
 	}
 
 	[RelayCommand]
@@ -140,7 +139,7 @@ public partial class DialogAlbumMasterShipViewModel : WindowViewModelBase
 	{
 		if (equip is null) return;
 
-		new DialogAlbumMasterEquipmentWpf(equip.ID).Show(App.Current.MainWindow);
+		Fork.KcvViews.KcvAlbums.ShowEquipment(equip.ID);
 	}
 
 
@@ -411,13 +410,8 @@ public partial class DialogAlbumMasterShipViewModel : WindowViewModelBase
 			return;
 		}
 
-		// Fork: 수치 편집 in KanColleViewer's style while the style is on
-		if (Fork.KcvViews.KcvShipAlbumTools.TryShowParameterEditor(SelectedShip.Ship.ShipID, () => OnPropertyChanged(nameof(SelectedShip)))) return;
-
-		using DialogAlbumShipParameter dialog = new(SelectedShip.Ship.ShipID);
-
-		dialog.ShowDialog(App.Current.MainWindow);
-		OnPropertyChanged(nameof(SelectedShip));
+		// Fork: 수치 편집 in KanColleViewer's style
+		Fork.KcvViews.KcvShipAlbumTools.ShowParameterEditor(SelectedShip.Ship.ShipID, () => OnPropertyChanged(nameof(SelectedShip)));
 	}
 
 	[RelayCommand]
@@ -688,10 +682,8 @@ public partial class DialogAlbumMasterShipViewModel : WindowViewModelBase
 	{
 		if (SelectedShip is not null)
 		{
-			// Fork: 이미지 뷰어 in KanColleViewer's style while the style is on
-			if (Fork.KcvViews.KcvShipAlbumTools.TryShowImageViewer(SelectedShip.Ship.ShipID)) return;
-
-			new DialogShipGraphicViewer(SelectedShip.Ship.ShipID).Show(App.Current.MainWindow);
+			// Fork: 이미지 뷰어 in KanColleViewer's style
+			Fork.KcvViews.KcvShipAlbumTools.ShowImageViewer(SelectedShip.Ship.ShipID);
 		}
 		else
 		{

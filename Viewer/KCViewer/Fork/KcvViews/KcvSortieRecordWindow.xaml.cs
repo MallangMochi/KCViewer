@@ -8,7 +8,7 @@ using KCViewer.Window.Tools.SortieRecordViewer;
 
 namespace KCViewer.Fork.KcvViews;
 
-/// <summary>Fork: the sortie record in KanColleViewer's style (see the XAML), from the tools menu while the style is on.</summary>
+/// <summary>Fork: the sortie record in KanColleViewer's style (see the XAML), from the tools menu.</summary>
 public partial class KcvSortieRecordWindow
 {
 	private KcvSortieRoutes Routes { get; }

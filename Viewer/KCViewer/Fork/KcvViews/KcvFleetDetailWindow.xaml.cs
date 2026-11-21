@@ -5,7 +5,7 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: KanColleViewer's 艦隊詳細 (see the XAML). One window: opening it again selects the fleet and brings it to
-/// the front. Opened from the fleet panel's button and from the tools menu while the style is on.
+/// the front. Opened from the fleet panel's button and from the tools menu.
 /// </summary>
 public partial class KcvFleetDetailWindow
 {

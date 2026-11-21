@@ -268,14 +268,9 @@ public static class KcvFollowColumns
 	}
 }
 
-/// <summary>Where the sortie record opens 출격 코스트; true when the window in KanColleViewer's style opened instead.</summary>
+/// <summary>Where the sortie record opens 출격 코스트: the window in KanColleViewer's style.</summary>
 public static class KcvSortieCostWindows
 {
-	public static bool TryShow(SortieCostViewerViewModel cost, IReadOnlyList<SortieRecordViewModel> sorties)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
+	public static void Show(SortieCostViewerViewModel cost, IReadOnlyList<SortieRecordViewModel> sorties) =>
 		new KcvSortieCostWindow(new KcvSortieCostViewModel(cost, sorties)).Show();
-		return true;
-	}
 }

@@ -12,31 +12,25 @@ namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
 /// Fork: the ship album's 수치 편집 and 이미지 뷰어 in KanColleViewer's style (mockup 20261017-album-ship-tools-v2,
-/// approved 2026-10-18 "구현"), opened from the album's menus while the style is on; otherwise the viewer's WinForms ones.
+/// approved 2026-10-18 "구현"), opened from the album's menus in place of the viewer's WinForms ones.
 /// </summary>
 public static class KcvShipAlbumTools
 {
-	/// <summary>수치 편집, modal over the album; false while the style is off. <paramref name="edited"/> runs after OK.</summary>
-	public static bool TryShowParameterEditor(int shipId, Action edited)
+	/// <summary>수치 편집, modal over the album. <paramref name="edited"/> runs after OK.</summary>
+	public static void ShowParameterEditor(int shipId, Action edited)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		KcvShipParameterWindow window = new(new KcvShipParameterViewModel(shipId));
 		if (KcvCalcWindows.FrontWindow() is { } owner) window.Owner = owner;
 
 		if (window.ShowDialog() is true) edited();
-		return true;
 	}
 
-	/// <summary>이미지 뷰어 of the ship and its costume ships; false while the style is off.</summary>
-	public static bool TryShowImageViewer(int shipId)
+	/// <summary>이미지 뷰어 of the ship and its costume ships.</summary>
+	public static void ShowImageViewer(int shipId)
 	{
-		if (!KcvViewState.Current.Enabled) return false;
-
 		KcvShipImageViewerWindow window = new(new KcvShipImageViewerViewModel());
 		window.Show();
 		window.OpenShip(shipId);
-		return true;
 	}
 }
 

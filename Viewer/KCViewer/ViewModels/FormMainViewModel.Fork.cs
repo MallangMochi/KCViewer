@@ -86,29 +86,15 @@ public partial class FormMainViewModel
 		}
 	}
 
-	public string ForkKcvStyleMenuHeader => ForkStrings.WithKey(ForkStrings.KcvStyle, 'K');
-	public string ForkKcvStyleEnabledHeader => ForkStrings.WithKey(ForkStrings.KcvStyleEnabled, 'U');
 	public string ForkThemeLightHeader => ForkStrings.WithKey(ForkStrings.ThemeLight, 'L');
 	public string ForkThemeDarkHeader => ForkStrings.WithKey(ForkStrings.ThemeDark, 'D');
+	public string ForkKcvAccentMenuHeader => ForkStrings.WithKey(ForkStrings.AccentMenu, 'A');
 	public string ForkKcvAccentPurpleHeader => ForkStrings.WithKey(ForkStrings.AccentPurple, 'P');
 	public string ForkKcvAccentBlueHeader => ForkStrings.WithKey(ForkStrings.AccentBlue, 'B');
 	public string ForkKcvAccentOrangeHeader => ForkStrings.WithKey(ForkStrings.AccentOrange, 'O');
 
-	/// <summary>KanColleViewer's look (Fork/KcvStyle.cs). On by default; saved in Settings\Fork.json.</summary>
-	public bool ForkKcvStyleEnabled
-	{
-		get => ForkSettings.Current.KcvStyle.Enabled;
-		set
-		{
-			if (value == ForkSettings.Current.KcvStyle.Enabled) return;
-
-			ForkSettings.Current.KcvStyle.Enabled = value;
-			ForkSettings.Current.Save();
-			ApplyForkConfiguration();
-		}
-	}
-
-	// a click on the checked item (false) changes nothing; the menu reads the state back so it stays checked
+	// KanColleViewer's look (Fork/KcvStyle.cs) is the viewer's only one; its accent is saved in Settings\Fork.json.
+	// A click on the checked item (false) changes nothing; the menu reads the state back so it stays checked.
 	public bool ForkKcvAccentPurple { get => IsForkAccent(KcvAccent.Purple); set { SetForkAccent(KcvAccent.Purple, value); OnPropertyChanged(); } }
 	public bool ForkKcvAccentBlue { get => IsForkAccent(KcvAccent.Blue); set { SetForkAccent(KcvAccent.Blue, value); OnPropertyChanged(); } }
 	public bool ForkKcvAccentOrange { get => IsForkAccent(KcvAccent.Orange); set { SetForkAccent(KcvAccent.Orange, value); OnPropertyChanged(); } }
@@ -117,12 +103,8 @@ public partial class FormMainViewModel
 	public bool ForkThemeLight { get => Config.UI.ThemeMode == 0; set { SetForkThemeMode(0, value); OnPropertyChanged(); } }
 	public bool ForkThemeDark { get => Config.UI.ThemeMode == 1; set { SetForkThemeMode(1, value); OnPropertyChanged(); } }
 
-	/// <summary>The status bar takes the accent colour, as KanColleViewer's does (style trigger in FormMainWpf.xaml).</summary>
-	public bool ForkKcvStatusBarActive => ForkSettings.Current.KcvStyle.Enabled;
+	/// <summary>The status bar takes the accent colour, as KanColleViewer's does (status bar style in FormMainWpf.xaml).</summary>
 	public Brush? ForkKcvAccentBrush { get; private set; }
-
-	private Color? ForkOriginalAccentColor { get; set; }
-	private bool ForkOriginalAccentColorSaved { get; set; }
 
 	private bool IsForkAccent(KcvAccent accent) => ForkSettings.Current.KcvStyle.AccentValue == accent;
 
@@ -149,7 +131,7 @@ public partial class FormMainViewModel
 		Configuration.Instance.OnConfigurationChanged();
 		foreach (string name in new[]
 		{
-			nameof(ForkKcvStyleEnabled), nameof(ForkKcvAccentPurple), nameof(ForkKcvAccentBlue), nameof(ForkKcvAccentOrange),
+			nameof(ForkKcvAccentPurple), nameof(ForkKcvAccentBlue), nameof(ForkKcvAccentOrange),
 			nameof(ForkThemeLight), nameof(ForkThemeDark),
 		})
 		{
@@ -160,41 +142,25 @@ public partial class FormMainViewModel
 	/// <summary>Called at the end of SetTheme, after the viewer applied its own theme.</summary>
 	private void ApplyForkTheme()
 	{
-		if (!ForkOriginalAccentColorSaved)
-		{
-			ForkOriginalAccentColor = ModernWpf.ThemeManager.Current.AccentColor;
-			ForkOriginalAccentColorSaved = true;
-		}
+		KcvAccent accentValue = ForkSettings.Current.KcvStyle.AccentValue;
+		bool dark = Config.UI.ThemeMode != 0;
+		KcvStyle.AccentColors colors = KcvStyle.ColorsOf(accentValue);
+		CurrentTheme = KcvStyle.DockTheme(dark, accentValue);
+		ModernWpf.ThemeManager.Current.AccentColor = colors.Accent;
+		SolidColorBrush accent = new(colors.Accent);
+		accent.Freeze();
+		ForkKcvAccentBrush = accent;
+		if (Window is not null) KcvStyle.ApplyWindow(Window, dark, colors);
 
-		ForkSettings.KcvStyleSettings style = ForkSettings.Current.KcvStyle;
-		if (style.Enabled)
-		{
-			bool dark = Config.UI.ThemeMode != 0;
-			KcvStyle.AccentColors colors = KcvStyle.ColorsOf(style.AccentValue);
-			CurrentTheme = KcvStyle.DockTheme(dark, style.AccentValue);
-			ModernWpf.ThemeManager.Current.AccentColor = colors.Accent;
-			SolidColorBrush accent = new(colors.Accent);
-			accent.Freeze();
-			ForkKcvAccentBrush = accent;
-			if (Window is not null) KcvStyle.ApplyWindow(Window, dark, colors);
-		}
-		else
-		{
-			ModernWpf.ThemeManager.Current.AccentColor = ForkOriginalAccentColor;
-			ForkKcvAccentBrush = null;
-			if (Window is not null) KcvStyle.RestoreWindow(Window);
-		}
+		// The panels drawn as KanColleViewer's (Fork/KcvViews).
+		KcvPanels.Apply(dark, colors);
 
-		// The panels drawn as KanColleViewer's follow the same switch (Fork/KcvViews).
-		KcvPanels.Apply(style.Enabled, Config.UI.ThemeMode != 0, KcvStyle.ColorsOf(style.AccentValue));
-
-		OnPropertyChanged(nameof(ForkKcvStatusBarActive));
 		OnPropertyChanged(nameof(ForkKcvAccentBrush));
 	}
 
 	public string ForkShipListMenuHeader => ForkStrings.KcvShipList;
 
-	/// <summary>KanColleViewer's 所属艦娘一覧 (Fork/KcvViews); the menu item shows while the style is on.</summary>
+	/// <summary>KanColleViewer's 所属艦娘一覧 (Fork/KcvViews), from the tools menu.</summary>
 	[RelayCommand]
 	private void ForkOpenShipList() => new KcvShipListWindow().Show(Window);
 
@@ -210,7 +176,7 @@ public partial class FormMainViewModel
 
 	public string ForkScreenshotMenuHeader => ForkStrings.ScreenshotMenu;
 
-	/// <summary>The screenshot panel, one button to place anywhere (Fork/ForkScreenshotPanelViewModel.cs), whatever the style.</summary>
+	/// <summary>The screenshot panel, one button to place anywhere (Fork/ForkScreenshotPanelViewModel.cs).</summary>
 	public ForkScreenshotPanelViewModel? ForkScreenshotPanel { get; private set; }
 
 	public string ForkFleetDetailMenuHeader => ForkStrings.KcvFleetDetail;
@@ -237,62 +203,34 @@ public partial class FormMainViewModel
 	[RelayCommand]
 	private void ForkOpenMapHp() => KcvMapHpWindow.Open(Window);
 
-	/// <summary>With the KanColleViewer style on, the equipment list opens as its 所有装備一覧 (Fork/KcvViews).</summary>
-	private bool ForkOpenEquipmentList()
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		new KcvEquipmentListWindow().Show(Window);
-		return true;
-	}
+	/// <summary>The equipment list opens as KanColleViewer's 所有装備一覧 (Fork/KcvViews).</summary>
+	private void ForkOpenEquipmentList() => new KcvEquipmentListWindow().Show(Window);
 
 	/// <summary>
-	/// With the KanColleViewer style on, the upgrade planner opens in its style (Fork/KcvViews), with the viewer's view
-	/// model. Without equipment data the viewer's own method shows its message.
+	/// The record windows of the tools menu open in KanColleViewer's style (Fork/KcvViews/KcvRecord*, VIEWER-PLAN.md
+	/// "기록 묶음 구현") with the viewer's view models; the viewer's checks (master data, empty records) come first.
 	/// </summary>
-	private bool ForkOpenEquipmentUpgradePlanner()
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-		if (!KCDatabase.Instance.Equipments.Any()) return false;
+	private void ForkOpenSortieRecord() => new KcvSortieRecordWindow().Show(Window);
 
-		new KcvEquipmentUpgradePlannerWindow(new()).Show(Window);
-		return true;
-	}
+	private void ForkOpenExpeditionRecord() => new KcvExpeditionRecordWindow().Show(Window);
+
+	private void ForkOpenDropRecord() => new KcvDropRecordWindow().Show(Window);
+
+	private void ForkOpenDevelopmentRecord() => new KcvDevelopmentRecordWindow().Show(Window);
+
+	private void ForkOpenConstructionRecord() => new KcvConstructionRecordWindow().Show(Window);
+
+	private void ForkOpenResourceChart() => new KcvResourceChartWindow().Show(Window);
+
+	private void ForkOpenSenkaViewer() => new KcvSenkaViewerWindow().Show(Window);
 
 	/// <summary>
-	/// With the KanColleViewer style on, the record windows of the tools menu open in its style (Fork/KcvViews/KcvRecord*,
-	/// VIEWER-PLAN.md "기록 묶음 구현") with the viewer's view models; the viewer's checks (master data, empty records)
-	/// come first.
+	/// The ship and equipment albums open in KanColleViewer's style (Fork/KcvViews/KcvAlbum*, VIEWER-PLAN.md "도감 묶음")
+	/// with the viewer's view models; the viewer's master data checks come first.
 	/// </summary>
-	private bool ForkOpenSortieRecord() => ForkOpenRecordWindow(() => new KcvSortieRecordWindow());
+	private void ForkOpenAlbumMasterShip() => new KcvAlbumShipWindow().Show(Window);
 
-	private bool ForkOpenExpeditionRecord() => ForkOpenRecordWindow(() => new KcvExpeditionRecordWindow());
-
-	private bool ForkOpenDropRecord() => ForkOpenRecordWindow(() => new KcvDropRecordWindow());
-
-	private bool ForkOpenDevelopmentRecord() => ForkOpenRecordWindow(() => new KcvDevelopmentRecordWindow());
-
-	private bool ForkOpenConstructionRecord() => ForkOpenRecordWindow(() => new KcvConstructionRecordWindow());
-
-	private bool ForkOpenResourceChart() => ForkOpenRecordWindow(() => new KcvResourceChartWindow());
-
-	private bool ForkOpenSenkaViewer() => ForkOpenRecordWindow(() => new KcvSenkaViewerWindow());
-
-	/// <summary>
-	/// With the KanColleViewer style on, the ship and equipment albums open in its style (Fork/KcvViews/KcvAlbum*,
-	/// VIEWER-PLAN.md "도감 묶음") with the viewer's view models; the viewer's master data checks come first.
-	/// </summary>
-	private bool ForkOpenAlbumMasterShip() => ForkOpenRecordWindow(() => new KcvAlbumShipWindow());
-
-	private bool ForkOpenAlbumMasterEquipment() => ForkOpenRecordWindow(() => new KcvAlbumEquipmentWindow());
-
-	private bool ForkOpenRecordWindow(Func<System.Windows.Window> create)
-	{
-		if (!KcvViewState.Current.Enabled) return false;
-
-		create().Show(Window);
-		return true;
-	}
+	private void ForkOpenAlbumMasterEquipment() => new KcvAlbumEquipmentWindow().Show(Window);
 
 	/// <summary>The browser then asks for its configuration and the skin folder again (BrowserViewModel.ConfigurationChanged).</summary>
 	private static void NotifyBrowserOfLocalSkin()
@@ -332,7 +270,7 @@ public partial class FormMainViewModel
 		// Which maps are open (the last map list), for the MapHP window, which may be opened after that answer.
 		KcvMapHpTracker.Install();
 
-		// KanColleViewer's font on these panels while its style is on; their layout stays the viewer's.
+		// KanColleViewer's font on these panels; their layout stays the viewer's.
 		KcvPanelFonts.Follow(ExpeditionCheck);
 		KcvPanelFonts.Follow(SenkaLeaderboardViewer);
 

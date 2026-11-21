@@ -16,10 +16,10 @@ using MediaColor = System.Windows.Media.Color;
 namespace KCViewer.Fork.KcvViews;
 
 /// <summary>
-/// Fork: KanColleViewer's colours for the viewer's WinForms windows (the dialogs and the WinForms docking panels)
-/// while the style is on, like the WPF windows get them from the common control styles. WinForms has no styles, so a
-/// window event hook (EVENT_OBJECT_SHOW) finds each WinForms control as it is shown and its colours are set one by
-/// one; what was replaced is kept and put back when the style is turned off. Menus and tool strips take a renderer of
+/// Fork: KanColleViewer's colours for the viewer's WinForms windows (the dialogs and the WinForms docking panels),
+/// like the WPF windows get them from the common control styles. WinForms has no styles, so a window event hook
+/// (EVENT_OBJECT_SHOW) finds each WinForms control as it is shown and its colours are set one by one; what was
+/// replaced is kept and put back before a theme change sets the new colours. Menus and tool strips take a renderer of
 /// the same colours (ToolStripManager.Renderer), and the caption of a dialog the window colour (DWM, Windows 11).
 /// </summary>
 public static class KcvWinForms
@@ -74,30 +74,28 @@ public static class KcvWinForms
 	}
 
 	/// <summary>Called with every theme change (<see cref="KcvPanels.Apply"/>).</summary>
-	public static void Apply(bool enabled, bool dark, MediaColor accent)
+	public static void Apply(bool dark, MediaColor accent)
 	{
-		Scheme? scheme = enabled ? Scheme.Of(dark, Color.FromArgb(accent.R, accent.G, accent.B)) : null;
+		Scheme scheme = Scheme.Of(dark, Color.FromArgb(accent.R, accent.G, accent.B));
 		if (scheme == Current) return;
 
 		Current = scheme;
-		ToolStripManager.Renderer = scheme is null ? null : new KcvToolStripRenderer(scheme);
+		ToolStripManager.Renderer = new KcvToolStripRenderer(scheme);
 
-		// Windows opened while the style was off are themed now.
-		if (scheme is not null)
+		// Windows opened before the first theme are themed now.
+		foreach (Form form in System.Windows.Forms.Application.OpenForms.Cast<Form>().ToList())
 		{
-			foreach (Form form in System.Windows.Forms.Application.OpenForms.Cast<Form>().ToList())
-			{
-				if (IsThemed(form)) Track(form);
-			}
+			if (IsThemed(form)) Track(form);
 		}
 
+		// Each window back to its own colours, then in the new ones.
 		Forms.RemoveAll(reference => !reference.TryGetTarget(out Form? form) || form.IsDisposed);
 		foreach (WeakReference<Form> reference in Forms)
 		{
 			if (!reference.TryGetTarget(out Form? form)) continue;
 
 			RestoreTree(form);
-			if (scheme is not null) ThemeTree(form, scheme);
+			ThemeTree(form, scheme);
 		}
 	}
 
