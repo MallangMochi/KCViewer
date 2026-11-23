@@ -370,7 +370,9 @@ public partial class BattleViewModel : AnchorableViewModel
 					SetAerialWarfare(battle.JetAirBattle, battle.AirBattle);
 				}
 
-				SetHPBar(bm.BattleDay);
+				// Fork: the battle itself, as ec_night_to_day below; the battle manager keeps night_to_day in BattleNight
+				// and BattleDay is null since map/next, so the panel threw here (found 2026-11-23)
+				SetHPBar(battle);
 				SetDamageRate(bm);
 
 				// BaseLayoutPanel.Visible = !hideDuringBattle;
