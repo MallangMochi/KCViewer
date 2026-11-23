@@ -23,6 +23,18 @@ public static partial class ForkStrings
 	public static string KcvBattleHpBeforeAfter => T("HP 전 → 후", "HP 前 → 後", "HP before → after");
 	public static string KcvBattleDamageTaken => T("받은 피해", "被ダメージ", "Damage taken");
 
+	// The support fleet's attack in the battle panel's friendly fleet header tooltip (mockup 20261123-support-fleet-v3):
+	// the title 「지원 공격 · 포격 지원」 and the totals 「총 피해 56 · 적 HP의 32.5%」 (the number in bold between the two)
+	public static string KcvSupportTitle(string? kind) => kind is null
+		? T("지원 공격", "支援攻撃", "Support attack")
+		: T($"지원 공격 · {kind}", $"支援攻撃 · {kind}", $"Support attack · {kind}");
+	public static string KcvSupportAir => T("항공 지원", "航空支援", "Aerial support");
+	public static string KcvSupportShelling => T("포격 지원", "支援射撃", "Shelling support");
+	public static string KcvSupportTorpedo => T("뇌격 지원", "支援長距離雷撃", "Torpedo support");
+	public static string KcvSupportAntiSubmarine => T("대잠 지원", "対潜支援哨戒", "Anti-submarine support");
+	public static string KcvSupportTotalDamage => T("총 피해 ", "総ダメージ ", "Total damage ");
+	public static string KcvSupportEnemyRate(string rate) => T($" · 적 HP의 {rate}", $" · 敵HPの{rate}", $" · {rate} of the enemy's HP");
+
 	/// <summary>The battle could not be read again as the sortie record reads it, so the box shows the viewer's text.</summary>
 	public static string KcvBattleDetailFallback => T(
 		"이 전투는 표로 나누어 읽지 못해 74식 글 그대로 보여 줍니다.",

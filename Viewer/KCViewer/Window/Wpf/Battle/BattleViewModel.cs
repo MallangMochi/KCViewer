@@ -1220,6 +1220,9 @@ public partial class BattleViewModel : AnchorableViewModel
 
 			support ??= bd.Support;
 
+			// Fork: the support's lines and totals for the KanColleViewer panel's tooltip (mockup 20261123-support-fleet-v3)
+			ForkSupportTip = Fork.KcvViews.KcvSupportTip.Of(bd, support);
+
 			if (support?.IsAvailable ?? false)
 			{
 				FleetFriendIcon = support.SupportFlag switch

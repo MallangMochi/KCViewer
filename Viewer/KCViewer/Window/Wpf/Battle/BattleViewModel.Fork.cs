@@ -127,6 +127,12 @@ public partial class BattleViewModel
 	public bool ForkFriendCombined { get; private set; }
 	public bool ForkEnemyCombined { get; private set; }
 
+	/// <summary>
+	/// The support fleet's attack for the friendly fleet header's tooltip (mockup 20261123-support-fleet-v3); null
+	/// without one. Set in SetHPBar with the viewer's own FleetFriendIcon (the header's icon).
+	/// </summary>
+	public KcvSupportTip? ForkSupportTip { get; private set; }
+
 	private void ForkSetBattle(BattleData bd)
 	{
 		// a new battle (or its next phase) before its result: no drop box
