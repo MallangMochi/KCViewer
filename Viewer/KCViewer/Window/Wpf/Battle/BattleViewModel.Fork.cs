@@ -27,7 +27,8 @@ public enum ForkDropState
 
 /// <summary>
 /// Fork: what the KanColleViewer battle panel (Fork/KcvViews/KcvBattleView.xaml) shows beyond the viewer's own:
-/// the battle's name and time, and each bar's ship name and type. Called at the start of SetHPBar.
+/// the battle's name and time, and each bar's ship name and type and whether it took part in a special attack. Called
+/// at the start of SetHPBar.
 /// </summary>
 public partial class BattleViewModel
 {
@@ -134,6 +135,18 @@ public partial class BattleViewModel
 
 		ForkBattleName = bd.BattleName;
 		ForkBattleTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+		// The ships in a special attack (mockup 20261123-special-attack-v2): a night battle after a day battle keeps
+		// the day's, as the panel shows the one battle of the cell
+		BattleManager bm = KCDatabase.Instance.Battle;
+		ForkSpecialAttacks.Result special = bd.IsBaseAirRaid ? ForkSpecialAttacks.Result.None
+			: ReferenceEquals(bd, bm.SecondBattle) ? ForkSpecialAttacks.Find(bm.FirstBattle, bd)
+			: ForkSpecialAttacks.Find(bd);
+
+		for (int i = 0; i < HPBars.Count; i++)
+		{
+			HPBars[i].ForkSpecialAttack = special.Ships.Contains(i);
+		}
 
 		var initial = bd.Initial;
 		List<HealthBarViewModel> friendMain = [];

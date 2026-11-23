@@ -28,12 +28,13 @@
 	<UserControl.Resources>
 		<!--
 			One ship: name (with MVP or 退避 on the right) and type, HP: now/max and the gauge. The viewer's row colours
-			become a mark (MVP, escaped) or dimmed text (sunk, escaped); only the boss-damaged colour stays.
+			become a mark (MVP, escaped) or dimmed text (sunk, escaped); only the boss-damaged colour stays. A ship in a
+			special attack of this battle gets a gold line on the left and a pale gold row (mockup
+			20261123-special-attack-v2); the attack shows in the row's tooltip, the viewer's battle lines.
 		-->
 		<DataTemplate x:Key="ShipRow" DataType="{x:Type battleViewModels:HealthBarViewModel}">
 			<Border
 				x:Name="Row"
-				Padding="0 4 0 5"
 				Background="Transparent"
 				BorderBrush="{DynamicResource Kcv.Separator}"
 				BorderThickness="0 0 0 1"
@@ -41,116 +42,131 @@
 				Visibility="{Binding Visibility}"
 				>
 				<Grid>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*" />
-						<ColumnDefinition Width="Auto" />
-					</Grid.ColumnDefinitions>
+					<Rectangle
+						x:Name="SpecialLine"
+						Width="3"
+						HorizontalAlignment="Left"
+						Fill="{DynamicResource Kcv.SpecialAttack}"
+						Visibility="Collapsed"
+						/>
+					<Grid x:Name="Body" Margin="0 4 0 5">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
 
-					<StackPanel Grid.Column="0" VerticalAlignment="Center">
-						<DockPanel>
-							<!--  A badge like KanColleViewer's 成功 in the arsenal tab  -->
-							<Border
-								x:Name="MarkBox"
-								Margin="6 0 0 0"
-								Padding="4 0"
-								VerticalAlignment="Center"
-								Background="{DynamicResource Kcv.Accent}"
-								DockPanel.Dock="Right"
-								Visibility="Collapsed"
-								>
+						<StackPanel Grid.Column="0" VerticalAlignment="Center">
+							<DockPanel>
+								<!--  A badge like KanColleViewer's 成功 in the arsenal tab  -->
+								<Border
+									x:Name="MarkBox"
+									Margin="6 0 0 0"
+									Padding="4 0"
+									VerticalAlignment="Center"
+									Background="{DynamicResource Kcv.Accent}"
+									DockPanel.Dock="Right"
+									Visibility="Collapsed"
+									>
+									<TextBlock
+										x:Name="Mark"
+										FontSize="10"
+										Foreground="White"
+										/>
+								</Border>
 								<TextBlock
-									x:Name="Mark"
-									FontSize="10"
-									Foreground="White"
+									x:Name="Name"
+									FontSize="15"
+									Foreground="{DynamicResource Kcv.Foreground}"
+									Text="{Binding ShipName}"
+									TextTrimming="CharacterEllipsis"
 									/>
-							</Border>
+							</DockPanel>
 							<TextBlock
-								x:Name="Name"
-								FontSize="15"
-								Foreground="{DynamicResource Kcv.Foreground}"
-								Text="{Binding ShipName}"
+								FontSize="10"
+								Foreground="{DynamicResource Kcv.SubForeground}"
+								Text="{Binding ShipTypeName}"
 								TextTrimming="CharacterEllipsis"
 								/>
-						</DockPanel>
-						<TextBlock
-							FontSize="10"
-							Foreground="{DynamicResource Kcv.SubForeground}"
-							Text="{Binding ShipTypeName}"
-							TextTrimming="CharacterEllipsis"
-							/>
-					</StackPanel>
+						</StackPanel>
 
-					<StackPanel
-						Grid.Column="1"
-						Margin="8 0 0 0"
-						VerticalAlignment="Center"
-						>
-						<TextBlock HorizontalAlignment="Right">
-							<Run
-								x:Name="HpLabel"
-								FontSize="11"
-								Foreground="{DynamicResource Kcv.SubForeground}"
-								Text="HP:"
-								/>
-							<Run
-								x:Name="Hp"
-								FontSize="15"
-								Foreground="{DynamicResource Kcv.Foreground}"
-								Text="{Binding Value, Mode=OneWay}"
-								/>
-							<Run
-								FontSize="11"
-								Foreground="{DynamicResource Kcv.SubForeground}"
-								Text="/"
-								/>
-							<Run
-								FontSize="11"
-								Foreground="{DynamicResource Kcv.SubForeground}"
-								Text="{Binding MaximumValue, Mode=OneWay}"
-								/>
-						</TextBlock>
-						<!--
-							The gauge with the HP lost in this battle (mockup 20261013-battle-hp-damage-v5): the part
-							lost in light grey behind the gauge, and the number of it in the middle, over the gauge,
-							which keeps its size
-						-->
-						<Grid
-							x:Name="Gauge"
-							Width="80"
-							Margin="0 2 0 0"
-							HorizontalAlignment="Right"
+						<StackPanel
+							Grid.Column="1"
+							Margin="8 0 0 0"
+							VerticalAlignment="Center"
 							>
-							<ProgressBar
-								Foreground="{DynamicResource Kcv.GaugeLost}"
-								Maximum="{Binding MaximumValue}"
-								Style="{StaticResource Kcv.Gauge}"
-								Value="{Binding PrevValue, Mode=OneWay}"
-								/>
-							<ProgressBar
-								Background="Transparent"
-								Maximum="{Binding MaximumValue}"
-								Style="{StaticResource Kcv.Gauge}"
-								Value="{Binding Value, Mode=OneWay}"
+							<TextBlock HorizontalAlignment="Right">
+								<Run
+									x:Name="HpLabel"
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.SubForeground}"
+									Text="HP:"
+									/>
+								<Run
+									x:Name="Hp"
+									FontSize="15"
+									Foreground="{DynamicResource Kcv.Foreground}"
+									Text="{Binding Value, Mode=OneWay}"
+									/>
+								<Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.SubForeground}"
+									Text="/"
+									/>
+								<Run
+									FontSize="11"
+									Foreground="{DynamicResource Kcv.SubForeground}"
+									Text="{Binding MaximumValue, Mode=OneWay}"
+									/>
+							</TextBlock>
+							<!--
+								The gauge with the HP lost in this battle (mockup 20261013-battle-hp-damage-v5): the part
+								lost in light grey behind the gauge, and the number of it in the middle, over the gauge,
+								which keeps its size
+							-->
+							<Grid
+								x:Name="Gauge"
+								Width="80"
+								Margin="0 2 0 0"
+								HorizontalAlignment="Right"
 								>
-								<ProgressBar.Foreground>
-									<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
-										<Binding Path="Value" />
-										<Binding Path="MaximumValue" />
-									</MultiBinding>
-								</ProgressBar.Foreground>
-							</ProgressBar>
-							<kcv:KcvOutlinedText
-								Fill="{DynamicResource Kcv.GaugeDamageText}"
-								FontFamily="{DynamicResource Kcv.FontFamily}"
-								FontSize="10"
-								Outline="{DynamicResource Kcv.GaugeDamageOutline}"
-								Text="{Binding ForkDamageText}"
-								/>
-						</Grid>
-					</StackPanel>
+								<ProgressBar
+									Foreground="{DynamicResource Kcv.GaugeLost}"
+									Maximum="{Binding MaximumValue}"
+									Style="{StaticResource Kcv.Gauge}"
+									Value="{Binding PrevValue, Mode=OneWay}"
+									/>
+								<ProgressBar
+									Background="Transparent"
+									Maximum="{Binding MaximumValue}"
+									Style="{StaticResource Kcv.Gauge}"
+									Value="{Binding Value, Mode=OneWay}"
+									>
+									<ProgressBar.Foreground>
+										<MultiBinding Converter="{StaticResource Kcv.GaugeBrush}">
+											<Binding Path="Value" />
+											<Binding Path="MaximumValue" />
+										</MultiBinding>
+									</ProgressBar.Foreground>
+								</ProgressBar>
+								<kcv:KcvOutlinedText
+									Fill="{DynamicResource Kcv.GaugeDamageText}"
+									FontFamily="{DynamicResource Kcv.FontFamily}"
+									FontSize="10"
+									Outline="{DynamicResource Kcv.GaugeDamageOutline}"
+									Text="{Binding ForkDamageText}"
+									/>
+							</Grid>
+						</StackPanel>
+					</Grid>
 				</Grid>
 			</Border>
 			<DataTemplate.Triggers>
+				<!--  In a special attack: the gold line, the pale gold row, the body clear of the line  -->
+				<DataTrigger Binding="{Binding ForkSpecialAttack}" Value="True">
+					<Setter TargetName="Row" Property="Background" Value="{DynamicResource Kcv.SpecialAttackRow}" />
+					<Setter TargetName="SpecialLine" Property="Visibility" Value="Visible" />
+					<Setter TargetName="Body" Property="Margin" Value="7 4 0 5" />
+				</DataTrigger>
 				<DataTrigger Value="MVP">
 					<DataTrigger.Binding>
 						<MultiBinding Converter="{StaticResource Kcv.BattleState}">

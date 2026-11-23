@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KCViewer.Core.Types;
 using KCViewer.Data;
+using KCViewer.Data.Battle;
 using KCViewer.Fork;
 using KCViewer.Fork.KcvViews;
 using KCViewer.Observer;
@@ -15,7 +16,8 @@ namespace KCViewer.Window.Wpf.Compass;
 /// beyond the viewer's own texts: the map number and name, the next cell as its letter (the cell number in the
 /// tooltip), the cells passed in this sortie, the enemy fleets as lists. The cell, its kind and the route are
 /// coloured by the kind of cell as the sortie record's route (mockup 20261005-compass-route-v4, user decisions
-/// 2026-10-05). Called at the end of <see cref="Updated"/> and when a battle starts.
+/// 2026-10-05). The cells of a special attack get a gold ring on the route and on the cell (mockup
+/// 20261123-special-attack-v2). Called at the end of <see cref="Updated"/> and when a battle starts.
 /// </summary>
 public partial class CompassViewModel
 {
@@ -43,6 +45,15 @@ public partial class CompassViewModel
 	/// <summary>The kind of the cell, for the colour of its letter and of the kind of cell (Kcv.Node).</summary>
 	public KcvNodeKind ForkCellKind { get; private set; }
 
+	/// <summary>
+	/// A special attack was made in the battle of the cell the fleet is at: its gold ring (mockup
+	/// 20261123-special-attack-v2); the attack is the last line of <see cref="ForkCellToolTip"/>.
+	/// </summary>
+	public bool ForkCellSpecialAttack { get; private set; }
+
+	/// <summary>The cell's tooltip without the special attacks (<see cref="ForkSetCell"/>).</summary>
+	private string? ForkCellBaseToolTip { get; set; }
+
 	/// <summary>The cells passed in this sortie, the last one the cell the fleet is at.</summary>
 	public IReadOnlyList<KcvRouteNode> ForkRoute { get; private set; } = [];
 	public bool ForkShowRoute => ForkIsSortie && ForkRoute.Count > 0;
@@ -65,16 +76,26 @@ public partial class CompassViewModel
 		public required int EventKind { get; init; }
 		public string? Items { get; init; }
 		public string? Rank { get; set; }
+
+		/// <summary>The special attacks of the cell's battle by name, one a line; null when none was made.</summary>
+		public string? SpecialAttack { get; set; }
 	}
 
 	private List<ForkStep> ForkSteps { get; } = [];
 
-	/// <summary>Called at the end of the constructor: the battle results give the rank of the route's last cell.</summary>
+	/// <summary>
+	/// Called at the end of the constructor: the battle results give the rank of the route's last cell, and the night
+	/// battles after a day battle (which the viewer's compass does not follow) their special attacks.
+	/// </summary>
 	private void ForkInitialize()
 	{
 		APIObserver o = APIObserver.Instance;
 		o.ApiReqSortie_BattleResult.ResponseReceived += ForkBattleResult;
 		o.ApiReqCombinedBattle_BattleResult.ResponseReceived += ForkBattleResult;
+
+		o.ApiReqBattleMidnight_Battle.ResponseReceived += ForkNightBattle;
+		o.ApiReqCombinedBattle_MidnightBattle.ResponseReceived += ForkNightBattle;
+		o.ApiReqCombinedBattle_EcMidnightBattle.ResponseReceived += ForkNightBattle;
 	}
 
 	private void ForkUpdated(string apiname, object? data)
@@ -108,6 +129,7 @@ public partial class CompassViewModel
 				break;
 		}
 
+		ForkUpdateCellSpecialAttack();
 		ForkSetBody();
 		OnPropertyChanged(nameof(ForkShowRoute));
 	}
@@ -115,8 +137,38 @@ public partial class CompassViewModel
 	private void ForkBattleStarted(bool isPractice)
 	{
 		ForkMode = isPractice ? ForkCompassMode.Exercise : ForkCompassMode.Sortie;
+		ForkSetSpecialAttack();
 		ForkSetBody();
 		OnPropertyChanged(nameof(ForkShowRoute));
+	}
+
+	private void ForkNightBattle(string apiname, dynamic data) => ForkSetSpecialAttack();
+
+	/// <summary>
+	/// The special attacks of the battle of the cell the fleet is at, its day and night battle (mockup
+	/// 20261123-special-attack-v2): kept on the route's last cell for the rest of the sortie, and shown on the cell.
+	/// </summary>
+	private void ForkSetSpecialAttack()
+	{
+		if (!ForkIsSortie || ForkSteps.Count is 0) return;
+
+		BattleManager battle = Db.Battle;
+		ForkSpecialAttacks.Result special = ForkSpecialAttacks.Find(battle.BattleDay, battle.BattleNight);
+
+		ForkSteps[^1].SpecialAttack = special.Any ? string.Join("\n", special.Names) : null;
+		ForkRefreshRoute();
+		ForkUpdateCellSpecialAttack();
+	}
+
+	/// <summary>The cell the fleet is at, the route's last cell: its gold ring and the attacks in its tooltip.</summary>
+	private void ForkUpdateCellSpecialAttack()
+	{
+		string? special = ForkIsSortie && ForkSteps.Count > 0 ? ForkSteps[^1].SpecialAttack : null;
+
+		ForkCellSpecialAttack = special is not null;
+		ForkCellToolTip = special is null
+			? ForkCellBaseToolTip
+			: ForkCellBaseToolTip + Environment.NewLine + special.Replace("\n", Environment.NewLine);
 	}
 
 	private void ForkSetCell()
@@ -138,7 +190,7 @@ public partial class CompassViewModel
 		List<string> tip = [$"{compass.MapAreaID}-{compass.MapInfoID}-{compass.CellId}" + (hasLetter ? $" ({label})" : "")];
 		if (compass.IsEndPoint) tip.Add(ForkStrings.KcvEndNode);
 		if (!string.IsNullOrEmpty(TextDestinationToolTip)) tip.Add(TextDestinationToolTip);
-		ForkCellToolTip = string.Join(Environment.NewLine, tip);
+		ForkCellBaseToolTip = string.Join(Environment.NewLine, tip);
 
 		ForkCellKind = KcvSortieRoutes.Kind(compass.EventID, compass.EventKind);
 	}
@@ -168,11 +220,13 @@ public partial class CompassViewModel
 		ForkRefreshRoute();
 	}
 
+	// The tooltip's last lines are the special attacks of the cell's battle (mockup 20261123-special-attack-v2)
 	private void ForkRefreshRoute()
 	{
 		ForkRoute = ForkSteps
 			.Select((s, i) => new KcvRouteNode(s.Letter, KcvSortieRoutes.Kind(s.EventId, s.EventKind),
-				KcvRouteText.ToolTip(s.Letter, s.EventId, s.EventKind, s.Items, s.Rank), i == 0, i == ForkSteps.Count - 1))
+				KcvRouteText.ToolTip(s.Letter, s.EventId, s.EventKind, s.Items, s.Rank) + (s.SpecialAttack is { } special ? "\n" + special : ""),
+				i == 0, i == ForkSteps.Count - 1, s.SpecialAttack is not null))
 			.ToList();
 		OnPropertyChanged(nameof(ForkShowRoute));
 	}

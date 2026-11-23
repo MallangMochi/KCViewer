@@ -19,7 +19,8 @@
 	<!--
 		Fork: the compass panel in KanColleViewer's design (mockup v4, user decisions 2026-10-01). The map (number and
 		name) with the next cell on the right: its letter on the colour of its kind, the cell number in the tooltip.
-		Under it the cells passed in this sortie (mockup 20261005-compass-route-v4). The kind of cell as a badge on the
+		Under it the cells passed in this sortie (mockup 20261005-compass-route-v4); a cell of a special attack in a gold
+		ring there and on the right (mockup 20261123-special-attack-v2). The kind of cell as a badge on the
 		same colour with its detail. Then the enemy fleets recorded for the cell, one under another with
 		the fleet name, formation and air power, or once the battle starts the enemy fleet with each ship's HP. An
 		exercise shows the opponent instead of the map. The viewer's own view model (CompassViewModel) fills it; its
@@ -35,6 +36,32 @@
 			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.Separator}" />
 			<Setter Property="BorderThickness" Value="0 0 0 1" />
 			<Setter Property="Background" Value="Transparent" />
+		</Style>
+
+		<!--
+			A cell of a special attack (mockup 20261123-special-attack-v2): a gold ring outside the cell (and outside the
+			outline of the cell the fleet is at) with a soft gold glow behind it. Over the cell's place, so it moves nothing.
+		-->
+		<Style x:Key="SpecialRing" TargetType="Border">
+			<Setter Property="Margin" Value="-2" />
+			<Setter Property="BorderThickness" Value="2" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.SpecialAttack}" />
+			<Setter Property="CornerRadius" Value="4" />
+			<Setter Property="IsHitTestVisible" Value="False" />
+			<Setter Property="Visibility" Value="Collapsed" />
+		</Style>
+		<Style x:Key="SpecialGlow" TargetType="Border">
+			<Setter Property="Margin" Value="-4" />
+			<Setter Property="BorderThickness" Value="4" />
+			<Setter Property="BorderBrush" Value="{DynamicResource Kcv.SpecialAttackGlow}" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="IsHitTestVisible" Value="False" />
+			<Setter Property="Visibility" Value="Collapsed" />
+			<Setter Property="Effect">
+				<Setter.Value>
+					<BlurEffect Radius="6" />
+				</Setter.Value>
+			</Setter>
 		</Style>
 
 		<Style x:Key="SmallIcon" BasedOn="{StaticResource Kcv.EquipmentIcon}" TargetType="Image">
@@ -135,21 +162,36 @@
 							Style="{StaticResource SmallIcon}"
 							ToolTip="{Binding TextDestinationToolTip}"
 							/>
-						<!--  The cell's letter on the colour of its kind (as the route and the sortie record)  -->
-						<Border
-							MinWidth="36"
-							Padding="10 1"
-							CornerRadius="3"
-							Style="{StaticResource Kcv.Node}"
-							Tag="{Binding ForkCellKind}"
-							ToolTip="{Binding ForkCellToolTip}"
-							>
-							<TextBlock
-								HorizontalAlignment="Center"
-								FontSize="22"
-								Text="{Binding ForkCellText}"
+						<!--
+							The cell's letter on the colour of its kind (as the route and the sortie record), in a gold ring
+							when a special attack was made in its battle
+						-->
+						<Grid VerticalAlignment="Center">
+							<Border
+								CornerRadius="7"
+								Style="{StaticResource SpecialGlow}"
+								Visibility="{Binding ForkCellSpecialAttack, Converter={StaticResource BooleanToVisibilityConverter}}"
 								/>
-						</Border>
+							<Border
+								CornerRadius="5"
+								Style="{StaticResource SpecialRing}"
+								Visibility="{Binding ForkCellSpecialAttack, Converter={StaticResource BooleanToVisibilityConverter}}"
+								/>
+							<Border
+								MinWidth="36"
+								Padding="10 1"
+								CornerRadius="3"
+								Style="{StaticResource Kcv.Node}"
+								Tag="{Binding ForkCellKind}"
+								ToolTip="{Binding ForkCellToolTip}"
+								>
+								<TextBlock
+									HorizontalAlignment="Center"
+									FontSize="22"
+									Text="{Binding ForkCellText}"
+									/>
+							</Border>
+						</Grid>
 					</StackPanel>
 					<StackPanel
 						VerticalAlignment="Center"
@@ -188,7 +230,8 @@
 
 			<!--
 				The cells passed in this sortie (mockup 20261005-compass-route-v4): a line between separators, each cell
-				on the colour of its kind with its kind, items and rank in the tooltip, the cell the fleet is at outlined
+				on the colour of its kind with its kind, items and rank in the tooltip, the cell the fleet is at outlined; a
+				cell of a special attack in a gold ring, the attack last in its tooltip (mockup 20261123-special-attack-v2)
 			-->
 			<Border
 				Padding="0 4 0 5"
@@ -212,18 +255,26 @@
 									Foreground="{DynamicResource Kcv.FaintForeground}"
 									Text="▸"
 									/>
-								<Border
-									x:Name="Node"
-									BorderBrush="Transparent"
-									BorderThickness="1"
-									Style="{StaticResource Kcv.Node}"
-									Tag="{Binding Kind}"
-									ToolTip="{Binding ToolTip}"
-									>
-									<TextBlock HorizontalAlignment="Center" Text="{Binding Letter}" />
-								</Border>
+								<Grid VerticalAlignment="Center">
+									<Border x:Name="Glow" Style="{StaticResource SpecialGlow}" />
+									<Border x:Name="Ring" Style="{StaticResource SpecialRing}" />
+									<Border
+										x:Name="Node"
+										BorderBrush="Transparent"
+										BorderThickness="1"
+										Style="{StaticResource Kcv.Node}"
+										Tag="{Binding Kind}"
+										ToolTip="{Binding ToolTip}"
+										>
+										<TextBlock HorizontalAlignment="Center" Text="{Binding Letter}" />
+									</Border>
+								</Grid>
 							</StackPanel>
 							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding SpecialAttack}" Value="True">
+									<Setter TargetName="Glow" Property="Visibility" Value="Visible" />
+									<Setter TargetName="Ring" Property="Visibility" Value="Visible" />
+								</DataTrigger>
 								<DataTrigger Binding="{Binding IsFirst}" Value="True">
 									<Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
 								</DataTrigger>

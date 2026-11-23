@@ -14,6 +14,12 @@ public partial class HealthBarViewModel
 	public string? ShipTypeName { get; set; }
 
 	/// <summary>
+	/// The ship took part in a special attack in this battle (its day and night battle): the gold line and pale gold row
+	/// of the KanColleViewer battle panel (mockup 20261123-special-attack-v2). Set by BattleViewModel.ForkSetBattle.
+	/// </summary>
+	public bool ForkSpecialAttack { get; set; }
+
+	/// <summary>
 	/// The HP lost in this battle over the gauge ("-12"; mockup 20261013-battle-hp-damage-v5), as the viewer counts it:
 	/// from the HP the battle (or the night battle) started with, below 0 for a ship sunk by more than it had.
 	/// Nothing when no HP was lost.

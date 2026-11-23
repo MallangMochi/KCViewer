@@ -103,7 +103,10 @@ public enum KcvNodeKind
 /// rank of its battle; the nodes after the first have an arrow before them. The compass outlines the last one, the
 /// cell the fleet is at.
 /// </summary>
-public sealed record KcvRouteNode(string Letter, KcvNodeKind Kind, string ToolTip, bool IsFirst, bool IsLast = false);
+/// <param name="SpecialAttack">
+/// The compass's route: a special attack was made at the node (mockup 20261123-special-attack-v2, its gold ring).
+/// </param>
+public sealed record KcvRouteNode(string Letter, KcvNodeKind Kind, string ToolTip, bool IsFirst, bool IsLast = false, bool SpecialAttack = false);
 
 /// <summary>
 /// Fork: what the sortie record's route and the compass's route say about a node (mockup 20261005-compass-route-v4):

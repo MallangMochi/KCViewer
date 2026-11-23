@@ -225,6 +225,11 @@ public static class KcvPanels
 			("Kcv.NodeLandingText", Rgb(0x9EE0DA)),
 			("Kcv.NodeNone", Rgb(0x44444A)),
 			("Kcv.NodeNoneText", Rgb(0xC0C0C6)),
+			// special attacks (mockup 20261123-special-attack-v2): the battle panel's line and pale row of the ships in
+			// one, and the compass's ring and glow around the cell of one, in the gold of the S rank
+			("Kcv.SpecialAttack", Rgb(0xE8C547)),
+			("Kcv.SpecialAttackRow", Color.FromArgb(0x21, 0xE8, 0xC5, 0x47)),
+			("Kcv.SpecialAttackGlow", Color.FromArgb(0x8C, 0xE8, 0xC5, 0x47)),
 			// battle ranks in the user's colours (2026-10-13 "SS,S 금색 A 적색 B 주황 C 노랑 D 초록 E 하늘색", everywhere
 			// a rank shows), criticals of the battle detail in the orange the A rank had, and expedition results
 			// (大成功, 成功, 失敗)
@@ -313,6 +318,9 @@ public static class KcvPanels
 			("Kcv.NodeLandingText", Rgb(0x13665F)),
 			("Kcv.NodeNone", Rgb(0xDCDCE0)),
 			("Kcv.NodeNoneText", Rgb(0x505055)),
+			("Kcv.SpecialAttack", Rgb(0xB08A00)),
+			("Kcv.SpecialAttackRow", Color.FromArgb(0x40, 0xE8, 0xC5, 0x47)),
+			("Kcv.SpecialAttackGlow", Color.FromArgb(0x66, 0xB0, 0x8A, 0x00)),
 			("Kcv.RankS", Rgb(0x9A7A00)),
 			("Kcv.RankA", Rgb(0xC62828)),
 			("Kcv.RankB", Rgb(0xC75B00)),
