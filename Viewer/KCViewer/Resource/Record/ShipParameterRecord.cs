@@ -936,6 +936,10 @@ public class ShipParameterRecord : RecordBase
 			}
 		}
 
+		// Fork: a real ship's costume link to another remodel line, left where the game reused a costume number for a
+		// new ship (RECORD-DATA-DESIGN.md, section 4)
+		Fork.ForkShipRecords.ClearStaleCostumeLinks(this);
+
 	}
 
 
