@@ -228,6 +228,8 @@ public partial class FormMainViewModel : ObservableObject
 
 		ResourceManager.Instance.Load();
 		RecordManager.Instance.Load();
+		// Fork: the default equipment data is compared with the ship record once the game's master is in
+		Fork.ForkShipDefaultEquipment.Register();
 		KCDatabase.Instance.Load();
 		NotifierManager.Instance.Initialize(Window);
 		// Fork: the common notification settings (알람 › 기본 설정) for the parts that follow them

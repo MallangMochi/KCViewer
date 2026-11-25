@@ -100,7 +100,8 @@
 				<MenuItem Command="{Binding StripMenu_File_OutputCSVUser_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_OutputCSVUser}" />
 				<MenuItem Command="{Binding StripMenu_File_OutputCSVData_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_OutputCSVData}" />
 				<Separator />
-				<MenuItem Command="{Binding StripMenu_File_MergeDefaultRecord_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_File_MergeDefaultRecord}" />
+				<!--  Fork: 기본 장비 자료와 대조 in place of 디폴트 레코드로부터 갱신 (mockup 20261125-default-equipment-v6)  -->
+				<MenuItem Command="{Binding StripMenu_File_MergeDefaultRecord_ClickCommand}" Header="{x:Static fork:ForkStrings.AlbumCompareDefaultEquipment}" />
 			</MenuItem>
 			<MenuItem Header="{Binding DialogAlbumMasterShip.StripMenu_Edit}">
 				<MenuItem Command="{Binding StripMenu_Edit_EditParameter_ClickCommand}" Header="{Binding DialogAlbumMasterShip.StripMenu_Edit_EditParameter}" />

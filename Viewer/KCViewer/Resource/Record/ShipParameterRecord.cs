@@ -773,7 +773,10 @@ public class ShipParameterRecord : RecordBase
 	/// <param name="ship">対象の艦船。入手直後・改装直後のものに限ります。</param>
 	public void UpdateDefaultSlot(ShipData ship)
 	{
+		// Fork: equipment recorded in play that differs from the default equipment data is logged (ForkShipDefaultEquipment)
+		int[]? before = this[ship.ShipID]?.DefaultSlot?.ToArray();
 		UpdateDefaultSlot(ship.ShipID, ship.SlotMaster.ToArray());
+		Fork.ForkShipDefaultEquipment.OnObserved(ship.ShipID, before, ship.SlotMaster);
 	}
 
 	/// <summary>

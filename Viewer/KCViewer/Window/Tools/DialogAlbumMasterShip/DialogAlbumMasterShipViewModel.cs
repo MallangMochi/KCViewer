@@ -358,44 +358,9 @@ public partial class DialogAlbumMasterShipViewModel : WindowViewModelBase
 	[RelayCommand]
 	private void StripMenu_File_MergeDefaultRecord_Click()
 	{
-		if (MessageBox.Show("デフォルトレコードの情報をもとに、艦船レコードを更新します。\r\nよろしいですか？", "レコード更新確認", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.Cancel)
-		{
-			return;
-		}
-
-		var parameterRecord = RecordManager.Instance.ShipParameter;
-
-
-		string temporaryPath = null;
-		try
-		{
-			temporaryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-			Resource.ResourceManager.CopyFromArchive("Record/" + parameterRecord.FileName, temporaryPath, false, true);
-
-			int count = 0;
-			using (var reader = new StreamReader(temporaryPath, Utility.Configuration.Config.Log.FileEncoding))
-			{
-				while (!reader.EndOfStream)
-				{
-					count += parameterRecord.Merge(reader.ReadLine()) ? 1 : 0;
-				}
-			}
-
-			if (count == 0)
-				Utility.Logger.Add(2, "更新できるレコードがありませんでした。お使いのデータは十分に更新されています。");
-			else
-				Utility.Logger.Add(2, count + " 件の艦船レコードの更新が完了しました。開き直すと反映されます。");
-		}
-		catch (Exception ex)
-		{
-			Utility.ErrorReporter.SendErrorReport(ex, "デフォルトレコードとのマージに失敗しました。");
-		}
-		finally
-		{
-			if (temporaryPath != null)
-				File.Delete(temporaryPath);
-		}
-
+		// Fork: 기본 장비 자료와 대조 in place of the merge from the default record, which overwrote the record with the
+		// assets' one (stats included) (user's decision 2026-11-25, mockup 20261125-default-equipment-v6)
+		Fork.ForkShipDefaultEquipment.CompareFromMenu();
 	}
 
 

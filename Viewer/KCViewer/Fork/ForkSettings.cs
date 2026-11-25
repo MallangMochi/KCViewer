@@ -36,6 +36,20 @@ public sealed class ForkSettings
 	public ScreenshotSettings Screenshot { get; set; } = new();
 
 	/// <summary>
+	/// 자동 데이터 업데이트 수동 병합's last size and place (mockup 20261125-default-equipment-v6: kept for the next time);
+	/// 0 until it was closed once.
+	/// </summary>
+	public WindowBounds DefaultEquipmentMergeWindow { get; set; } = new();
+
+	public sealed class WindowBounds
+	{
+		public double Left { get; set; }
+		public double Top { get; set; }
+		public double Width { get; set; }
+		public double Height { get; set; }
+	}
+
+	/// <summary>
 	/// The screenshot's shortcut key (<see cref="ForkScreenshot"/>, mockup 20261009-screenshot-capture-v2): taken in any
 	/// window of the viewer while the viewer is in front. Written as the menus show it ("F2", "Ctrl+Shift+S"), "" for none;
 	/// F2 by default, the key the browser had.

@@ -10,7 +10,8 @@ https://raw.githubusercontent.com/MallangMochi/KCViewer/main/Data/
 
 | 폴더 | 내용 |
 |---|---|
-| `Translations/ko-KR/` | 접속기가 받는 파일: `ship.json`(함선·함급·접미사·함종), `equipment.json`(장비·장비 종류), `quest.json`(임무와 그 보상), `expedition.json`(원정), `operation.json`(해역·작전·적 함대), `Locks.json`(출격 잠금), `update.json`(파일별 판 번호) |
+| `Translations/ko-KR/` | 접속기가 받는 파일: `ship.json`(함선·함급·접미사·함종), `equipment.json`(장비·장비 종류), `quest.json`(임무와 그 보상), `expedition.json`(원정), `operation.json`(해역·작전·적 함대), `Locks.json`(출격 잠금), `update.json`(파일별 버전) |
+| `KCViewer/` | 접속기가 받는 자료(언어와 상관없음): `ShipDefaultEquipment.json`(함선 기본 장비), `update.json`(파일별 버전) |
 | `source/ko-KR/fill/` | 우리 임시 번역: KC3 번역에 아직 없는 것. `reward.json`은 임무 보상 메모의 줄임말·오타를 바로잡는 별칭과 KC3에 없는 이름 |
 | `source/ko-KR/force/` | 우리가 고정한 표기: KC3 번역보다 앞섬 |
 
@@ -19,7 +20,14 @@ https://raw.githubusercontent.com/MallangMochi/KCViewer/main/Data/
 - 번역할 원문은 게임에서 직접 뽑습니다(마스터 데이터, 임무 목록, 출격 전투의 적 함대 이름).
 - 번역은 **우리가 고정한 표기 > KC3改 한국어 번역 > 우리 임시 번역** 순으로 합칩니다. KC3에 번역이 생기면 우리 임시 번역은 지웁니다.
 - 아무도 번역하지 않은 원문은 넣지 않습니다. 접속기는 그 자리에 게임 원문을 보여 줍니다.
-- 내용이 바뀐 파일만 `update.json`의 판 번호를 올립니다. 접속기는 시작할 때와 1시간마다 판 번호를 비교해 바뀐 파일만 받습니다.
+- 내용이 바뀐 파일만 `update.json`의 버전을 올립니다. 접속기는 시작할 때와 1시간마다 버전을 비교해 바뀐 파일만 받습니다.
+
+### 함선 기본 장비 (KCViewer/ShipDefaultEquipment.json)
+
+- 접속기 기본 기록(`Assets.zip`의 `ShipParameterRecord.csv`)에서 초기 장비가 정해진 아군 함선을 모두 담습니다. 장비는 5칸이고 `-1`은 빈 칸입니다. `name`은 사람이 읽으라고 넣은 게임 원문이고, 접속기는 읽지 않습니다.
+- 만드는 도구: 작업 폴더의 `tools/ship-stock-audit/export-data-file.js`. 함선 값이 바뀌었을 때만 `update.json`의 버전을 1 올립니다.
+- 접속기는 평소에 `update.json`만 받고, 버전이 바뀌었을 때만 이 파일을 받습니다.
+- 받은 뒤 프로필의 함선 기록과 대조합니다. 모름이거나 이전 버전 자료와 같은 함선은 새 자료로 갱신하고 로그에 남깁니다. 그 밖에 다른 함선(플레이 중 기록한 값 등)은 「자동 데이터 업데이트 수동 병합」 창에서 사용자가 고릅니다.
 
 ### 임무 보상 (quest.json의 `reward_jp`, `reward`)
 

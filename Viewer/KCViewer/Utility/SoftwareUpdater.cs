@@ -138,6 +138,10 @@ public class SoftwareUpdater
 
 		try
 		{
+			// Fork: the ships' default equipment data at the translations' address (Data/KCViewer/), on its own so a
+			// failure of EO's address below does not stop it
+			await Fork.ForkShipDefaultEquipment.CheckAsync(TranslationRepoURL);
+
 			await ReadRemoteAndLocalUpdateData();
 
 			List<(string FileName, DataType Type)> downloadList = GetDownloadList();
