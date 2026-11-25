@@ -798,59 +798,6 @@ public class ShipData : APIWrapper, IIdentifiable, IShipData
 	}
 
 	/// <summary>
-	/// 装備改修補正(夜戦)
-	/// </summary>
-	private double GetNightBattleEquipmentLevelBonus()
-	{
-		double basepower = 0;
-		foreach (var slot in AllSlotInstance)
-		{
-			if (slot == null)
-				continue;
-
-			switch (slot.MasterEquipment.CategoryType)
-			{
-				case EquipmentTypes.MainGunSmall:
-				case EquipmentTypes.MainGunMedium:
-				case EquipmentTypes.MainGunLarge:
-				case EquipmentTypes.Torpedo:
-				case EquipmentTypes.APShell:
-				case EquipmentTypes.LandingCraft:
-				case EquipmentTypes.Searchlight:
-				case EquipmentTypes.SubmarineTorpedo:
-				case EquipmentTypes.AADirector:
-				case EquipmentTypes.MainGunLarge2:
-				case EquipmentTypes.SearchlightLarge:
-				case EquipmentTypes.SpecialAmphibiousTank:
-					basepower += Math.Sqrt(slot.Level);
-					break;
-
-				case EquipmentTypes.SecondaryGun:
-					switch (slot.EquipmentID)
-					{
-						case 10:        // 12.7cm連装高角砲
-						case 66:        // 8cm高角砲
-						case 220:       // 8cm高角砲改+増設機銃
-						case 275:       // 10cm連装高角砲改+増設機銃
-							basepower += 0.2 * slot.Level;
-							break;
-
-						case 12:        // 15.5cm三連装副砲
-						case 234:       // 15.5cm三連装副砲改
-							basepower += 0.3 * slot.Level;
-							break;
-
-						default:
-							basepower += Math.Sqrt(slot.Level);
-							break;
-					}
-					break;
-			}
-		}
-		return basepower;
-	}
-
-	/// <summary>
 	/// 耐久値による攻撃力補正
 	/// </summary>
 	private double GetHPDamageBonus()
@@ -1263,126 +1210,18 @@ public class ShipData : APIWrapper, IIdentifiable, IShipData
 	/// </summary>
 	private int CalculateNightBattlePower()
 	{
-		var kind = Calculator.GetNightAttackKind(AllSlotMaster.ToArray(), ShipID, -1);
-		double basepower = 0;
+		// Fork: the night attack power of NightAttackPower, the formula of the fleet panel's night attacks (backed by
+		// NightAttackTests), for the first attack of ShipNightAttacks.GetNightAttacks: the highest priority one, a cut-in
+		// when the equipment allows it, as the old GetNightAttackKind chose. 0 when the ship cannot attack at night. No
+		// fleet here, so no night scout bonus; the ammo rate stays as in the other powers of this class. The old formula
+		// differed for night carriers outside a cut-in, Graf Zeppelin/Saratoga, Ark Royal, the improvement bonus (AA
+		// shells, picket crew) and the type D gun modifiers.
+		NightAttack? attack = this.GetNightAttacks().FirstOrDefault();
 
-		if (kind == NightAttackKind.CutinAirAttack)
-		{
-			var airs = SlotInstance.Zip(Aircraft, (eq, count) => new { eq, master = eq?.MasterEquipment, count }).Where(a => a.eq != null);
+		if (attack is null)
+			return 0;
 
-			basepower = FirepowerBase +
-						airs.Where(p => p.master.IsNightAircraft)
-							.Sum(p => p.master.Firepower + p.master.Torpedo + p.master.Bomber +
-									  3 * p.count +
-									  0.45 * (p.master.Firepower + p.master.Torpedo + p.master.Bomber + p.master.ASW) * Math.Sqrt(p.count) + Math.Sqrt(p.eq.Level)) +
-						airs.Where(p => p.master.IsSwordfish || p.master.EquipmentID == 154 || p.master.EquipmentID == 320)   // 零戦62型(爆戦/岩井隊)、彗星一二型(三一号光電管爆弾搭載機)
-							.Sum(p => p.master.Firepower + p.master.Torpedo + p.master.Bomber +
-									  0.3 * (p.master.Firepower + p.master.Torpedo + p.master.Bomber + p.master.ASW) * Math.Sqrt(p.count) + Math.Sqrt(p.eq.Level));
-
-		}
-		else if (ShipID == 515 || ShipID == 393)
-		{       // Ark Royal (改)
-			basepower = FirepowerBase + SlotInstanceMaster.Where(eq => eq?.IsSwordfish ?? false).Sum(eq => eq.Firepower + eq.Torpedo);
-		}
-		else if (ShipID == 353 || ShipID == 432 || ShipID == 433)
-		{       // Graf Zeppelin(改), Saratoga
-			basepower = FirepowerBase + SlotInstanceMaster.Where(eq => eq?.IsSwordfish ?? false).Sum(eq => eq.Firepower + eq.Torpedo);
-		}
-		else
-		{
-			basepower = FirepowerTotal + TorpedoTotal + GetNightBattleEquipmentLevelBonus();
-		}
-
-
-		basepower *= GetHPDamageBonus();
-
-		switch (kind)
-		{
-			case NightAttackKind.DoubleShelling:
-				basepower *= 1.2;
-				break;
-
-			case NightAttackKind.CutinMainTorpedo:
-				basepower *= 1.3;
-				break;
-
-			case NightAttackKind.CutinTorpedoTorpedo:
-			{
-				switch (Calculator.GetNightTorpedoCutinKind(AllSlotInstanceMaster, ShipID, -1))
-				{
-					case NightTorpedoCutinKind.LateModelTorpedoSubmarineEquipment:
-						basepower *= 1.75;
-						break;
-					case NightTorpedoCutinKind.LateModelTorpedo2:
-						basepower *= 1.6;
-						break;
-					default:
-						basepower *= 1.5;
-						break;
-				}
-			}
-			break;
-
-			case NightAttackKind.CutinMainSub:
-				basepower *= 1.75;
-				break;
-
-			case NightAttackKind.CutinMainMain:
-				basepower *= 2.0;
-				break;
-
-			case NightAttackKind.CutinAirAttack:
-			{
-				int nightFighter = SlotInstanceMaster.Count(eq => eq?.IsNightFighter ?? false);
-				int nightAttacker = SlotInstanceMaster.Count(eq => eq?.IsNightAttacker ?? false);
-				int nightBomber = SlotInstanceMaster.Count(eq => eq?.EquipmentID == 320);     // 彗星一二型(三一号光電管爆弾搭載機)
-
-				if (nightFighter >= 2 && nightAttacker >= 1)
-					basepower *= 1.25;
-				else if (nightBomber >= 1 && nightFighter + nightAttacker >= 1)
-					basepower *= 1.2;
-				else if (nightFighter >= 1 && nightAttacker >= 1)
-					basepower *= 1.2;
-				else
-					basepower *= 1.18;
-			}
-			break;
-
-			case NightAttackKind.CutinTorpedoRadar:
-			{
-				double baseModifier = 1.3;
-				int typeDmod2 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 267);  // 12.7cm連装砲D型改二
-				int typeDmod3 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 366);  // 12.7cm連装砲D型改三
-				var modifierTable = new double[] { 1, 1.25, 1.4 };
-
-				baseModifier *= modifierTable[Math.Min(typeDmod2 + typeDmod3, modifierTable.Length - 1)] * (1 + typeDmod3 * 0.05);
-
-				basepower *= baseModifier;
-			}
-
-			break;
-
-			case NightAttackKind.CutinTorpedoPicket:
-			{
-				double baseModifier = 1.25;     // TODO: 処理の共通化
-				int typeDmod2 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 267);  // 12.7cm連装砲D型改二
-				int typeDmod3 = AllSlotInstanceMaster.Count(eq => eq?.EquipmentID == 366);  // 12.7cm連装砲D型改三
-				var modifierTable = new double[] { 1, 1.25, 1.4 };
-
-				baseModifier *= modifierTable[Math.Min(typeDmod2 + typeDmod3, modifierTable.Length - 1)] * (1 + typeDmod3 * 0.05);
-
-				basepower *= baseModifier;
-			}
-			break;
-		}
-
-		basepower += GetLightCruiserDamageBonus() + GetItalianDamageBonus();
-
-		//キャップ
-		basepower = Math.Floor(CapDamage(basepower, 360));
-
-
-		return (int)(basepower * GetAmmoDamageRate());
+		return (int)(this.GetNightAttackPower(attack) * GetAmmoDamageRate());
 	}
 
 
@@ -1449,7 +1288,8 @@ public class ShipData : APIWrapper, IIdentifiable, IShipData
 					return false;
 
 				// Saratoga Mk.II/赤城改二戊/加賀改二戊 は不要
-				bool hasNightPersonnel = master.ShipID == 545 || master.ShipID == 599 || master.ShipID == 610 ||
+				// Fork: the night carriers of ShipIdExtensions (also 島根丸改, 龍鳳改二戊) instead of the 3 IDs above
+				bool hasNightPersonnel = master.ShipId.IsNightCarrier() ||
 										 AllSlotInstanceMaster.Any(eq => eq != null && eq.IsNightAviationPersonnel);
 
 				bool hasNightAircraft = AllSlotInstanceMaster.Any(eq => eq != null && eq.IsNightAircraft);

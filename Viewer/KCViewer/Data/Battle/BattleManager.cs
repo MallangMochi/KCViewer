@@ -185,7 +185,9 @@ public class BattleManager : APIWrapper
 	/// <summary>
 	/// 記録する特殊攻撃
 	/// </summary>
-	private int[] TracedSpecialAttack { get; } = [100, 101, 102, 103, 104, 105, 300, 301, 302, 400, 401];
+	// Fork: 106 (Queen Elizabeth class, DayAttackKind.SpecialQueenElizabethClass) added; it was missing from the compass
+	// tooltip's list of special attacks fired in the sortie
+	private int[] TracedSpecialAttack { get; } = [100, 101, 102, 103, 104, 105, 106, 300, 301, 302, 400, 401];
 
 
 

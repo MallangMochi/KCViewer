@@ -1008,7 +1008,9 @@ public static class Calculator
 			if (attacker.IsAircraftCarrier)
 			{
 
-				if (attackerShipID == 432 || attackerShipID == 353 || attackerShipID == 433)        // Graf Zeppelin(改), Saratoga
+				// Fork: every special night carrier (ShipIdExtensions), not only Graf Zeppelin(改) and Saratoga; 大鷹改二 etc.
+				// came out as an air attack in the battle detail and the night battle power (ShipData.NightBattlePower)
+				if (((ShipId)attackerShipID).IsSpecialNightCarrier())
 					return NightAttackKind.Shelling;
 				else if (attacker.Name == "リコリス棲姫" || attacker.Name == "深海海月姫" || attacker.Name == "Lycoris Princess" || attacker.Name == "Abyssal Jellyfish Princess")
 					return NightAttackKind.Shelling;

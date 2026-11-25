@@ -414,16 +414,8 @@ public static class ShipDataExtensions
 		ShipTypes.AviationBattleship or
 		ShipTypes.SeaplaneTender;
 
-	public static bool IsSpecialNightCarrier(this IShipData ship) => ship.MasterShip.ShipId is
-		ShipId.GrafZeppelin or
-		ShipId.GrafZeppelinKai or
-		ShipId.Saratoga or
-		ShipId.TaiyouKaiNi or
-		ShipId.ShinyouKaiNi or
-		ShipId.UnyouKaiNi or
-		ShipId.KagaKaiNiGo or
-		ShipId.Lexington or
-		ShipId.LexingtonKai;
+	// Fork: the list moved to ShipIdExtensions.IsSpecialNightCarrier
+	public static bool IsSpecialNightCarrier(this IShipData ship) => ship.MasterShip.ShipId.IsSpecialNightCarrier();
 
 	public static bool IsArkRoyal(this IShipData ship) => ship.MasterShip.ShipId switch
 	{

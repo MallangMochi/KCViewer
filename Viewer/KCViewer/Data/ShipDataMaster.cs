@@ -631,7 +631,10 @@ public class ShipDataMaster : ResponseWrapper, IIdentifiable, IShipDataMaster
 	/// <summary>
 	/// 図鑑に載っているか
 	/// </summary>
-	public bool IsListedInAlbum => 0 < AlbumNo && AlbumNo <= 420;
+	// Fork: a form with an album entry of its own has a number below 1000 (1-661 on 2026-11-17), the other forms 1000 and
+	// above; the old limit 420 left the entries 421 and above out, and the album text copied along the remodel chain
+	// (ShipParameterRecord.AlbumOpened) went past them
+	public bool IsListedInAlbum => 0 < AlbumNo && AlbumNo < 1000;
 
 
 	/// <summary>
