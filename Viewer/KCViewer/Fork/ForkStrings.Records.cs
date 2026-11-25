@@ -105,7 +105,14 @@ public static partial class ForkStrings
 	public static string KcvDrop => T("드랍", "ドロップ", "Drop");
 	public static string KcvDropNone => T("없음", "なし", "None");
 	public static string KcvDropSpoiler => T("스포일러", "ネタバレ", "Spoiler");
-	public static string KcvShowDrop => T("드랍함 표시", "ドロップ艦を表示", "Show dropped ship");
+	// the context menu item, 드랍함 표시 until the item line (mockup 20261125-battle-item-drop-v1, user's 2026-11-25
+	// "우클릭 메뉴 이름도 드랍 표시로 수정")
+	public static string KcvShowDrop => T("드랍 표시", "ドロップを表示", "Show drops");
+	/// <summary>The battle panel's second drop line (mockup 20261125-battle-item-drop-v1 안 나).</summary>
+	public static string KcvDropItem => T("아이템", "アイテム", "Item");
+	/// <summary>The dropped item's tooltip: its name and how many there are (user's 2026-11-25 "합계는 아이템명과 개수만
+	/// 표시하고 합계 문구는 제외").</summary>
+	public static string KcvDropItemCount(string name, int count) => T($"{name} {count}개", $"{name} {count}個", $"{name} ×{count}");
 	// 칸무스 수집 진행도 (mockup 20261006-kancolle-progress-v3): the group of ship types the viewer does not know, the owned total
 	public static string KcvProgressOthers => T("그외", "その他", "Others");
 	public static string KcvProgressOwned(int owned, int total)

@@ -279,7 +279,7 @@
 				<Separator />
 				<MenuItem Command="{Binding ShowBattleResultCommand}" Header="{Binding FormBattle.RightClickMenu_ShowBattleResult}" />
 				<Separator />
-				<!--  the dropped ship's box; the same value as the log setting 드랍 보고 표시 (mockup 20261006-battle-drop-v2)  -->
+				<!--  the drop box (ship and item); the same value as the log setting 드랍 보고 표시 (mockups 20261006-battle-drop-v2, 20261125-battle-item-drop-v1)  -->
 				<MenuItem
 					Header="{x:Static fork:ForkStrings.KcvShowDrop}"
 					IsCheckable="True"
@@ -294,54 +294,105 @@
 				<DockPanel>
 					<!--
 						드랍 and the dropped ship's name (mockup 20261006-battle-drop-v2): one not owned in the orange badge
-						of the quest panel's 수행 중, 「없음」 faint, 「스포일러」 with the name in the tooltip. Shown from
-						the battle result until the next battle, not for exercises (BattleViewModel.Fork.cs).
+						of the quest panel's 수행 중, 「없음」 faint, 「스포일러」 with the name in the tooltip. Under it the dropped use
+						item (mockup 20261125-battle-item-drop-v1 안 나, approved 2026-11-25): 아이템, the game's icon and the
+						name, the name and how many in the tooltip, 「스포일러」 without the icon; the two lines on the right of the
+						header's two. Shown from the battle result until the next battle, not for exercises (BattleViewModel.Fork.cs).
 					-->
 					<StackPanel
 						Margin="12 0 0 0"
 						VerticalAlignment="Top"
 						DockPanel.Dock="Right"
-						Orientation="Horizontal"
 						Visibility="{Binding ForkDropVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
 						>
-						<TextBlock
-							Margin="0 0 12 0"
-							VerticalAlignment="Center"
-							FontSize="13"
-							Style="{StaticResource Kcv.SubText}"
-							Text="{x:Static fork:ForkStrings.KcvDrop}"
-							/>
-						<Border VerticalAlignment="Center">
-							<Border.Style>
-								<Style TargetType="Border">
-									<Setter Property="Background" Value="Transparent" />
-									<Style.Triggers>
-										<DataTrigger Binding="{Binding ForkDropState}" Value="NewShip">
-											<Setter Property="Background" Value="{DynamicResource Kcv.InProgressBadgeBackground}" />
-											<Setter Property="Padding" Value="6 0" />
-										</DataTrigger>
-									</Style.Triggers>
-								</Style>
-							</Border.Style>
+						<StackPanel
+							HorizontalAlignment="Right"
+							Orientation="Horizontal"
+							Visibility="{Binding ForkDropShipVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+							>
 							<TextBlock
+								Margin="0 0 12 0"
+								VerticalAlignment="Center"
 								FontSize="13"
-								Text="{Binding ForkDropText}"
-								ToolTip="{Binding ForkDropToolTip}"
-								>
-								<TextBlock.Style>
-									<Style BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+								Style="{StaticResource Kcv.SubText}"
+								Text="{x:Static fork:ForkStrings.KcvDrop}"
+								/>
+							<Border VerticalAlignment="Center">
+								<Border.Style>
+									<Style TargetType="Border">
+										<Setter Property="Background" Value="Transparent" />
 										<Style.Triggers>
 											<DataTrigger Binding="{Binding ForkDropState}" Value="NewShip">
-												<Setter Property="Foreground" Value="{DynamicResource Kcv.InProgressBadgeForeground}" />
-											</DataTrigger>
-											<DataTrigger Binding="{Binding ForkDropState}" Value="None">
-												<Setter Property="Foreground" Value="{DynamicResource Kcv.FaintForeground}" />
+												<Setter Property="Background" Value="{DynamicResource Kcv.InProgressBadgeBackground}" />
+												<Setter Property="Padding" Value="6 0" />
 											</DataTrigger>
 										</Style.Triggers>
 									</Style>
-								</TextBlock.Style>
-							</TextBlock>
-						</Border>
+								</Border.Style>
+								<TextBlock
+									FontSize="13"
+									Text="{Binding ForkDropText}"
+									ToolTip="{Binding ForkDropToolTip}"
+									>
+									<TextBlock.Style>
+										<Style BasedOn="{StaticResource Kcv.Text}" TargetType="TextBlock">
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding ForkDropState}" Value="NewShip">
+													<Setter Property="Foreground" Value="{DynamicResource Kcv.InProgressBadgeForeground}" />
+												</DataTrigger>
+												<DataTrigger Binding="{Binding ForkDropState}" Value="None">
+													<Setter Property="Foreground" Value="{DynamicResource Kcv.FaintForeground}" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</TextBlock.Style>
+								</TextBlock>
+							</Border>
+						</StackPanel>
+						<StackPanel
+							HorizontalAlignment="Right"
+							Orientation="Horizontal"
+							Visibility="{Binding ForkDropItemVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+							>
+							<TextBlock
+								Margin="0 0 12 0"
+								VerticalAlignment="Center"
+								FontSize="13"
+								Style="{StaticResource Kcv.SubText}"
+								Text="{x:Static fork:ForkStrings.KcvDropItem}"
+								/>
+							<StackPanel
+								Background="Transparent"
+								Orientation="Horizontal"
+								ToolTip="{Binding ForkDropItemToolTip}"
+								>
+								<Image
+									Width="18"
+									Height="18"
+									Margin="0 0 4 0"
+									VerticalAlignment="Center"
+									RenderOptions.BitmapScalingMode="HighQuality"
+									Source="{Binding ForkDropItemIcon}"
+									Stretch="Uniform"
+									>
+									<Image.Style>
+										<Style TargetType="Image">
+											<Style.Triggers>
+												<DataTrigger Binding="{Binding ForkDropItemIcon}" Value="{x:Null}">
+													<Setter Property="Visibility" Value="Collapsed" />
+												</DataTrigger>
+											</Style.Triggers>
+										</Style>
+									</Image.Style>
+								</Image>
+								<TextBlock
+									VerticalAlignment="Center"
+									FontSize="13"
+									Style="{StaticResource Kcv.Text}"
+									Text="{Binding ForkDropItemText}"
+									/>
+							</StackPanel>
+						</StackPanel>
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal">

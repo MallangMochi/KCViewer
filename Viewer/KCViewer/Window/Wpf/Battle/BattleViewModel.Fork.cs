@@ -49,8 +49,24 @@ public partial class BattleViewModel
 	public string? ForkDropText { get; private set; }
 	public string? ForkDropToolTip { get; private set; }
 
+	// The dropped use item on a second line under the ship (mockup 20261125-battle-item-drop-v1 안 나, approved
+	// 2026-11-25 "전투패널은 나 로 진행. 장비 드랍은 넣지않고 아이템만 넣음, 합계는 아이템명과 개수만 표시하고 합계 문구는
+	// 제외"): the game's icon and the item's name, the name and how many in the tooltip (the count of the viewer's log:
+	// owned plus dropped this sortie). With 스포일러 허가 off 「스포일러」 without the icon, the name in the tooltip.
+	// Equipment drops are not shown.
+	private int ForkDroppedItemId { get; set; } = -1;
+	private int ForkDroppedItemTotal { get; set; }
+
+	public bool ForkDropItemVisible { get; private set; }
+	public string? ForkDropItemText { get; private set; }
+	public System.Windows.Media.ImageSource? ForkDropItemIcon { get; private set; }
+	public string? ForkDropItemToolTip { get; private set; }
+
+	/// <summary>The ship line (드랍); the box is shown when either line is.</summary>
+	public bool ForkDropShipVisible => ForkDropState is not ForkDropState.Hidden;
+
 	/// <summary>Hidden with the battle information too (戦闘終了まで隠す).</summary>
-	public bool ForkDropVisible => ViewVisible && ForkDropState is not ForkDropState.Hidden;
+	public bool ForkDropVisible => ViewVisible && (ForkDropState is not ForkDropState.Hidden || ForkDropItemVisible);
 
 	/// <summary>The context menu's 드랍함 표시, the same value as the log setting 드랍 보고 표시.</summary>
 	public bool ForkShowDrop
@@ -76,6 +92,12 @@ public partial class BattleViewModel
 			ForkDroppedLines.Add(KcvShipCollection.BaseShipId(dropped));
 		}
 
+		// the battle manager has counted the item already, as the log reads it (BattleManager, ItemObtained)
+		ForkDroppedItemId = bm.Result?.DroppedItemID ?? -1;
+		ForkDroppedItemTotal = ForkDroppedItemId > 0
+			? (KCDatabase.Instance.UseItems[ForkDroppedItemId]?.Count ?? 0) + bm.DroppedItemCount.GetValueOrDefault(ForkDroppedItemId)
+			: 0;
+
 		ForkUpdateDrop();
 	}
 
@@ -84,6 +106,7 @@ public partial class BattleViewModel
 	{
 		ForkDroppedLines.Clear();
 		ForkHasResult = false;
+		ForkDroppedItemId = -1;
 		ForkUpdateDrop();
 	}
 
@@ -108,6 +131,15 @@ public partial class BattleViewModel
 			_ => null,
 		};
 		ForkDropToolTip = ForkDropState is ForkDropState.Spoiler ? ForkDroppedShip?.NameEN : null;
+
+		// the item line: under the same conditions as the ship's box, only when an item dropped
+		ForkDropItemVisible = ForkHasResult && !ForkResultIsPractice && log.ShowDropSpoiler && ForkDroppedItemId > 0;
+		string? itemName = ForkDropItemVisible
+			? KCDatabase.Instance.MasterUseItems[ForkDroppedItemId]?.NameTranslated ?? $"#{ForkDroppedItemId}"
+			: null;
+		ForkDropItemText = itemName is null ? null : log.ShowSpoiler ? itemName : ForkStrings.KcvDropSpoiler;
+		ForkDropItemIcon = itemName is not null && log.ShowSpoiler ? KcvHqIcons.UseItem(ForkDroppedItemId) : null;
+		ForkDropItemToolTip = itemName is null ? null : ForkStrings.KcvDropItemCount(itemName, ForkDroppedItemTotal);
 		OnPropertyChanged(nameof(ForkShowDrop));
 	}
 
