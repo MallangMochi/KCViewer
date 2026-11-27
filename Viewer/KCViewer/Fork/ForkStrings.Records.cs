@@ -108,6 +108,11 @@ public static partial class ForkStrings
 	// the context menu item, 드랍함 표시 until the item line (mockup 20261125-battle-item-drop-v1, user's 2026-11-25
 	// "우클릭 메뉴 이름도 드랍 표시로 수정")
 	public static string KcvShowDrop => T("드랍 표시", "ドロップを表示", "Show drops");
+
+	// the battle panel's context menu (mockup 20261127-battle-result-hide-v3, the user's names): one battle shown at its
+	// result, and the setting 전투 종료까지 숨기기 under the settings window's own name
+	public static string KcvHideNextBattle => T("다음 전투 결과만 표시", "次の戦闘は結果のみ表示", "Next battle: result only");
+	public static string KcvHideDuringBattle => KCViewer.Translations.ConfigurationResources.FormBattle_HideDuringBattle;
 	/// <summary>The battle panel's second drop line (mockup 20261125-battle-item-drop-v1 안 나).</summary>
 	public static string KcvDropItem => T("아이템", "アイテム", "Item");
 	/// <summary>The dropped item's tooltip: its name and how many there are (user's 2026-11-25 "합계는 아이템명과 개수만

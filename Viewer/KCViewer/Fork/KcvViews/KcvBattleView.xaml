@@ -278,6 +278,18 @@
 				<MenuItem Command="{Binding ShowBattleDetailCommand}" Header="{Binding FormBattle.RightClickMenu_ShowBattleDetail}" />
 				<Separator />
 				<MenuItem Command="{Binding ShowBattleResultCommand}" Header="{Binding FormBattle.RightClickMenu_ShowBattleResult}" />
+				<!--  one battle shown at its result, and the setting 전투 종료까지 숨기기 (mockup 20261127-battle-result-hide-v3)  -->
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvHideNextBattle}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkHideNextBattle}"
+					IsEnabled="{Binding ForkCanHideNextBattle}"
+					/>
+				<MenuItem
+					Header="{x:Static fork:ForkStrings.KcvHideDuringBattle}"
+					IsCheckable="True"
+					IsChecked="{Binding ForkHideDuringBattle}"
+					/>
 				<Separator />
 				<!--  the drop box (ship and item); the same value as the log setting 드랍 보고 표시 (mockups 20261006-battle-drop-v2, 20261125-battle-item-drop-v1)  -->
 				<MenuItem

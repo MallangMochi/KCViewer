@@ -232,13 +232,15 @@ public partial class BattleViewModel : AnchorableViewModel
 	{
 		ViewVisible = true;
 		PlayerFleetVisible = true;
+		ForkShownNow(); // Fork: uses up 다음 전투 결과만 표시 (BattleViewModel.ForkResultHide.cs)
 	}
 
 	private void Updated(string apiname, dynamic data)
 	{
 		KCDatabase db = KCDatabase.Instance;
 		BattleManager bm = db.Battle;
-		bool hideDuringBattle = Configuration.Config.FormBattle.HideDuringBattle;
+		// Fork: 전투 종료까지 숨기기, or 다음 전투 결과만 표시 for one battle (BattleViewModel.ForkResultHide.cs)
+		bool hideDuringBattle = ForkHides(apiname);
 
 		switch (apiname)
 		{
@@ -1511,5 +1513,6 @@ public partial class BattleViewModel : AnchorableViewModel
 
 		CompactMode = Configuration.Config.FormBattle.CompactMode;
 		ForkUpdateDrop(); // Fork: 드랍 보고 표시 and 스포일러 허가 decide the dropped ship's box (BattleViewModel.Fork.cs)
+		ForkResultHideSettingChanged(); // Fork: the context menu's 전투 종료까지 숨기기 (BattleViewModel.ForkResultHide.cs)
 	}
 }
