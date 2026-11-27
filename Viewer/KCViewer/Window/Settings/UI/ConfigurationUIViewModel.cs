@@ -48,25 +48,11 @@ public partial class ConfigurationUIViewModel : ConfigurationViewModelBase
 
 	public int ThemeID { get; set; }
 
-	public int MaxAkashiPerHP { get; set; }
-
-	public int DockingUnitTimeOffset { get; set; }
-
-	public bool UseOldAircraftLevelIcons { get; set; }
-
-	public bool TextWrapInLogWindow { get; set; }
-
-	public bool CompactModeLogWindow { get; set; }
-
-	public bool InvertedLogWindow { get; set; }
-
 	public int HqResLowAlertFuel { get; set; }
 	public int HqResLowAlertAmmo { get; set; }
 	public int HqResLowAlertSteel { get; set; }
 	public int HqResLowAlertBauxite { get; set; }
 	public int HqResLowAlertBucket { get; set; }
-
-	public bool AllowSortIndexing { get; set; }
 
 	public bool BarColorMorphing { get; set; }
 
@@ -119,7 +105,6 @@ public partial class ConfigurationUIViewModel : ConfigurationViewModelBase
 		string fontFamilyName = (string)converter
 			.Convert(font, typeof(string), null, null)!;
 
-
 		System.Drawing.FontFamily? exactMatch = families
 			.FirstOrDefault(f => f.Name == fontFamilyName);
 
@@ -156,18 +141,11 @@ public partial class ConfigurationUIViewModel : ConfigurationViewModelBase
 		UseOriginalNodeId = !config.UseOriginalNodeId;
 		ThemeMode = (ThemeMode)config.ThemeMode;
 		ThemeID = config.ThemeID;
-		MaxAkashiPerHP = config.MaxAkashiPerHP;
-		DockingUnitTimeOffset = config.DockingUnitTimeOffset;
-		UseOldAircraftLevelIcons = config.UseOldAircraftLevelIcons;
-		TextWrapInLogWindow = config.TextWrapInLogWindow;
-		CompactModeLogWindow = config.CompactModeLogWindow;
-		InvertedLogWindow = config.InvertedLogWindow;
 		HqResLowAlertFuel = config.HqResLowAlertFuel;
 		HqResLowAlertAmmo = config.HqResLowAlertAmmo;
 		HqResLowAlertSteel = config.HqResLowAlertSteel;
 		HqResLowAlertBauxite = config.HqResLowAlertBauxite;
 		HqResLowAlertBucket = config.HqResLowAlertBucket;
-		AllowSortIndexing = config.AllowSortIndexing;
 		BarColorMorphing = config.BarColorMorphing;
 		IsLayoutFixed = config.IsLayoutFixed;
 		FontFamilyTextSearch = config.FontFamilyTextSearch;
@@ -201,18 +179,11 @@ public partial class ConfigurationUIViewModel : ConfigurationViewModelBase
 		Config.UseOriginalNodeId = !UseOriginalNodeId;
 		Config.ThemeMode = (int)ThemeMode;
 		Config.ThemeID = ThemeID;
-		Config.MaxAkashiPerHP = MaxAkashiPerHP;
-		Config.DockingUnitTimeOffset = DockingUnitTimeOffset;
-		Config.UseOldAircraftLevelIcons = UseOldAircraftLevelIcons;
-		Config.TextWrapInLogWindow = TextWrapInLogWindow;
-		Config.CompactModeLogWindow = CompactModeLogWindow;
-		Config.InvertedLogWindow = InvertedLogWindow;
 		Config.HqResLowAlertFuel = HqResLowAlertFuel;
 		Config.HqResLowAlertAmmo = HqResLowAlertAmmo;
 		Config.HqResLowAlertSteel = HqResLowAlertSteel;
 		Config.HqResLowAlertBauxite = HqResLowAlertBauxite;
 		Config.HqResLowAlertBucket = HqResLowAlertBucket;
-		Config.AllowSortIndexing = AllowSortIndexing;
 		Config.BarColorMorphing = BarColorMorphing;
 		Config.IsLayoutFixed = IsLayoutFixed;
 		Config.FontFamilyTextSearch = FontFamilyTextSearch;

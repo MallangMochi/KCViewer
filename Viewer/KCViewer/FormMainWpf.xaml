@@ -969,27 +969,13 @@
 				Header="{Binding MaintenanceText}"
 				Visibility="{Binding MaintenanceTextVisibility}"
 				/>
+			<!--  Fork: the program update item; Fork/Update/ForkProgramUpdateUi finds it by this header binding and fills it  -->
 			<MenuItem
 				Grid.Column="8"
 				Height="Auto"
 				HorizontalAlignment="Right"
 				Header="{Binding FormMain.StripMenu_Update_UpdateAvailable}"
-				Visibility="{Binding UpdateAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
-				>
-				<MenuItem Command="{Binding StartSoftwareUpdateCommand}" Header="{Binding FormMain.StripMenu_Update_DownloadUpdate}" />
-
-				<MenuItem Command="{Binding OpenReleaseNotesCommand}" Header="{Binding FormMain.StripMenu_Update_OpenReleaseNotes}">
-					<MenuItem.Icon>
-						<common:IconContentIcon Type="FormInformation" />
-					</MenuItem.Icon>
-				</MenuItem>
-			</MenuItem>
-			<MenuItem
-				Grid.Column="9"
-				Height="Auto"
-				HorizontalAlignment="Right"
-				Header="{Binding DownloadProgressString}"
-				Visibility="{Binding DownloadProgressVisibility}"
+				Visibility="Collapsed"
 				/>
 		</Menu>
 		<DockingManager

@@ -16,8 +16,6 @@ namespace KCViewer.Utility;
 
 public class SoftwareUpdater
 {
-	private static bool WaitForRestart { get; set; }
-
 	public static SoftwareUpdateData CurrentDataVersion { get; set; } = new();
 	public static SoftwareUpdateData LatestDataVersion { get; set; } = new();
 
@@ -52,68 +50,6 @@ public class SoftwareUpdater
 
 	private static string DataUpdateFile => Path.Join(DataConstants.WorkingFolder, "update.json");
 	private static string TranslationUpdateFile => Path.Join(DataConstants.TranslationFolder(CurrentTranslationLanguage), "update.json");
-
-	public static string DownloadProgressString { get; private set; } = "";
-
-	public static SoftwareDownloadTranslationViewModel SoftwareDownload { get; } = new();
-
-	/// <summary>
-	/// Perform software update in background 
-	/// </summary>
-	public static async Task UpdateSoftware()
-	{
-		// Fork: an upstream release would overwrite the fork's files.
-		if (Fork.ForkOptions.DisableSoftwareUpdate)
-		{
-			Logger.Add(2, Fork.ForkStrings.SoftwareUpdateDisabled);
-			return;
-		}
-
-		if (WaitForRestart) return;
-
-		if (!Directory.Exists(DataConstants.AppDataFolder))
-			Directory.CreateDirectory(DataConstants.AppDataFolder);
-
-		var url = LatestDataVersion.AppDownloadUrl;
-		if (url != string.Empty)
-		{
-			try
-			{
-				Logger.Add(1, string.Format(SoftwareInformationResources.StartedDownloadingUpdate, url));
-				await DownloadUpdate(url);
-				Logger.Add(1, SoftwareInformationResources.DownloadFinished);
-			}
-			catch
-			{
-				return;
-			}
-		}
-
-		try
-		{
-			await DownloadUpdater();
-		}
-		catch
-		{
-			return;
-		}
-
-		var updaterFile = AppDomain.CurrentDomain.SetupInformation.ApplicationBase + @"\EOUpdater.exe";
-		if (!File.Exists(updaterFile)) return;
-		var updater = new Process
-		{
-			StartInfo =
-			{
-				FileName = updaterFile,
-				UseShellExecute = false,
-				CreateNoWindow = false,
-				Arguments = "--restart"
-			}
-		};
-		updater.Start();
-		Logger.Add(2, SoftwareInformationResources.CloseElectronicObserverToCompleteTheUpdate);
-		WaitForRestart = true;
-	}
 
 	public static async Task PeriodicUpdateCheckAsync(CancellationToken cancellationToken)
 	{
@@ -348,60 +284,6 @@ public class SoftwareUpdater
 
 		TranslationSkipLogged = message;
 		Logger.Add(2, message);
-	}
-
-	private static async Task DownloadUpdater()
-	{
-		try
-		{
-			using HttpClient client = new();
-
-			var url = @"https://raw.githubusercontent.com/ElectronicObserverEN/Data/master/Data/EOUpdater.exe";
-			var updaterFile = AppDomain.CurrentDomain.SetupInformation.ApplicationBase + @"\EOUpdater.exe";
-
-			Progress<float> progress = new();
-			progress.ProgressChanged += (_, progress) => DownloadProgressString = string.Format(SoftwareDownload.Update_DownloadingUpdater, progress);
-
-			using FileStream file = new(updaterFile, FileMode.Create);
-			await client.DownloadDataAsync(url, file, progress);
-
-			Logger.Add(1, SoftwareInformationResources.UpdaterDownloadFinished);
-		}
-		catch (Exception e)
-		{
-			Logger.Add(3, SoftwareInformationResources.FailedToDownloadUpdater + e);
-			throw;
-		}
-		finally
-		{
-			DownloadProgressString = "";
-		}
-	}
-
-	private static async Task DownloadUpdate(string url)
-	{
-		try
-		{
-			using HttpClient client = new();
-			string tempFile = Path.Join(DataConstants.AppDataFolder, "latest.zip");
-
-			Console.WriteLine(SoftwareInformationResources.DownloadingUpdate);
-
-			Progress<float> progress = new();
-			progress.ProgressChanged += (_, progress) => DownloadProgressString = string.Format(SoftwareDownload.Update_DownloadingUpdate, progress);
-
-			await using FileStream file = new(tempFile, FileMode.Create);
-			await client.DownloadDataAsync(url, file, progress);
-		}
-		catch (Exception e)
-		{
-			Logger.Add(3, SoftwareInformationResources.FailedToDownloadElectronicObserver + e.Message);
-			throw;
-		}
-		finally
-		{
-			DownloadProgressString = "";
-		}
 	}
 
 	private static (SoftwareUpdateData, TranslationUpdateData) ParseUpdate(string dataJson, string translationJson)

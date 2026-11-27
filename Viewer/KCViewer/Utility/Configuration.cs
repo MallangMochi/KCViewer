@@ -94,11 +94,6 @@ public sealed class Configuration
 
 
 			/// <summary>
-			/// システムプロキシに登録するか
-			/// </summary>
-			public bool RegisterAsSystemProxy { get; set; }
-
-			/// <summary>
 			/// 上流プロキシを利用するか
 			/// </summary>
 			public bool UseUpstreamProxy { get; set; }
@@ -134,7 +129,6 @@ public sealed class Configuration
 				SaveResponse = true;
 				SaveOtherFile = false;
 				ApplyVersion = false;
-				RegisterAsSystemProxy = false;
 				UseUpstreamProxy = false;
 				UpstreamProxyPort = 0;
 				UpstreamProxyAddress = "127.0.0.1";
@@ -199,24 +193,6 @@ public sealed class Configuration
 			// ThemeID
 			public int ThemeID { get; set; }
 
-			// 明石 ToolTip 每 HP 耗时最大显示数量
-			public int MaxAkashiPerHP { get; set; }
-
-			// 修理时间偏移值 ( 暂定 +30s, 待验证 )
-			public int DockingUnitTimeOffset { get; set; }
-
-			// 使用旧版熟练度图标
-			public bool UseOldAircraftLevelIcons { get; set; }
-
-			// 日志窗口自动换行
-			public bool TextWrapInLogWindow { get; set; }
-
-			// 日志窗口精简模式
-			public bool CompactModeLogWindow { get; set; }
-
-			// 日志窗口反向滚动 ( 新日志在顶端 )
-			public bool InvertedLogWindow { get; set; }
-
 
 			// 司令部各资源储量过低警告值
 			// -1: 自然恢复上限 ( 桶无效 ) | 3000: 小于 3000
@@ -225,12 +201,6 @@ public sealed class Configuration
 			public int HqResLowAlertSteel { get; set; }
 			public int HqResLowAlertBauxite { get; set; }
 			public int HqResLowAlertBucket { get; set; }
-
-			/// <summary>
-			/// 舰队编成 - 新增排序列 ( Lv 序, 舰种序, NEW 序 )
-			/// | true: 开启此功能 ( 默认 ) | false: 禁用此功能 ( 若过分拖慢可关闭 )
-			/// </summary>
-			public bool AllowSortIndexing { get; set; }
 
 			[IgnoreDataMember]
 			private bool _barColorMorphing;
@@ -494,18 +464,11 @@ public sealed class Configuration
 				SubFont = new Font("Meiryo UI", 10, FontStyle.Regular, GraphicsUnit.Pixel);
 				ThemeMode = 0;
 				ThemeID = 0;
-				MaxAkashiPerHP = 5;
-				DockingUnitTimeOffset = 30;
-				UseOldAircraftLevelIcons = true;
-				TextWrapInLogWindow = false;
-				CompactModeLogWindow = false;
-				InvertedLogWindow = false;
 				HqResLowAlertFuel = 0;
 				HqResLowAlertAmmo = 0;
 				HqResLowAlertSteel = 0;
 				HqResLowAlertBauxite = 0;
 				HqResLowAlertBucket = 0;
-				AllowSortIndexing = true;
 				BarColorMorphing = false;
 				IsLayoutFixed = true;
 
@@ -782,11 +745,6 @@ public sealed class Configuration
 			public bool EnableDebugMenu { get; set; }
 
 			/// <summary>
-			/// 起動時にAPIリストをロードするか
-			/// </summary>
-			public bool LoadAPIListOnLoad { get; set; }
-
-			/// <summary>
 			/// APIリストのパス
 			/// </summary>
 			public string APIListPath { get; set; }
@@ -804,7 +762,6 @@ public sealed class Configuration
 			public ConfigDebug()
 			{
 				EnableDebugMenu = false;
-				LoadAPIListOnLoad = false;
 				APIListPath = "";
 				AlertOnError = false;
 			}
@@ -860,11 +817,6 @@ public sealed class Configuration
 			/// </summary>
 			public bool LockLayout { get; set; }
 
-			/// <summary>
-			/// レイアウトロック中でもフロートウィンドウを閉じられるようにするか
-			/// </summary>
-			public bool CanCloseFloatWindowInLock { get; set; }
-
 			public string? CsvExportPath { get; set; }
 
 			public ConfigLife()
@@ -877,7 +829,6 @@ public sealed class Configuration
 				ShowStatusBar = true;
 				ClockFormat = 0;
 				LockLayout = false;
-				CanCloseFloatWindowInLock = false;
 			}
 		}
 		/// <summary>起動と終了</summary>
@@ -994,11 +945,6 @@ public sealed class Configuration
 			/// 艦載機を表示するか
 			/// </summary>
 			public bool ShowAircraft { get; set; }
-
-			/// <summary>
-			/// 索敵式の計算方法
-			/// </summary>
-			public int SearchingAbilityMethod { get; set; }
 
 			/// <summary>
 			/// スクロール可能か
@@ -1119,7 +1065,6 @@ public sealed class Configuration
 			public ConfigFormFleet()
 			{
 				ShowAircraft = true;
-				SearchingAbilityMethod = 4;
 				IsScrollable = true;
 				FixShipNameWidth = false;
 				ShortenHPBar = false;
@@ -1254,12 +1199,6 @@ public sealed class Configuration
 			public bool ShowStatusBar { get; set; }
 
 
-			/// <summary>
-			/// 艦名列のソート方法
-			/// 0 = 図鑑番号順, 1 = あいうえお順
-			/// </summary>
-			public int ShipNameSortMethod { get; set; }
-
 			public double GroupHeight { get; set; }
 			public int ColumnHeaderHeight { get; set; } = 32;
 			public int RowHeight { get; set; } = 32;
@@ -1268,7 +1207,6 @@ public sealed class Configuration
 			{
 				AutoUpdate = true;
 				ShowStatusBar = true;
-				ShipNameSortMethod = 0;
 			}
 		}
 		/// <summary>[艦船グループ]ウィンドウ</summary>
@@ -1432,11 +1370,6 @@ public sealed class Configuration
 		{
 
 			/// <summary>
-			/// 一度に表示する敵艦隊候補数
-			/// </summary>
-			public int CandidateDisplayCount { get; set; }
-
-			/// <summary>
 			/// スクロール可能か
 			/// </summary>
 			public bool IsScrollable { get; set; }
@@ -1454,7 +1387,6 @@ public sealed class Configuration
 
 			public ConfigFormCompass()
 			{
-				CandidateDisplayCount = 4;
 				IsScrollable = false;
 				MaxShipNameWidth = 60;
 				DisplayAllEnemyCompositions = false;
@@ -1516,16 +1448,6 @@ public sealed class Configuration
 			public bool HideDuringBattle { get; set; }
 
 			/// <summary>
-			/// HP バーを表示するか
-			/// </summary>
-			public bool ShowHPBar { get; set; }
-
-			/// <summary>
-			/// HP バーに艦種を表示するか
-			/// </summary>
-			public bool ShowShipTypeInHPBar { get; set; }
-
-			/// <summary>
 			/// 7隻目を主力艦隊と同じ行に表示するか
 			/// </summary>
 			public bool Display7thAsSingleLine { get; set; }
@@ -1540,8 +1462,6 @@ public sealed class Configuration
 			{
 				IsScrollable = false;
 				HideDuringBattle = false;
-				ShowHPBar = true;
-				ShowShipTypeInHPBar = false;
 				Display7thAsSingleLine = true;
 				CompactMode = false;
 			}
@@ -1902,9 +1822,7 @@ public sealed class Configuration
 
 			public FleetImageArgument Argument { get; set; }
 			public int ImageType { get; set; }
-			public int OutputType { get; set; }
 			public bool OpenImageAfterOutput { get; set; }
-			public string LastOutputPath { get; set; }
 			public bool DisableOverwritePrompt { get; set; }
 			public bool AutoSetFileNameToDate { get; set; }
 			public bool SyncronizeTitleAndFileName { get; set; }
@@ -1922,9 +1840,7 @@ public sealed class Configuration
 			{
 				Argument = new();
 				ImageType = 0;
-				OutputType = 0;
 				OpenImageAfterOutput = false;
-				LastOutputPath = "";
 				DisableOverwritePrompt = false;
 				AutoSetFileNameToDate = false;
 				SyncronizeTitleAndFileName = false;
@@ -1943,36 +1859,6 @@ public sealed class Configuration
 
 		[DataMember]
 		public ConfigDataSubmission DataSubmission { get; private set; }
-
-		public class ConfigWhitecap : ConfigPartBase
-		{
-
-			public bool ShowInTaskbar { get; set; }
-			public bool TopMost { get; set; }
-			public int BoardWidth { get; set; }
-			public int BoardHeight { get; set; }
-			public int ZoomRate { get; set; }
-			public int UpdateInterval { get; set; }
-			public int ColorTheme { get; set; }
-			public int BirthRule { get; set; }
-			public int AliveRule { get; set; }
-
-			public ConfigWhitecap()
-				: base()
-			{
-				ShowInTaskbar = true;
-				TopMost = false;
-				BoardWidth = 200;
-				BoardHeight = 150;
-				ZoomRate = 2;
-				UpdateInterval = 100;
-				ColorTheme = 0;
-				BirthRule = (1 << 3);
-				AliveRule = (1 << 2) | (1 << 3);
-			}
-		}
-		[DataMember]
-		public ConfigWhitecap Whitecap { get; private set; }
 
 		[DataMember]
 		public UiBlockerConfiguration TaihaBlocker { get; private set; }
@@ -2032,7 +1918,6 @@ public sealed class Configuration
 			BGMPlayer = new ConfigBGMPlayer();
 			FleetImageGenerator = new ConfigFleetImageGenerator();
 			DataSubmission = new ConfigDataSubmission();
-			Whitecap = new ConfigWhitecap();
 
 			TaihaBlocker = new()
 			{

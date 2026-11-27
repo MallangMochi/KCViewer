@@ -28,8 +28,6 @@ public partial class ConfigurationWindowViewModel : ConfigurationViewModelBase
 
 	public bool LockLayout { get; set; }
 
-	public bool CanCloseFloatWindowInLock { get; set; }
-
 	public ConfigurationWindowViewModel(Configuration.ConfigurationData.ConfigLife config)
 	{
 		FileService = Ioc.Default.GetRequiredService<FileService>();
@@ -49,7 +47,6 @@ public partial class ConfigurationWindowViewModel : ConfigurationViewModelBase
 		ShowStatusBar = config.ShowStatusBar;
 		ClockFormat = (ClockFormat)config.ClockFormat;
 		LockLayout = config.LockLayout;
-		CanCloseFloatWindowInLock = config.CanCloseFloatWindowInLock;
 	}
 
 	public override void Save()
@@ -62,7 +59,6 @@ public partial class ConfigurationWindowViewModel : ConfigurationViewModelBase
 		Config.ShowStatusBar = ShowStatusBar;
 		Config.ClockFormat = (int)ClockFormat;
 		Config.LockLayout = LockLayout;
-		Config.CanCloseFloatWindowInLock = CanCloseFloatWindowInLock;
 	}
 
 	[RelayCommand]

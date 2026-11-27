@@ -61,7 +61,6 @@ public partial class ConstructionRecordViewerViewModel : WindowViewModelBase
 	public string StatusInfoText { get; set; }
 	private DateTime StatusInfoTag { get; set; }
 
-	public string Today => $"{DialogConstructionRecordViewer.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	private ObservableCollection<ConstructionRecordRow> RecordRows { get; set; } = new();
 	public DataGridViewModel<ConstructionRecordRow> DataGridRawRowsViewModel { get; set; }
@@ -483,13 +482,5 @@ public partial class ConstructionRecordViewerViewModel : WindowViewModelBase
 
 		Searcher.RunWorkerAsync();
 
-	}
-
-	[RelayCommand]
-	private void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
 	}
 }

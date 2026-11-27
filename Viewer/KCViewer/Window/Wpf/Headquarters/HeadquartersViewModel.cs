@@ -574,34 +574,6 @@ public partial class HeadquartersViewModel : AnchorableViewModel
 		}
 	}
 
-	[RelayCommand]
-	private void ShowResourceChart()
-	{
-		new Fork.KcvViews.KcvResourceChartWindow().Show(App.Current.MainWindow); // Fork: KanColleViewer's style
-	}
-
-	[RelayCommand]
-	private void CopyResources()
-	{
-		try
-		{
-			var mat = KCDatabase.Instance.Material;
-			Clipboard.SetDataObject
-			(
-				$"{mat.Fuel}/{mat.Ammo}/{mat.Steel}/{mat.Bauxite}/" +
-				$"{mat.InstantRepair}{FormHeadquarters.CopyToClipboardBuckets}/" +
-				$"{mat.DevelopmentMaterial}{FormHeadquarters.CopyToClipboardDevelopmentMaterials}/" +
-				$"{mat.InstantConstruction}{FormHeadquarters.CopyToClipboardInstantConstruction}/" +
-				$"{mat.ModdingMaterial}{FormHeadquarters.CopyToClipboardImproveMaterial}"
-			);
-		}
-		catch (Exception ex)
-		{
-			Utility.Logger.Add(3, FormHeadquarters.FailedToCopyToClipboard + ex.Message);
-		}
-	}
-
-
 	private void UpdateDisplayUseItem()
 	{
 
@@ -650,18 +622,5 @@ public partial class HeadquartersViewModel : AnchorableViewModel
 				DisplayUseItem.ToolTip = itemMaster.NameTranslated + tail;
 				break;
 		}
-	}
-
-	[RelayCommand]
-	private void ViewUseItems()
-	{
-		var db = KCDatabase.Instance;
-		var sb = new StringBuilder();
-		foreach (var item in db.UseItems.Values)
-		{
-			sb.Append(item.MasterUseItem.NameTranslated).Append(" x ").Append(item.Count).AppendLine();
-		}
-
-		MessageBox.Show(sb.ToString(), FormHeadquarters.ListOfOwnedItems, MessageBoxButton.OK, MessageBoxImage.Information);
 	}
 }

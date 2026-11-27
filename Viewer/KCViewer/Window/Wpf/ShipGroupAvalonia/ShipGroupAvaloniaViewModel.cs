@@ -426,17 +426,17 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 		if (fork.Cancelled) return;
 		ships = fork.Ships ?? ships;
 
-		using DialogShipGroupCSVOutput dialog = new();
-		dialog.OutputPath = fork.OutputPath;
-		dialog.OutputFormat = fork.OutputFormat;
+		// Fork: the choice of KcvShipGroupCsvWindow, without the viewer's WinForms dialog that only held it
+		string outputPath = fork.OutputPath;
+		Fork.KcvViews.KcvShipGroupCsvFormat outputFormat = fork.OutputFormat;
 
 		try
 		{
-			using StreamWriter sw = new(dialog.OutputPath, false, Configuration.Config.Log.FileEncoding);
+			using StreamWriter sw = new(outputPath, false, Configuration.Config.Log.FileEncoding);
 
-			string header = dialog.OutputFormat switch
+			string header = outputFormat switch
 			{
-				DialogShipGroupCSVOutput.OutputFormatConstants.User => fork.UserHeader ?? shipCsvHeaderUser, // Fork
+				Fork.KcvViews.KcvShipGroupCsvFormat.User => fork.UserHeader ?? shipCsvHeaderUser, // Fork
 				_ => shipCsvHeaderData,
 			};
 
@@ -444,7 +444,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 
 			foreach (ShipData ship in ships.OfType<ShipData>())
 			{
-				if (dialog.OutputFormat is DialogShipGroupCSVOutput.OutputFormatConstants.User)
+				if (outputFormat is Fork.KcvViews.KcvShipGroupCsvFormat.User)
 				{
 					sw.WriteLine(string.Join(",",
 						ship.MasterID,
@@ -582,7 +582,7 @@ public sealed class ShipGroupAvaloniaViewModel : AnchorableViewModel
 				}
 			}
 
-			Logger.Add(2, string.Format(ShipGroupResources.ExportToCsvSuccess, dialog.OutputPath));
+			Logger.Add(2, string.Format(ShipGroupResources.ExportToCsvSuccess, outputPath));
 		}
 		catch (Exception ex)
 		{

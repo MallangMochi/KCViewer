@@ -66,10 +66,6 @@ public static partial class ForkStrings
 		"로컬 스킨을 껐습니다. 게임을 새로 고치면 원래 파일로 돌아갑니다.",
 		"Local skin off. Reload the game to get the original files back.");
 
-	public static string SoftwareUpdateDisabled => T(
-		"포크 빌드는 원본 74식의 프로그램 업데이트를 받지 않습니다. 원본 변경은 git으로 합칩니다.",
-		"This fork build does not install upstream program updates. Upstream changes are merged with git.");
-
 	// Labels of the KanColleViewer panel designs (Fork/KcvViews). Japanese as KanColleViewer shows them, for a
 	// Japanese UI; Korean or English otherwise.
 	private static bool IsJapanese => CultureInfo.CurrentUICulture.Name.StartsWith("ja", System.StringComparison.Ordinal);

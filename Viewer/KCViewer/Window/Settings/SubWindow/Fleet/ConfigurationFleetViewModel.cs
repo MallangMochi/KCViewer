@@ -20,8 +20,6 @@ public partial class ConfigurationFleetViewModel : ConfigurationViewModelBase
 
 	public bool ShowAircraft { get; set; }
 
-	public int SearchingAbilityMethod { get; set; }
-
 	public bool IsScrollable { get; set; }
 
 	public bool FixShipNameWidth { get; set; }
@@ -79,7 +77,6 @@ public partial class ConfigurationFleetViewModel : ConfigurationViewModelBase
 	private void Load()
 	{
 		ShowAircraft = Config.ShowAircraft;
-		SearchingAbilityMethod = Config.SearchingAbilityMethod;
 		IsScrollable = Config.IsScrollable;
 		FixShipNameWidth = Config.FixShipNameWidth;
 		ShortenHPBar = Config.ShortenHPBar;
@@ -105,7 +102,6 @@ public partial class ConfigurationFleetViewModel : ConfigurationViewModelBase
 	public override void Save()
 	{
 		Config.ShowAircraft = ShowAircraft;
-		Config.SearchingAbilityMethod = SearchingAbilityMethod;
 		Config.IsScrollable = IsScrollable;
 		Config.FixShipNameWidth = FixShipNameWidth;
 		Config.ShortenHPBar = ShortenHPBar;

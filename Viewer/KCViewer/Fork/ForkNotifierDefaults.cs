@@ -106,40 +106,6 @@ public static class ForkNotifierDefaults
 		if (!parts.Dialog) CopyDialog(source, target);
 	}
 
-	/// <summary>
-	/// After the viewer's own settings window (style off): a part that follows the common settings but holds other
-	/// values was changed in its notification dialog, so it becomes the notifier's own.
-	/// </summary>
-	public static void Reconcile()
-	{
-		bool changed = false;
-
-		foreach ((string key, Func<NotifierBase> get) in Notifiers)
-		{
-			NotifierBase target = get();
-			ForkSettings.NotifierOverride parts = Overrides(key);
-
-			changed |= Own(parts, target.IsEnabled == Notifier.IsEnabled, p => p.Enabled, (p, v) => p.Enabled = v);
-			changed |= Own(parts, SameSound(target, Notifier), p => p.Sound, (p, v) => p.Sound = v);
-			changed |= Own(parts, SameImage(target, Notifier), p => p.Image, (p, v) => p.Image = v);
-			changed |= Own(parts, SameDialog(target, Notifier), p => p.Dialog, (p, v) => p.Dialog = v);
-		}
-
-		if (changed)
-		{
-			ForkSettings.Current.Save();
-		}
-	}
-
-	private static bool Own(ForkSettings.NotifierOverride parts, bool same, Func<ForkSettings.NotifierOverride, bool> get,
-		Action<ForkSettings.NotifierOverride, bool> set)
-	{
-		if (get(parts) || same) return false;
-
-		set(parts, true);
-		return true;
-	}
-
 	/// <summary>Keeps the common settings (the default notifier's values) and each notifier's parts.</summary>
 	public static void Save()
 	{

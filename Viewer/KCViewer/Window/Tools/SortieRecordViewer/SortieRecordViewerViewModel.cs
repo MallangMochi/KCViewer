@@ -64,7 +64,6 @@ public partial class SortieRecordViewerViewModel : WindowViewModelBase
 	public DateTime MinDate { get; set; }
 	public DateTime MaxDate { get; set; }
 
-	public string Today => $"{DropRecordViewerResources.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	public ObservableCollection<SortieRecordViewModel> Sorties { get; } = [];
 	public SortieRecordViewModel? SelectedSortie { get; set; }
@@ -258,14 +257,6 @@ public partial class SortieRecordViewerViewModel : WindowViewModelBase
 		int hqLevel = await SelectedSortie.Model.GetAdmiralLevel(Db) ?? KCDatabase.Instance.Admiral.Level;
 
 		ToolService.FleetImageGenerator(SelectedSortie, hqLevel);
-	}
-
-	[RelayCommand]
-	private static void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
 	}
 
 	[RelayCommand]

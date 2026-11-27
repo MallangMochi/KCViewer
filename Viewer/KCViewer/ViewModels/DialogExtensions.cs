@@ -3,7 +3,6 @@ using System.Windows.Interop;
 using KCViewer.Avalonia.Dialogs.EquipmentSelector;
 using KCViewer.Avalonia.Dialogs.ShipSelector;
 using KCViewer.Fork.KcvViews;
-using KCViewer.Window.Dialog.ShipSelector;
 
 namespace KCViewer.ViewModels;
 
@@ -31,26 +30,6 @@ public static class DialogExtensions
 		KcvCalcWindows.ShowShipSelector(viewModel);
 
 		return viewModel.SelectedShip is not null;
-	}
-
-	public static bool? ShowDialog(this DropRecordShipSelectorViewModel viewModel, System.Windows.Window? owner = null)
-	{
-		viewModel.SelectedOption = null;
-		viewModel.SelectedShip = null;
-
-		ShipSelectorView view = new()
-		{
-			DataContext = viewModel,
-		};
-
-		DropRecordShipSelectorWindow dialog = new(viewModel)
-		{
-			WpfAvaloniaHost = { Content = view },
-		};
-
-		dialog.ShowDialog(MainWindow);
-
-		return viewModel.SelectedOption is not null || viewModel.SelectedShip is not null;
 	}
 
 	public static bool ShowDialog(this EquipmentSelectorViewModel viewModel, System.Windows.Window? owner = null)

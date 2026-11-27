@@ -17,7 +17,6 @@ using KCViewer.Window.Wpf.ExpeditionCheck;
 using KCViewer.Window.Wpf.EquipmentUpgradePlanViewer;
 using KCViewer.Window.Wpf.SenkaLeaderboard;
 using KCViewer.Window.Wpf.ShipGroupAvalonia;
-using KCViewer.Window.Wpf.ShipGroupWinforms;
 using KCViewer.Window.Wpf.ShipTrainingPlanner;
 
 namespace KCViewer.Window.Wpf;
@@ -26,8 +25,6 @@ public class ViewTemplateSelector : DataTemplateSelector
 {
 	public DataTemplate? Fleet { get; set; }
 	public DataTemplate? FleetOverview { get; set; }
-	public DataTemplate? Group { get; set; }
-	public DataTemplate? GroupWinforms { get; set; }
 	public DataTemplate? GroupAvalonia { get; set; }
 	public DataTemplate? FleetPreset { get; set; }
 	public DataTemplate? ShipTrainingPlanViewer { get; set; }
@@ -46,7 +43,6 @@ public class ViewTemplateSelector : DataTemplateSelector
 	public DataTemplate? Compass { get; set; }
 	public DataTemplate? Battle { get; set; }
 
-	public DataTemplate? BrowserHost { get; set; }
 	public DataTemplate? Log { get; set; }
 	public DataTemplate? Json { get; set; }
 
@@ -56,7 +52,6 @@ public class ViewTemplateSelector : DataTemplateSelector
 	{
 		FleetViewModel => Fleet,
 		FleetOverviewViewModel => FleetOverview,
-		ShipGroupWinformsViewModel => GroupWinforms,
 		ShipGroupAvaloniaViewModel => GroupAvalonia,
 		FleetPresetViewModel => FleetPreset,
 		ShipTrainingPlanViewerViewModel => ShipTrainingPlanViewer,

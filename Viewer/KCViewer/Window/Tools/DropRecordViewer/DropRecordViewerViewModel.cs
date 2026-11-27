@@ -35,7 +35,6 @@ public sealed partial class DropRecordViewerViewModel : WindowViewModelBase
 
 	private TransliterationService TransliterationService { get; }
 	private ImageLoadService ImageLoadService { get; }
-	private DropRecordShipSelectorViewModel? ShipSelectorViewModel { get; set; }
 	public List<object> Items { get; set; } = [];
 	public List<ShipTypes> ShipTypeOptions { get; set; } = [];
 
@@ -82,7 +81,6 @@ public sealed partial class DropRecordViewerViewModel : WindowViewModelBase
 	private string NameNotExist => DialogDropRecordViewer.NameNotExist;
 	private const string MapAny = "*";
 
-	public string Today => $"{DialogDropRecordViewer.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	public DropRecordFilterViewModel DropRecordFilter { get; } = new();
 
@@ -659,46 +657,6 @@ public sealed partial class DropRecordViewerViewModel : WindowViewModelBase
 			StatusInfoText = string.Format(DialogDropRecordViewer.SelectedItems,
 				selectedCount, allCount, (double)selectedCount / allCount);
 		}
-	}
-
-	[RelayCommand]
-	private void OpenShipPicker()
-	{
-		// todo: refactor into ShipSelectorFactory
-		if (ShipSelectorViewModel is null)
-		{
-			List<IShipData> ships = KCDatabase.Instance.MasterShips.Values
-				.Where(s => !s.IsAbyssalShip)
-				.Where(s => s.RemodelBeforeShipID == 0)
-				.Select(s => new ShipDataMock(s)
-				{
-					Level = 1,
-				})
-				.OfType<IShipData>()
-				.ToList();
-
-			ShipSelectorViewModel = new(TransliterationService, ImageLoadService, ships)
-			{
-				ShipFilter = { FinalRemodel = false },
-			};
-		}
-
-		if (ShipSelectorViewModel.ShowDialog() is not true) return;
-
-		ShipSearchOption = ShipSelectorViewModel switch
-		{
-			{ SelectedShip: { } } => ShipSelectorViewModel.SelectedShip.MasterShip,
-			{ SelectedOption: { } } => ShipSelectorViewModel.SelectedOption,
-			_ => DropRecordOption.All,
-		};
-	}
-
-	[RelayCommand]
-	private void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
 	}
 
 	public void RecordView_CellDoubleClick()

@@ -252,7 +252,6 @@ public partial class App
 			.AddSingleton<IKCDatabase>(KCDatabase.Instance)
 			.AddSingleton<IConfigurationConnection>(Configuration.Config.Connection)
 			.AddSingleton<IConfigurationUi>(Configuration.Config.UI)
-			.AddDialogServices()
 			// config translations
 			.AddSingleton<ConfigurationTranslationViewModel>()
 			.AddSingleton<ConfigurationConnectionTranslationViewModel>()
@@ -295,7 +294,6 @@ public partial class App
 			.AddSingleton<FormLogTranslationViewModel>()
 			.AddSingleton<FormMainTranslationViewModel>()
 			.AddSingleton<FormQuestTranslationViewModel>()
-			.AddSingleton<FormShipGroupTranslationViewModel>()
 			.AddSingleton<FormWindowCaptureTranslationViewModel>()
 			.AddSingleton<EquipmentUpgradePlanViewerTranslationViewModel>()
 			// tool translations

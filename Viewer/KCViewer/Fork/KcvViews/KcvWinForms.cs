@@ -47,12 +47,12 @@ public static class KcvWinForms
 	}
 
 	/// <summary>
-	/// Windows left as they are: the notifier takes the colours set in its own configuration, the capture overlays are
-	/// drawn in fixed colours, the browser host only holds the browser process's window.
+	/// Windows left as they are: the capture overlays are drawn in fixed colours, the browser host only holds the browser
+	/// process's window.
 	/// </summary>
 	private static readonly HashSet<Type> Excluded =
 	[
-		typeof(DialogNotifier), typeof(FormCandidate), typeof(FormCapturing), typeof(FormBrowserHost),
+		typeof(FormCandidate), typeof(FormCapturing), typeof(FormBrowserHost),
 	];
 
 	private static Scheme? Current { get; set; }

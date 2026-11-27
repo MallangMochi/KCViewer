@@ -54,13 +54,5 @@ namespace KCViewer.Window.Settings.Notification
 		{
 			// no need to save here because it's already saved in the dialog
 		}
-
-		[RelayCommand]
-		private void OpenNotificationConfigDialog(Base.ConfigurationNotificationBaseViewModel? config)
-		{
-			if (config is null) return;
-
-			new ConfigurationNotificationDialog(config).ShowDialog(App.Current!.MainWindow!);
-		}
 	}
 }

@@ -74,29 +74,6 @@ public sealed class NotifierManager
 		TrainingPlan.ApplyToConfiguration(c.NotifierTrainingPlan);
 	}
 
-	public void ShowNotifier(KCViewer.Window.Dialog.DialogNotifier form)
-	{
-		switch (_parentForm)
-		{
-			case FormMainWpf parentForm:
-			{
-				if (form.DialogData.Alignment == NotifierDialogAlignment.CustomRelative)
-				{       //cloneしているから書き換えても問題ないはず
-					if (parentForm.ViewModel.FormBrowserHost.WindowsFormsHost.Child is FormBrowserHost browserHost)
-					{
-						Point p = browserHost.PointToScreen(new Point(browserHost.ClientSize.Width / 2, browserHost.ClientSize.Height / 2));
-						p.Offset(new Point(-form.Width / 2, -form.Height / 2));
-						p.Offset(form.DialogData.Location);
-
-						form.DialogData.Location = p;
-					}
-				}
-				parentForm.Dispatcher.Invoke((MethodInvoker)form.Show);
-				break;
-			}
-		}
-	}
-
 	public IEnumerable<NotifierBase> GetNotifiers()
 	{
 		yield return Expedition;

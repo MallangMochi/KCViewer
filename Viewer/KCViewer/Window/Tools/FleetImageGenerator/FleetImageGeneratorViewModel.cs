@@ -516,14 +516,6 @@ public partial class FleetImageGeneratorViewModel : WindowViewModelBase
 	}
 
 	[RelayCommand]
-	private void OpenConfiguration(System.Windows.Window? window)
-	{
-		if (window is null) return;
-
-		new FleetImageGeneratorConfigurationWindow(this).Show(window);
-	}
-
-	[RelayCommand]
 	private void SelectImageSaveFolder()
 	{
 		System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new()

@@ -662,11 +662,6 @@
 							IsChecked="{Binding LockLayout}"
 							ToolTip="{Binding Translation.Life_LockLayoutToolTip}"
 							/>
-						<CheckBox
-							Content="{Binding Translation.Life_CanCloseFloatWindowInLock}"
-							IsChecked="{Binding CanCloseFloatWindowInLock}"
-							ToolTip="{Binding Translation.Life_CanCloseFloatWindowInLockToolTip}"
-							/>
 					</WrapPanel>
 				</StackPanel>
 			</ContentControl>
@@ -1048,15 +1043,6 @@
 						ToolTip="{Binding Translation.ShowStatusbarHint}"
 						/>
 				</WrapPanel>
-				<WrapPanel Style="{StaticResource Cfg.Row}">
-					<TextBlock Style="{StaticResource Cfg.Lbl}" Text="{Binding Translation.ShipNameSortMethod, Converter={StaticResource Cfg.Label}}" />
-					<ComboBox
-						ItemTemplate="{StaticResource Cfg.EnumItem}"
-						ItemsSource="{Binding ShipNameSortMethods}"
-						SelectedItem="{Binding ShipNameSortMethod}"
-						Style="{StaticResource Cfg.Combo}"
-						/>
-				</WrapPanel>
 			</StackPanel>
 		</ContentControl>
 	</DataTemplate>
@@ -1075,18 +1061,6 @@
 					IsChecked="{Binding HideDuringBattle}"
 					Style="{StaticResource Cfg.Cell}"
 					ToolTip="{Binding Translation.FormBattle_HideDuringBattleToolTip}"
-					/>
-				<CheckBox
-					Content="{Binding Translation.FormBattle_ShowHPBar}"
-					IsChecked="{Binding ShowHPBar}"
-					Style="{StaticResource Cfg.Cell}"
-					ToolTip="{Binding Translation.FormBattle_ShowHPBarToolTip}"
-					/>
-				<CheckBox
-					Content="{Binding Translation.FormBattle_ShowShipTypeInHPBar}"
-					IsChecked="{Binding ShowShipTypeInHPBar}"
-					Style="{StaticResource Cfg.Cell}"
-					ToolTip="{Binding Translation.FormBattle_ShowShipTypeInHPBarToolTip}"
 					/>
 				<CheckBox
 					Content="{Binding Translation.FormBattle_Display7thAsSingleLine}"
@@ -1429,11 +1403,6 @@
 				>
 				<StackPanel>
 					<CheckBox Content="{Binding Translation.Debug_AlertOnError}" IsChecked="{Binding AlertOnError}" />
-					<CheckBox
-						Content="{Binding Translation.Debug_LoadAPIListOnLoad}"
-						IsChecked="{Binding LoadAPIListOnLoad}"
-						ToolTip="{Binding Translation.Debug_LoadAPIListOnLoadToolTip}"
-						/>
 					<WrapPanel Style="{StaticResource Cfg.Row}">
 						<TextBox
 							Width="440"

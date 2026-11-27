@@ -5,15 +5,11 @@
 	xmlns:information="clr-namespace:KCViewer.Window.Wpf.InformationView"
 	xmlns:log="clr-namespace:KCViewer.Window.Wpf.Log"
 	xmlns:senkaLeaderboard="clr-namespace:KCViewer.Window.Wpf.SenkaLeaderboard"
-	xmlns:shipGroupWinforms="clr-namespace:KCViewer.Window.Wpf.ShipGroupWinforms"
 	xmlns:winformsHost="clr-namespace:KCViewer.Window.Wpf.WinformsHost"
 	xmlns:winformsWrappers="clr-namespace:KCViewer.Window.Wpf.WinformsWrappers"
 	xmlns:wpf="clr-namespace:KCViewer.Window.Wpf"
 	>
 
-	<DataTemplate x:Key="ShipGroupWinformsTemplate" DataType="shipGroupWinforms:ShipGroupWinformsViewModel">
-		<shipGroupWinforms:ShipGroupWinformsView ViewModel="{Binding}" />
-	</DataTemplate>
 	<DataTemplate x:Key="SenkaLeaderboardTemplate" DataType="{x:Type senkaLeaderboard:SenkaLeaderboardViewModel}">
 		<senkaLeaderboard:SenkaLeaderboardView ViewModel="{Binding}" />
 	</DataTemplate>
@@ -38,7 +34,6 @@
 	<wpf:ViewTemplateSelector
 		x:Key="ViewTemplateSelector"
 		ExpeditionCheck="{StaticResource ExpeditionCheckTemplate}"
-		GroupWinforms="{StaticResource ShipGroupWinformsTemplate}"
 		Information="{StaticResource InformationTemplate}"
 		Log="{StaticResource LogTemplate}"
 		SenkaLeaderboardViewer="{StaticResource SenkaLeaderboardTemplate}"

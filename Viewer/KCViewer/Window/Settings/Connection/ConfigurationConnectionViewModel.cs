@@ -34,8 +34,6 @@ public partial class ConfigurationConnectionViewModel : ConfigurationViewModelBa
 
 	public bool ApplyVersion { get; set; }
 
-	public bool RegisterAsSystemProxy { get; set; }
-
 	public bool UseUpstreamProxy { get; set; }
 
 	[ObservableProperty]
@@ -67,7 +65,6 @@ public partial class ConfigurationConnectionViewModel : ConfigurationViewModelBa
 		SaveResponse = configConnection.SaveResponse;
 		SaveOtherFile = configConnection.SaveOtherFile;
 		ApplyVersion = configConnection.ApplyVersion;
-		RegisterAsSystemProxy = configConnection.RegisterAsSystemProxy;
 		UseUpstreamProxy = configConnection.UseUpstreamProxy;
 		UpstreamProxyPort = configConnection.UpstreamProxyPort;
 		UpstreamProxyAddress = configConnection.UpstreamProxyAddress;
@@ -81,9 +78,6 @@ public partial class ConfigurationConnectionViewModel : ConfigurationViewModelBa
 
 		changed |= ConfigConnection.Port != Port;
 		ConfigConnection.Port = Port;
-
-		changed |= ConfigConnection.RegisterAsSystemProxy != RegisterAsSystemProxy;
-		ConfigConnection.RegisterAsSystemProxy = RegisterAsSystemProxy;
 
 		changed |= ConfigConnection.UseUpstreamProxy != UseUpstreamProxy;
 		ConfigConnection.UseUpstreamProxy = UseUpstreamProxy;
@@ -141,11 +135,5 @@ public partial class ConfigurationConnectionViewModel : ConfigurationViewModelBa
 		if (newSaveDataPath is null) return;
 
 		SaveDataPath = newSaveDataPath;
-	}
-
-	[RelayCommand]
-	private void ExportConnectionScript()
-	{
-		FileService.ExportConnectionScript(Port);
 	}
 }

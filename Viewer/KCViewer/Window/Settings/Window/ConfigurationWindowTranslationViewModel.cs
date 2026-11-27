@@ -4,8 +4,6 @@ namespace KCViewer.Window.Settings.Window;
 
 public class ConfigurationWindowTranslationViewModel : TranslationBaseViewModel
 {
-	public string Life_CanCloseFloatWindowInLock => ConfigRes.Life_CanCloseFloatWindowInLock;
-	public string Life_CanCloseFloatWindowInLockToolTip => ConfigurationResources.Life_CanCloseFloatWindowInLockToolTip;
 	
 	public string Life_LockLayout => ConfigurationResources.Life_LockLayout;
 	public string Life_LockLayoutToolTip => ConfigurationResources.Life_LockLayoutToolTip;

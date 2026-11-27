@@ -55,7 +55,6 @@ public partial class SenkaViewerViewModel : WindowViewModelBase
 	public DateTime MinDate { get; set; }
 	public DateTime MaxDate { get; set; }
 
-	public string Today => $"{DropRecordViewerResources.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	public DataGridViewModel<SenkaRecord> DataGridViewModel { get; } = new();
 
@@ -362,12 +361,4 @@ public partial class SenkaViewerViewModel : WindowViewModelBase
 
 		_ => 0,
 	};
-
-	[RelayCommand]
-	private void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
-	}
 }

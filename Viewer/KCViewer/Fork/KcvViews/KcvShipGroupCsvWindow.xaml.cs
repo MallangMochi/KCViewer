@@ -4,16 +4,22 @@ using System.Linq;
 using System.Windows;
 using KCViewer.Avalonia.ShipGroup;
 using KCViewer.Data;
-using KCViewer.Window.Dialog;
 using Microsoft.Win32;
 
 namespace KCViewer.Fork.KcvViews;
+
+/// <summary>The CSV's two forms: 열람 용 (names) and 데이터 용 (IDs too), as the viewer's dialog had them.</summary>
+public enum KcvShipGroupCsvFormat
+{
+	User,
+	Data,
+}
 
 /// <summary>What the CSV output was asked: 취소, or the file, the format, the ships (null: the viewer's) and 열람 용's header (null: the viewer's).</summary>
 public sealed record KcvShipGroupCsvChoice(
 	bool Cancelled,
 	string OutputPath,
-	DialogShipGroupCSVOutput.OutputFormatConstants OutputFormat,
+	KcvShipGroupCsvFormat OutputFormat,
 	IEnumerable<ShipData?>? Ships,
 	string? UserHeader);
 
@@ -35,7 +41,7 @@ public partial class KcvShipGroupCsvWindow
 
 		if (window.ShowDialog() is not true)
 		{
-			return new KcvShipGroupCsvChoice(true, "", DialogShipGroupCSVOutput.OutputFormatConstants.User, null, null);
+			return new KcvShipGroupCsvChoice(true, "", KcvShipGroupCsvFormat.User, null, null);
 		}
 
 		IEnumerable<ShipData?>? ships = groupSelected && table.SelectedShips.Count == 0
@@ -46,8 +52,8 @@ public partial class KcvShipGroupCsvWindow
 			false,
 			window.PathBox.Text.Trim(),
 			window.UserFormat.IsChecked is true
-				? DialogShipGroupCSVOutput.OutputFormatConstants.User
-				: DialogShipGroupCSVOutput.OutputFormatConstants.Data,
+				? KcvShipGroupCsvFormat.User
+				: KcvShipGroupCsvFormat.Data,
 			ships,
 			ForkStrings.ShipCsvUserHeader);
 	}

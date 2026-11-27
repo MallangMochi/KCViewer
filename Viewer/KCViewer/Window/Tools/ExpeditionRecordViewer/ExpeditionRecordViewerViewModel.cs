@@ -48,7 +48,6 @@ public partial class ExpeditionRecordViewerViewModel : WindowViewModelBase
 	public DateTime MinDate { get; set; }
 	public DateTime MaxDate { get; set; }
 
-	public string Today => $"{DropRecordViewerResources.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	public ObservableCollection<ExpeditionRecordViewModel> Expeditions { get; } = new();
 	public ExpeditionRecordViewModel? SelectedExpedition { get; set; }
@@ -200,13 +199,5 @@ public partial class ExpeditionRecordViewerViewModel : WindowViewModelBase
 		};
 
 		ToolService.FleetImageGenerator(model, data);
-	}
-
-	[RelayCommand]
-	private static void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
 	}
 }

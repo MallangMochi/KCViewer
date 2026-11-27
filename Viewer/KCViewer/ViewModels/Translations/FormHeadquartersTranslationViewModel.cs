@@ -33,14 +33,9 @@ public class FormHeadquartersTranslationViewModel : TranslationBaseViewModel
 	public string ResourceToolTip => HeadquartersResources.ResourceToolTip;
 	public string FurnitureCoinToolTip => HeadquartersResources.FurnitureCoinToolTip;
 
-	public string CopyToClipboardBuckets => HeadquartersResources.CopyToClipboardBuckets;
-	public string CopyToClipboardDevelopmentMaterials => HeadquartersResources.CopyToClipboardDevelopmentMaterials;
-	public string CopyToClipboardInstantConstruction => HeadquartersResources.CopyToClipboardInstantConstruction;
-	public string CopyToClipboardImproveMaterial => HeadquartersResources.CopyToClipboardImproveMaterial;
 	public string FailedToCopyToClipboard => HeadquartersResources.FailedToCopyToClipboard;
 	public string DisplayUseItemToolTipHint => HeadquartersResources.DisplayUseItemToolTipHint;
 	public string UnknownItem => HeadquartersResources.UnknownItem;
-	public string ListOfOwnedItems => HeadquartersResources.ListOfOwnedItems;
 
 	public string Rice => HeadquartersResources.Rice;
 	public string Umeboshi => HeadquartersResources.Umeboshi;

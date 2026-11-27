@@ -16,12 +16,6 @@ public static class ForkOptions
 	public static bool UseDevToolsCapture => true;
 
 	/// <summary>
-	/// Upstream program updates are not installed: they would replace the fork's files with the upstream release.
-	/// Data and translation updates still run. Upstream code changes are merged with git.
-	/// </summary>
-	public static bool DisableSoftwareUpdate => true;
-
-	/// <summary>
 	/// UI language of a new configuration: Korean whatever the Windows language (user decision), with the ship and
 	/// equipment names translated. Upstream started in Japanese only on a Japanese system and in English otherwise.
 	/// </summary>

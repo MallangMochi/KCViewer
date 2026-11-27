@@ -10,5 +10,4 @@ public class ConfigurationGroupTranslationViewModel : TranslationBaseViewModel
 	public string FormShipGroup_ShowStatusBar => ConfigurationResources.FormShipGroup_ShowStatusBar;
 	public string ShowStatusbarHint => ConfigRes.ShowStatusbarHint;
 
-	public string ShipNameSortMethod => ConfigRes.ShipNameSortMethod;
 }

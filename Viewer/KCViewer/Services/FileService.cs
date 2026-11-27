@@ -88,54 +88,6 @@ public class FileService
 		};
 	}
 
-	public static void ExportConnectionScript(int port)
-	{
-		string? serverAddress = APIObserver.Instance.ServerAddress;
-
-		if (serverAddress is null)
-		{
-			MessageBox.Show(ConfigurationResources.PleaseStartKancolle, ConfigurationResources.DialogCaptionErrorTitle,
-				MessageBoxButton.OK, MessageBoxImage.Exclamation);
-			return;
-		}
-
-		SaveFileDialog dialog = new()
-		{
-			Filter = "Proxy Script|*.pac|File|*",
-			Title = ConfigurationResources.SavePacFileAs,
-			InitialDirectory = Directory.GetCurrentDirectory(),
-			FileName = Directory.GetCurrentDirectory() + "\\proxy.pac",
-		};
-
-		if (dialog.ShowDialog(MainWindow) != true) return;
-
-		try
-		{
-			using (StreamWriter sw = new(dialog.FileName))
-			{
-				sw.WriteLine("function FindProxyForURL(url, host) {");
-				sw.WriteLine("  if (/^" + serverAddress.Replace(".", @"\.") + "/.test(host)) {");
-				sw.WriteLine("    return \"PROXY localhost:{0}; DIRECT\";", port);
-				sw.WriteLine("  }");
-				sw.WriteLine("  return \"DIRECT\";");
-				sw.WriteLine("}");
-			}
-
-			Clipboard.SetData(DataFormats.StringFormat, "file:///" + dialog.FileName.Replace('\\', '/'));
-
-			MessageBox.Show(ConfigurationResources.ProxyAutoConfigSaved,
-				ConfigurationResources.PacSavedTitle,
-				MessageBoxButton.OK, MessageBoxImage.Information);
-		}
-		catch (Exception ex)
-		{
-			ErrorReporter.SendErrorReport(ex, ConfigurationResources.FailedToSavePac);
-			MessageBox.Show(ConfigurationResources.FailedToSavePac + "\r\n" + ex.Message,
-				ConfigurationResources.DialogCaptionErrorTitle,
-				MessageBoxButton.OK, MessageBoxImage.Error);
-		}
-	}
-
 	public static string? OpenApiListPath(string path)
 	{
 		OpenFileDialog dialog = new()

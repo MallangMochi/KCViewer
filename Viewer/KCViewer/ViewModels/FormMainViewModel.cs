@@ -119,10 +119,6 @@ public partial class FormMainViewModel : ObservableObject
 
 	public string MaintenanceText { get; set; } = "";
 	public Visibility MaintenanceTextVisibility => string.IsNullOrEmpty(MaintenanceText) ? Visibility.Collapsed : Visibility.Visible;
-	public bool UpdateAvailable { get; set; } = false;
-
-	public string DownloadProgressString { get; private set; } = "";
-	public Visibility DownloadProgressVisibility { get; private set; } = Visibility.Collapsed;
 
 	public List<Theme> Themes { get; } = new()
 	{
@@ -140,7 +136,6 @@ public partial class FormMainViewModel : ObservableObject
 
 	public List<FleetViewModel> Fleets { get; }
 	public FleetOverviewViewModel FleetOverview { get; }
-	// public ShipGroupWinformsViewModel FormShipGroup { get; }
 	public ShipGroupAvaloniaViewModel ShipGroup { get; }
 	public FleetPresetViewModel FleetPreset { get; }
 	public ShipTrainingPlanViewerViewModel ShipTrainingPlanViewer { get; }
@@ -261,7 +256,6 @@ public partial class FormMainViewModel : ObservableObject
 		// Fork: a docked fleet panel to the front when its fleet's composition changes
 		Fork.ForkFleetPanelSwitch.Attach(DockingManager, Fleets);
 		Views.Add(FleetOverview = new FleetOverviewViewModel(Fleets));
-		// Views.Add(FormShipGroup = new ShipGroupWinformsViewModel());
 		Views.Add(ShipGroup = new ShipGroupAvaloniaViewModel());
 		Views.Add(FleetPreset = new FleetPresetViewModel());
 		ShipTrainingPlanViewer = Ioc.Default.GetRequiredService<ShipTrainingPlanViewerViewModel>();
@@ -339,13 +333,6 @@ public partial class FormMainViewModel : ObservableObject
 			Config.Life.LockLayout = LockLayout;
 			SaveLayout(Window);
 			ConfigurationChanged();
-		};
-
-		PropertyChanged += (sender, args) =>
-		{
-			if (args.PropertyName is not nameof(DownloadProgressString)) return;
-
-			DownloadProgressVisibility = string.IsNullOrEmpty(DownloadProgressString) ? Visibility.Collapsed : Visibility.Visible;
 		};
 
 		Logger.Add(3, Resources.StartupComplete);
@@ -556,9 +543,6 @@ public partial class FormMainViewModel : ObservableObject
 
 		// Fork: the KanColleViewer style window
 		Fork.KcvViews.KcvCalcWindows.ShowConfiguration(Window);
-
-		// Fork: a notification part changed in the viewer's own dialogs no longer follows the common settings
-		Fork.ForkNotifierDefaults.Reconcile();
 	}
 
 	#endregion
@@ -571,22 +555,6 @@ public partial class FormMainViewModel : ObservableObject
 		view.Visibility = Visibility.Visible;
 		view.IsSelected = true;
 		view.IsActive = true;
-	}
-
-	[RelayCommand]
-	private void OpenOldShipGroup()
-	{
-		// FormShipGroup.Visibility = Visibility.Visible;
-		// FormShipGroup.IsSelected = true;
-		// FormShipGroup.IsActive = true;
-	}
-
-	[RelayCommand]
-	private void OpenNewShipGroup()
-	{
-		ShipGroup.Visibility = Visibility.Visible;
-		ShipGroup.IsSelected = true;
-		ShipGroup.IsActive = true;
 	}
 
 	[RelayCommand]
@@ -1666,10 +1634,6 @@ public partial class FormMainViewModel : ObservableObject
 
 	#region Updates
 	[RelayCommand]
-	private void StartSoftwareUpdate()
-		=> Task.Run(SoftwareUpdater.UpdateSoftware);
-
-	[RelayCommand]
 	private void OpenReleaseNotes()
 		=> OpenLink(Fork.ForkHelpLinks.ReleasesUrl); // Fork: our releases
 	#endregion
@@ -1703,8 +1667,6 @@ public partial class FormMainViewModel : ObservableObject
 		ClockFormat = c.Life.ClockFormat;
 		SetTheme();
 
-		// FormShipGroup.ShipGroup.BackColor = System.Drawing.SystemColors.Control;
-		// FormShipGroup.ShipGroup.ForeColor = System.Drawing.SystemColors.ControlText;
 
 		LockLayout = c.Life.LockLayout;
 		CanChangeGridSplitterSize = !LockLayout;
@@ -1778,12 +1740,6 @@ public partial class FormMainViewModel : ObservableObject
 		DateTime now = DateTimeHelper.GetJapanStandardTimeNow();
 
 		MaintenanceText = GetMaintenanceText(FormMain, now);
-		// Fork: 74식's 「업데이트 데이터가 존재합니다」 (its bld_date) is left out; the item shows the viewer's own
-		// (Fork/Update/ForkProgramUpdateUi)
-		UpdateAvailable = false;
-
-		DownloadProgressString = SoftwareUpdater.DownloadProgressString;
-
 		switch (ClockFormat)
 		{
 			case 0: //時計表示

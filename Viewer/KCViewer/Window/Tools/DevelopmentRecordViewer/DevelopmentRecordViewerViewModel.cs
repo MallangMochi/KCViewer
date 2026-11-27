@@ -62,7 +62,6 @@ public partial class DevelopmentRecordViewerViewModel : WindowViewModelBase
 
 	private string NameNotExist => DevelopmentRecordViewerResources.NameNotExist; //(失敗)
 
-	public string Today => $"{DialogDevelopmentRecordViewer.Today}: {DateTime.Now:yyyy/MM/dd}";
 
 	private ObservableCollection<DevelopmentRecordRow> RecordRows { get; set; } = new();
 	public DataGridViewModel<DevelopmentRecordRow> DataGridRawRowsViewModel { get; set; }
@@ -498,13 +497,5 @@ public partial class DevelopmentRecordViewerViewModel : WindowViewModelBase
 		StatusInfoTag = DateTime.Now;
 
 		Searcher.RunWorkerAsync();
-	}
-
-	[RelayCommand]
-	private void SelectToday(Calendar? calendar)
-	{
-		if (calendar is null) return;
-
-		calendar.SelectedDate = DateTime.Now.Date;
 	}
 }
